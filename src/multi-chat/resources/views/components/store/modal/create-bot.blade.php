@@ -211,8 +211,7 @@
                                 for="bot-system_prompt">{{ __('store.bot.system_prompt') }}</label>
                             <div class="flex items-center">
                                 <textarea id="bot-system_prompt" type="text"
-                                    oninput="ace.edit('bot-modelfile-editor').setValue(modelfile_to_string((modelfile_parse(ace.edit('bot-modelfile-editor').getValue()).some(obj => obj.name === 'system') ? modelfile_parse(ace.edit('bot-modelfile-editor').getValue()) : [...modelfile_parse(ace.edit('bot-modelfile-editor').getValue()), { name: 'system', args: 'uwu' }])
-                                    .map(obj => obj.name === 'system' ? { ...obj, args: $(this).val() } : obj))); adjustTextareaRows(this);ace.edit('modelfile-editor').gotoLine(0);"
+                                    oninput="alterBotfile('system', $(this).val()); adjustTextareaRows(this);"
                                     rows="1" max-rows="4" placeholder="{{ __('store.bot.system_prompt.label') }}"
                                     class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
@@ -225,8 +224,7 @@
                                 for="bot-before_prompt">{{ __('store.bot.before_prompt') }}</label>
                             <div class="flex items-center">
                                 <textarea id="bot-before_prompt" type="text"
-                                    oninput="ace.edit('bot-modelfile-editor').setValue(modelfile_to_string((modelfile_parse(ace.edit('bot-modelfile-editor').getValue()).some(obj => obj.name === 'before-prompt') ? modelfile_parse(ace.edit('bot-modelfile-editor').getValue()) : [...modelfile_parse(ace.edit('bot-modelfile-editor').getValue()), { name: 'before-prompt', args: 'uwu' }])
-                                    .map(obj => obj.name === 'before-prompt' ? { ...obj, args: $(this).val() } : obj))); adjustTextareaRows(this);ace.edit('modelfile-editor').gotoLine(0);"
+                                    oninput="alterBotfile('before-prompt', $(this).val()); adjustTextareaRows(this);"
                                     rows="1" max-rows="4" placeholder="{{ __('store.bot.before_prompt.label') }}"
                                     class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
@@ -239,13 +237,7 @@
                                 for="bot-after_prompt">{{ __('store.bot.after_prompt') }}</label>
                             <div class="flex items-center">
                                 <textarea id="bot-after_prompt" type="text"
-                                    oninput="ace.edit('bot-modelfile-editor').setValue(
-                                        modelfile_to_string(
-                                            (modelfile_parse(ace.edit('bot-modelfile-editor').getValue())
-                                            .some(obj => obj.name === 'after-prompt') ? 
-                                            modelfile_parse(ace.edit('bot-modelfile-editor').getValue()) : [...modelfile_parse(ace.edit('bot-modelfile-editor').getValue())
-                                            , { name: 'after-prompt', args: 'uwu' }])
-                                    .map(obj => obj.name === 'after-prompt' ? { ...obj, args: $(this).val() } : obj))); adjustTextareaRows(this);ace.edit('modelfile-editor').gotoLine(0);"
+                                    oninput="alterBotfile('after-prompt', $(this).val()); adjustTextareaRows(this);"
                                     rows="1" max-rows="4" placeholder="{{ __('store.bot.after_prompt.label') }}"
                                     class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
@@ -301,7 +293,24 @@
         return false;
     }
 
-    function importBotModelfile(modelfile) {
+    function alterBotfile(inst, args) {
+        /*
+         * Change append the line "<inst> <args>" to the botfile.
+         * If the instruction existed, replace the existed one.
+         * 
+         * Arguments:
+         *   - inst: The instruction
+         *   - args: The arguments of the instruction
+         */
+
+        parsed_modelfile = modelfile_parse(ace.edit('bot-modelfile-editor').getValue());
+        new_modelfile = parsed_modelfile.filter((item) => item.name !== inst);
+        new_modelfile.push({name: inst, args: args});
+        ace.edit('bot-modelfile-editor').setValue(modelfile_to_string(new_modelfile));
+        ace.edit('modelfile-editor').gotoLine(0);
+    }
+
+    function importBotfile(modelfile) {
         modelfile = modelfile_parse(modelfile);
         console.debug(modelfile);
         let get_bot_config = function(modelfile, k) {
@@ -374,7 +383,7 @@
             let modelfile = new TextDecoder().decode(parts[0].data);
             let avatar_part = parts.filter((x) => x.headers["Content-Location"] === "/bot-avatar");
 
-            importBotModelfile(modelfile);
+            importBotfile(modelfile);
 
             if (avatar_part.length != 0) {
                 console.debug(avatar_part);
