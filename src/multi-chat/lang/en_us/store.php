@@ -44,5 +44,9 @@ return [
     'bot.after_prompt' => 'User post-prompt',
     'bot.before_prompt.label' => 'This prompt will be added before the users prompt during inference',
     'bot.after_prompt.label' => 'This prompt will be added after the users prompt during inference',
+    'bot.knowledge' => 'Knowledge',
+    'bot.knowledge.label' => 'Select Knowledge Base',
+    'bot.next_bot' => 'Next bot',
+    'bot.next_bot.label' => 'Select Next Bbt',
     'bot.button.chat' => 'Chat',
 ];

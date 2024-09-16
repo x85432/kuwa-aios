@@ -243,6 +243,32 @@
                             </div>
                         </div>
                     </div>
+                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                        id="knowledge">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-knowledge">{{ __('store.bot.knowledge') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="knowledge-list" autocomplete="off" id="bot-knowledge"
+                                    oninput="alterBotfile('parameter', ['retriever_database', $(this).val()]);"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.knowledge.label') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                        id="next-bot">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-next-bot">{{ __('store.bot.next_bot') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="llm-list" autocomplete="off" id="bot-next_bot"
+                                    oninput="alterBotfile('parameter', ['next_bot', $(this).val()]);"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.next_bot.label') }}">
+                            </div>
+                        </div>
+                    </div>
                     <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
                         <div class="w-full">
                             <label
@@ -303,9 +329,13 @@
          *   - args: The arguments of the instruction
          */
 
+        if (typeof args === 'string' || args instanceof String) {
+            args = [args];
+        }
+
         parsed_modelfile = modelfile_parse(ace.edit('bot-modelfile-editor').getValue());
-        new_modelfile = parsed_modelfile.filter((item) => item.name !== inst);
-        new_modelfile.push({name: inst, args: args});
+        new_modelfile = parsed_modelfile.filter((item) => item.name !== inst || item.args.split(' ')[0] !== args[0]);
+        new_modelfile.push({name: inst, args: args.join(' ')});
         ace.edit('bot-modelfile-editor').setValue(modelfile_to_string(new_modelfile));
         ace.edit('modelfile-editor').gotoLine(0);
     }

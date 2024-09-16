@@ -48,5 +48,9 @@ return [
     'bot.after_prompt' => '使用者後提示詞',
     'bot.before_prompt.label' => '該提示詞會在推論期間加在使用者提示詞前面',
     'bot.after_prompt.label' => '該提示詞會在推論期間加在使用者提示詞後面',
+    'bot.knowledge' => '知識',
+    'bot.knowledge.label' => '選取知識',
+    'bot.next_bot' => '下一個機器人',
+    'bot.next_bot.label' => '選取下一個機器人',
     'bot.button.chat' => '聊天',
 ];
