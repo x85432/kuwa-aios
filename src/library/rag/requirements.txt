@@ -1,0 +1,12 @@
+langchain
+langchain-community
+sentence-transformers
+textract
+bs4
+# faiss-gpu # Since the count of fetched document is relatively small, CPU is enough.
+faiss-cpu
+trafilatura
+lxml_html_clean
+requests
+selenium
+python-i18n[YAML]

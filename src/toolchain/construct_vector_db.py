@@ -58,8 +58,8 @@ def construct_db(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Construct a FAISS vector database from local documents.')
-    parser.add_argument("docs_path", help="the path to the directory of input documents.", type=str)
-    parser.add_argument("output_path", help="the path where the final database will be stored.", type=str)
+    parser.add_argument("docs_path", help="the path to the directory of input documents.", default="", type=str)
+    parser.add_argument("output_path", help="the path where the final database will be stored.", default="", type=str)
     parser.add_argument('--visible_gpu', default=None, help='Specify the GPU IDs that this executor can use. Separate by comma.')
     parser.add_argument("--chunk-size", help="The chunk size to split the document.", type=int, default=512)
     parser.add_argument("--chunk-overlap", help="The chunk size to split the document.", type=int, default=128)

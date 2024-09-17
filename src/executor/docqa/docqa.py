@@ -21,11 +21,11 @@ from kuwa.executor import LLMExecutor, Modelfile
 from kuwa.executor.modelfile import ParameterDict
 from kuwa.executor.llm_executor import extract_last_url
 from kuwa.client import KuwaClient
+from kuwa.rag.document_store import DocumentStore
+from kuwa.rag.document_store_factory import DocumentStoreFactory
+from kuwa.rag.crawler import Crawler
 
 from src.docqa import DocQa
-from src.document_store import DocumentStore
-from src.document_store_factory import DocumentStoreFactory
-from src.crawler import Crawler
 
 logger = logging.getLogger(__name__)
 

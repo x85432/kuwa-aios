@@ -9,7 +9,7 @@ from langchain.docstore.document import Document
 from kuwa.executor import Modelfile
 from kuwa.client import KuwaClient
 
-from .document_store import DocumentStore
+from kuwa.rag.document_store import DocumentStore
 
 import i18n
 import re

@@ -35,13 +35,15 @@ RUN pip install --no-cache-dir -r ./uploader/requirements.txt
 COPY src/tools/requirements.txt ./tools/requirements.txt
 RUN pip install --no-cache-dir -r ./tools/requirements.txt
 
-# Install the executor framework and client library
+# Install the executor framework, client library and RAG library
 COPY .git ../../.git
 COPY src/executor/. .
 COPY src/library/client ../library/client
+COPY src/library/rag ../library/rag
 
 RUN pip install . &&\
     pip install --no-cache-dir ../library/client &&\
+    pip install --no-cache-dir ../library/rag &&\
     rm -rf ../../.git
 
 # Install the multi-chat-client and the entrypoint

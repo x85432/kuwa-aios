@@ -162,6 +162,9 @@ popd
 pushd "..\src\library\client"
 uv pip install --system --force-reinstall .
 popd
+pushd "..\src\library\rag"
+pip install --default-timeout=1000 --force-reinstall .
+popd
 pushd "..\src\executor"
 uv pip install --system --force-reinstall .
 call :install-requirements-txt

@@ -17,9 +17,9 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from kuwa.executor import LLMExecutor, Modelfile
 from kuwa.executor.modelfile import ParameterDict
 from kuwa.client import KuwaClient
+from kuwa.rag.crawler import Crawler
 
 from docqa import DocQaExecutor, NoUrlException
-from src.crawler import Crawler
 
 logger = logging.getLogger(__name__)
 
