@@ -1,5 +1,6 @@
 import logging
-from typing import List, Optional
+import asyncio
+from typing import List, Optional, AsyncIterator
 from pathlib import Path
 
 from langchain.docstore.document import Document
@@ -42,6 +43,14 @@ class FileTextLoader(TextLoader):
             extractor = mime_extractor[file_mime_type]
         
         return extractor()
+    
+    async def alazy_load(
+        self,
+    ) -> AsyncIterator[Document]:
+        loop = asyncio.get_event_loop()
+        docs = await loop.run_in_executor(None, self.lazy_load)
+        for doc in docs:
+            yield doc
     
     def load_doc(self) -> List[Document]:
         """Load text from document file."""

@@ -37,7 +37,7 @@ class EmbeddingModelManager:
     If a model is not referenced by any instance, it will be unload from the memory.
     If the model_name is not specified, all of the model acquired by the caller will be released.
     """
-    models = [model_name] if model_name is not None else self.models.keys().copy()
+    models = [model_name] if model_name is not None else list(self.models.keys())
     for name in models:
       self.referers[name].remove(caller_id)
       if len(self.referers[name]) > 0: continue

@@ -9,7 +9,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 from functools import lru_cache
+from langchain_community.document_loaders import DirectoryLoader
 
+from .file_text_loader import FileTextLoader
 from .document_store import DocumentStore
 from .crawler import Crawler
 
@@ -79,9 +81,10 @@ class DocumentStoreFactory:
 
     path = file_uri2path(list(urls)[0])
     if path is None: return False
-    if not path.is_dir() and not str(path).endswith('.zip'): return False
-
-    return True
+    if path.is_dir():
+      return (path / DocumentStore.config_filename).is_file()
+    else:
+      return str(path).endswith('.zip')
 
   @lru_cache()
   @cacheable
@@ -90,6 +93,30 @@ class DocumentStoreFactory:
       return DocumentStore()
     else:
       return DocumentStore(**kwargs)
+    
+  @lru_cache()
+  @cacheable
+  async def _load_documents(self, urls:frozenset):
+    jobs = []
+    for url in list(urls):
+      path = file_uri2path(url)
+      if path is None:
+        jobs.append(self.crawler.fetch_documents(url))
+      else:
+        if os.path.isdir(path):
+          loader = DirectoryLoader(
+            path,
+            recursive=True,
+            loader_cls=FileTextLoader,
+            use_multithreading=True,
+            show_progress=True
+          )
+        else:
+          loader = FileTextLoader(file_path=path)
+        jobs.append(loader.aload())
+    docs = await asyncio.gather(*jobs)
+    docs = [doc for sub_docs in docs for doc in sub_docs]
+    return docs
 
   @lru_cache()
   @cacheable
@@ -113,10 +140,7 @@ class DocumentStoreFactory:
         )
       document_store = DocumentStore.load(str(db_path))
     else:
-      docs = await asyncio.gather(*[self.crawler.fetch_documents(url) for url in urls])
-      docs = [doc for sub_docs in docs for doc in sub_docs]
-      if len(docs) == 0: raise RuntimeError("Error fetching documents.")
-
+      docs = await self._load_documents(urls)
       document_store = copy.deepcopy(await self._get_document_store(document_store_kwargs))
       await document_store.from_documents(docs)
     logger.debug(f"Document store constructed")

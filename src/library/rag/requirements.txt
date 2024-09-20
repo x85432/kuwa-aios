@@ -10,3 +10,8 @@ lxml_html_clean
 requests
 selenium
 python-i18n[YAML]
+
+tqdm
+python-dotenv
+simsimd==3.7.7
+magik

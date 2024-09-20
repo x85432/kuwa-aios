@@ -98,7 +98,7 @@ class DocumentStore:
 
     self.vector_store.save_local(path)
     
-    config = {'embedding_name': self.embedding_model_name}
+    config = {'embedding_name': self.embedding_model}
     with open(Path(path)/DocumentStore.config_filename, 'w') as f:
       json.dump(config, f)
 
