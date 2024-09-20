@@ -8,7 +8,7 @@ import hashlib
 from pathlib import Path
 from langchain.docstore.document import Document
 from langchain_community.vectorstores import FAISS
-from langchain.retrievers.bm25 import BM25Retriever
+from langchain_community.retrievers import BM25Retriever
 from langchain.schema.vectorstore import VectorStoreRetriever
 from langchain.retrievers.ensemble import EnsembleRetriever
 
