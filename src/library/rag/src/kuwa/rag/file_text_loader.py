@@ -60,11 +60,11 @@ class FileTextLoader(TextLoader):
         
         logger.debug(f"{self.file_path}: {file_mime_type}, {extractor.__name__}")
 
+        docs = []
         try:
             docs = extractor()
         except Exception as e:
             logger.warning(f"Error loading {self.file_path}: {type(e).__name__}: {e.args[0]}. Skipped.")
-            return []
         finally:
             return docs
     
