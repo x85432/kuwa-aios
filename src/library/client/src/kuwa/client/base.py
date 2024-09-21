@@ -4,6 +4,7 @@ import json
 import asyncio
 import requests
 import logging
+import httpx
 from urllib.parse import urljoin
 
 logger = logging.getLogger(__name__)
@@ -100,11 +101,13 @@ class KuwaClient:
             "stream": streaming
         }
 
-        with requests.post(url, headers=headers, json=request_body, stream=True, timeout=timeout) as resp:
-            if not resp.ok:
-                raise RuntimeError(f'Request failed with status {resp.status_code}')
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers, json=request_body, timeout=timeout)
 
-            for line in resp.iter_lines(decode_unicode=True):
+            if not response.is_success:
+                raise RuntimeError(f'Request failed with status {response.status_code}')
+
+            async for line in response.aiter_lines():
                 logger.debug(line)
                 if not streaming:
                     yield json.loads(line)["choices"][0]["message"]["content"]
@@ -114,5 +117,6 @@ class KuwaClient:
                     break
                 elif line.startswith("data: "):
                     chunk = json.loads(line[len("data: "):])["choices"][0]["delta"]
-                    if not chunk: continue
+                    if not chunk:
+                        continue
                     yield chunk["content"]
