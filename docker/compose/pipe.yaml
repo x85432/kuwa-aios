@@ -15,7 +15,7 @@ services:
       "--log", "debug",
     ]
     volumes: [
-      "kuwa-root:/var/kuwa/docker/root:ro", # The root of Kuwa filesystem hierarchy to store user-uploaded data during runtime.
+      "kuwa-root:/var/kuwa/docker/root:rw", # The root of Kuwa filesystem hierarchy to store user-uploaded data during runtime.
     ]
     extra_hosts:
       - "localhost:host-gateway"
