@@ -13,7 +13,8 @@ create_symlinks() {
     # Check if it's a regular file
     if [[ -f "$file" ]]; then
       # Create symbolic link in directory "b" with the same filename
-      ( set -x; ln -s "$file" "$2/${file##*/}" )
+      target=$(realpath -s -m --relative-to="$2" "$file")
+      ( set -x; ln -s "$target" "$2/${file##*/}" )
     fi
   done
 }
