@@ -6,10 +6,8 @@ confs=(
   # "dev" # Increase the verbosity for debug
   "pgsql"
   "copycat"
-  "sysinfo"
   "pipe"
   "uploader"
-  "token_counter"
   "gemini"
   "chatgpt"
   "dall-e"
