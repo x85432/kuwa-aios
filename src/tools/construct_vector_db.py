@@ -94,7 +94,8 @@ async def construct_db(
     db_name:str,
     chunk_size:int = 512,
     chunk_overlap:int = 128,
-    embedding_model:str = 'intfloat/multilingual-e5-small'
+    embedding_model:str = 'intfloat/multilingual-e5-small',
+    create_bot:bool = True
     ):
     """
     Construct vector database from local documents and save to the destination.
@@ -117,7 +118,8 @@ async def construct_db(
     #    os.replace(tmpdirname, output_path)
     db.save(output_path)
     logger.info(f'Saved vector store to {output_path}.')
-    await create_bot(db_name=db_name, db_path=output_path)
+    if create_bot:
+        await create_bot(db_name=db_name, db_path=output_path)
 
 async def create_bot(db_name, db_path):
 
@@ -136,12 +138,13 @@ async def create_bot(db_name, db_path):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Construct a FAISS vector database from local documents.')
-    parser.add_argument("output_dir", help="the path where the final database will be stored. Under KUWA_ROOT", default="database", type=str)
+    parser.add_argument("output_dir", help="The path where the final database will be stored. Under KUWA_ROOT", default="database", type=str)
     parser.add_argument('--visible_gpu', default=None, help='Specify the GPU IDs that this executor can use. Separate by comma.')
     parser.add_argument("--chunk-size", help="The chunk size to split the document.", type=int, default=512)
     parser.add_argument("--chunk-overlap", help="The chunk size to split the document.", type=int, default=128)
-    parser.add_argument("--embedding-model", help="the embedding model to use", type=str, default="intfloat/multilingual-e5-small")
-    parser.add_argument("--log", help="the log level. (INFO, DEBUG, ...)", type=str, default="INFO")
+    parser.add_argument("--embedding-model", help="The embedding model to use", type=str, default="intfloat/multilingual-e5-small")
+    parser.add_argument("--no-create-bot", help="Do not create corresponding bot", action="store_true")
+    parser.add_argument("--log", help="The log level. (INFO, DEBUG, ...)", type=str, default="INFO")
     args, unknown_args = parser.parse_known_args()
     return args,unknown_args
 
@@ -184,7 +187,8 @@ if __name__ == "__main__":
                     db_name=db_name,
                     chunk_size=args.chunk_size,
                     chunk_overlap=args.chunk_overlap,
-                    embedding_model=args.embedding_model
+                    embedding_model=args.embedding_model,
+                    create_bot=not args.no_create_bot,
                 )
             )
 
