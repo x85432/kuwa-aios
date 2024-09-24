@@ -49,7 +49,7 @@ return [
     'bot.knowledge' => 'Knowledge',
     'bot.knowledge.label' => 'Select Knowledge Base',
     'bot.next_bot' => 'Next bot',
-    'bot.next_bot.label' => 'Select Next Bbt',
+    'bot.next_bot.label' => 'Select Next Bot',
     'bot.button.chat' => 'Chat',
     'bot.type' => 'Type',
     'bot.type.desc.prompt' => 'Prompt Bot: Create a bot by giving it instructions',
