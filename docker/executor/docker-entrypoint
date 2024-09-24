@@ -1,10 +1,42 @@
 #!/bin/bash
-set -xeu
+set -u
 
 init_kuwa_filesystem_hierarchy(){
     mkdir -p ${KUWA_ROOT}/bin
     mkdir -p ${KUWA_ROOT}/database
     mkdir -p ${KUWA_ROOT}/custom
+}
+
+wait_multi_chat_ready(){
+    # Set the maximum number of attempts to ping
+    MAX_ATTEMPTS=60
+
+    # Set the interval between ping attempts (in seconds)
+    INTERVAL=10
+
+    # Initialize the attempt counter
+    ATTEMPT=1
+
+    # Loop until the service is alive or the maximum attempts are reached
+    while [[ $ATTEMPT -le $MAX_ATTEMPTS ]]; do
+        # Execute the ping command and check the exit status
+        multi-chat-client ping > /dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            echo "Multi-chat is alive!"
+            break
+        else
+            echo "Attempt $ATTEMPT: multi-chat is not reachable. Retrying in $INTERVAL seconds..."
+            sleep $INTERVAL
+        fi
+
+        # Increment the attempt counter
+        ATTEMPT=$((ATTEMPT + 1))
+    done
+
+    # Check if the service is still unreachable after the maximum attempts
+    if [[ $ATTEMPT -gt $MAX_ATTEMPTS ]]; then
+        echo "Error: multi-chat is unreachable after $MAX_ATTEMPTS attempts."
+    fi
 }
 
 add_executor(){
@@ -25,13 +57,20 @@ add_executor(){
         else
             image=""
         fi
+        echo "Trying to add Executor \"${name}\"(${access_code}) to multi-chat."
         multi-chat-client add-executor "${access_code}" "${name}" ${image} || true
+        if [[ $? -eq 0 ]]; then
+            echo "Successfully add Executor \"${name}\"(${access_code}) to multi-chat."
+        else
+            echo "Failed to add Executor \"${name}\"(${access_code}) to multi-chat."
+        fi
     done
 }
 
 init_kuwa_filesystem_hierarchy
 if [ "${ADD_EXECUTOR_TO_MULTI_CHAT}" = true ]
 then
+    wait_multi_chat_ready
     add_executor
 fi
 

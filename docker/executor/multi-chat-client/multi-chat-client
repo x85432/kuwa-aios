@@ -36,6 +36,18 @@ def add_executor(client:PHPFPMClient, access_code:str, name:str, image:str=None,
 
     sys.exit(0)
 
+def ping(client:PHPFPMClient):
+    try:
+        response = client.get(file="/app/public/index.php")
+        if not response:
+            raise Exception()
+        else:
+            logging.info("Multi-chat is alive.")
+            sys.exit(0)
+    except Exception as e:
+        logging.error(f"Failed to connect to multi-chat.")
+        sys.exit(1)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A utility to invoke multi-chat API.')
     parser.add_argument('-t', '--target', help='Target to call, host:port or unix://path', default="multi-chat:9000")
@@ -47,6 +59,8 @@ if __name__ == '__main__':
     add_model_parser.add_argument("access_code", type=str, help="The access code of the executor")
     add_model_parser.add_argument("name", type=str, help="The name of the executor")
     add_model_parser.add_argument("--image", type=str, default=None, help="The image of the executor. Reference to the directory \"/app/default-icons/\" on multi-chat.")
+    
+    ping_parser = subparsers.add_parser('ping', help='Probe whether multi-chat is available.')
     args = parser.parse_args()
 
     if args.verbose:
@@ -57,6 +71,8 @@ if __name__ == '__main__':
     client = PHPFPMClient(args.target, args.timeout)
     if args.subcommand == "add-executor":
         add_executor(client, access_code=args.access_code, name=args.name, image=args.image)
+    elif args.subcommand == "ping":
+        ping(client)
     else:
         logging.error(f"Sub-command {args.subcommand} is not supported.")
         sys.exit(1)

@@ -135,7 +135,7 @@ upgrade() {
     seed_kernel || true
     seed_admin || true
 
-    secs=60
+    secs=30
     while [ $secs -gt 0 ]; do
         echo "Waiting for Executors to become ready... ($secs seconds remaining)"
         sleep 1
