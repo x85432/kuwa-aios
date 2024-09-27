@@ -132,8 +132,12 @@
                                 <script>
                                     $('#visibility_list input[checked]:last()').click()
                                 </script>
+                                <button type="button" disabled
+                                    class="server-bot hidden cursor-not-allowed text-gray-400 bg-gray-300 rounded-r-lg font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:text-gray-400"
+                                    >{{ __('store.bot.react_buttons') }}
+                                </button>
                                 <button id="react_button" data-dropdown-toggle="react_button_list"
-                                    class="text-white rounded-r-lg bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700"
+                                    class="prompt-bot text-white rounded-r-lg bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700"
                                     type="button">{{ __('store.bot.react_buttons') }}
                                 </button>
                                 <div id="react_button_list"
@@ -167,6 +171,27 @@
                             <div class="w-full">
                                 <label class="block uppercase tracking-wide dark:text-white text-xs font-bold mb-2"
                                     for="llm_name">
+                                    {{ __('store.bot.type') }}
+                                </label>
+                                <select name="bot_type" id="bot_type" onchange="showBotConfigLayout()" autocomplete="off"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                >
+                                    <option value="prompt" selected>{{ __('store.bot.type.desc.prompt') }}</option>
+                                    <option value="server" >{{ __('store.bot.type.desc.server') }}</option>
+                                </select>
+                            </div>
+                            <div class="w-full mt-2 server-bot hidden">
+                                <div class="w-full">
+                                    <label for="bot_server"
+                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ __('store.bot.server_url') }}</label>
+                                    <input type="text" id="bot_server_url" name="bot_server_url" autocomplete="off"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        placeholder="{{ __('store.bot.server_url.label') }}">
+                                </div> 
+                            </div>
+                            <div class="w-full mt-2 prompt-bot">
+                                <label class="block uppercase tracking-wide dark:text-white text-xs font-bold mb-2"
+                                    for="llm_name">
                                     {{ __('store.bot.base_model') }}
                                 </label>
                                 <input type="text" list="llm-list" name="llm_name" autocomplete="off" id="llm_name"
@@ -184,15 +209,15 @@
                                     </datalist>
                                 @endonce
                             </div>
-                            <div class="w-full mt-2">
-                                <div class="w-full">
-                                    <label for="bot_name"
-                                        class="block uppercase tracking-wide dark:text-white text-xs font-bold mb-2">{{ __('store.bot.name') }}</label>
-                                    <input type="text" id="bot_name" name="bot_name" autocomplete="off"
-                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        placeholder="{{ __('store.bot.name.label') }}">
-                                </div>
-                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
+                        <div class="w-full">
+                            <label for="bot_name"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ __('store.bot.name') }}</label>
+                            <input type="text" id="bot_name" name="bot_name" autocomplete="off"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="{{ __('store.bot.name.label') }}">
                         </div>
                     </div>
                     <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
@@ -205,7 +230,7 @@
                         </div>
                     </div>
                     <div
-                        class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle">
+                        class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                 for="bot-system_prompt">{{ __('store.bot.system_prompt') }}</label>
@@ -217,7 +242,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
                         id="before_prompt">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -230,7 +255,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
                         id="after_prompt">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -243,7 +268,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
                         id="knowledge">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -256,7 +281,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
                         id="next-bot">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -273,7 +298,7 @@
                         <div class="w-full">
                             <label
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white cursor-pointer bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-800 p-2 rounded-lg"
-                                onclick="$('.modelfile-toggle').toggle()"
+                                onclick="toggleModelfile()"
                                 for="modelfile">{{ __('store.bot.modelfile') }}</label>
                             <div class="flex items-center modelfile-toggle" style="display:none">
                                 <textarea name="modelfile" hidden></textarea>
@@ -303,6 +328,27 @@
 </datalist>
 
 <script>
+
+    function toggleModelfile(){
+        $('.modelfile-toggle').toggle();
+
+        let bot_type = $('#bot_type').val();
+        if (bot_type === "server") {
+            $(".prompt-bot").hide()
+        }
+    }
+
+    function showBotConfigLayout(){
+        const types = ['prompt', 'server'];
+        let bot_type = $('#bot_type').val();
+        if (!types.includes(bot_type)){
+            console.error(`Unsupported bot type "${bot_type}"`);
+            return;
+        }
+        types.forEach(x=>$(`.${x}-bot`).hide());
+        $(`.${bot_type}-bot`).show();
+    }
+
     function checkCreateBotForm() {
         if ($("#create_room input[name='llm_name']").val() && $("#create_room input[name='bot_name']").val()) {
             $('#create-bot-modal textarea[name=modelfile]').val(modelfile_to_string(modelfile_parse(ace.edit(

@@ -49,4 +49,9 @@ return [
     'bot.next_bot' => 'Next bot',
     'bot.next_bot.label' => 'Select Next Bbt',
     'bot.button.chat' => 'Chat',
+    'bot.type' => 'Type',
+    'bot.type.desc.prompt' => 'Prompt Bot: Create a bot by giving it instructions',
+    'bot.type.desc.server' => 'Server Bot: Integrating with existing external applications',
+    'bot.server_url' => 'External Application Location',
+    'bot.server_url.label' => 'External Application URL',
 ];

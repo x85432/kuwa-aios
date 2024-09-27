@@ -53,4 +53,9 @@ return [
     'bot.next_bot' => '下一個機器人',
     'bot.next_bot.label' => '選取下一個機器人',
     'bot.button.chat' => '聊天',
+    'bot.type' => '類型',
+    'bot.type.desc.prompt' => '提示詞 Bot: 透過提供提示詞建立Bot',
+    'bot.type.desc.server' => '伺服器 Bot: 串接現有外部應用',
+    'bot.server_url' => '外部應用位置',
+    'bot.server_url.label' => '外部應用URL',
 ];
