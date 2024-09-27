@@ -15,6 +15,7 @@ return [
     'button.export' => '匯出',
 
     'placeholder.must_select_base_model' => '你必須選一個基底模型',
+    'hint.must_enter_server_url' => '你必須輸入外部應用位置',
     'placeholder.button.system' => '將會被標示為系統Bot，且所有人皆可存取',
     'placeholder.button.community' => '任意群組皆可存取',
     'placeholder.button.groups' => '目前所在群組可存取',

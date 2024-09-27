@@ -151,19 +151,20 @@ class BotController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->route('store.home')->withErrors($validator)->withInput();
         }
         $validated = $validator->validated();
+        $bot_type = $request->input('bot_type');
         $model = LLMs::where('name', '=', $request->input('llm_name'))->first();
 
         if (!$model) {
             $validator->errors()->add('llm_name', 'The selected model does not exist.');
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->route('store.home')->withErrors($validator)->withInput();
         }
         $model_id = $model->id;
         if (!$request->user()->hasPerm('model_' . $model_id)) {
             $validator->errors()->add('llm_name', 'You do not have permission to use this model.');
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->route('store.home')->withErrors($validator)->withInput();
         }
         $visibility = $request->input('visibility');
         $permissions = [
@@ -173,7 +174,9 @@ class BotController extends Controller
             3 => 'Store_create_private_bot',
         ];
 
-        if ($model_id && isset($permissions[$visibility]) && $request->user()->hasPerm($permissions[$visibility])) {
+        if (($bot_type === "server" || $model_id) &&
+            isset($permissions[$visibility]) && $request->user()->hasPerm($permissions[$visibility])
+        ) {
             $bot = new Bots();
             $config = [];
             if ($request->input('modelfile')) {
@@ -185,7 +188,7 @@ class BotController extends Controller
             $config = json_encode($config);
             $bot->fill([
                 'name' => $request->input('bot_name'),
-                'type' => 'prompt',
+                'type' => $request->input('bot_type'),
                 'visibility' => $visibility,
                 'description' => $request->input('bot_describe'),
                 'owner_id' => $request->user()->id,

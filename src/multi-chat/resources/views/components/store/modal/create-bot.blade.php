@@ -170,7 +170,7 @@
                         <div class="w-full md:w-2/3">
                             <div class="w-full">
                                 <label class="block uppercase tracking-wide dark:text-white text-xs font-bold mb-2"
-                                    for="llm_name">
+                                    for="bot_type">
                                     {{ __('store.bot.type') }}
                                 </label>
                                 <select name="bot_type" id="bot_type" onchange="showBotConfigLayout()" autocomplete="off"
@@ -184,7 +184,7 @@
                                 <div class="w-full">
                                     <label for="bot_server"
                                         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ __('store.bot.server_url') }}</label>
-                                    <input type="text" id="bot_server_url" name="bot_server_url" autocomplete="off"
+                                    <input type="text" id="bot_server_url" autocomplete="off" oninput="alterBotfile('parameter', ['redirect_url', $(this).val()]); adjustTextareaRows(this)"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                         placeholder="{{ __('store.bot.server_url.label') }}">
                                 </div> 
@@ -347,25 +347,39 @@
         }
         types.forEach(x=>$(`.${x}-bot`).hide());
         $(`.${bot_type}-bot`).show();
+
+        if (bot_type === "server") {
+            $("#llm_name").val("Redirector");
+            change_bot_image('#llm_img', '#create-bot_image', "Redirector");
+        }
     }
 
     function checkCreateBotForm() {
-        if ($("#create_room input[name='llm_name']").val() && $("#create_room input[name='bot_name']").val()) {
-            $('#create-bot-modal textarea[name=modelfile]').val(modelfile_to_string(modelfile_parse(ace.edit(
-                    'bot-modelfile-editor')
-                .getValue())))
-            ace.edit('bot-modelfile-editor').setValue(modelfile_to_string(modelfile_parse(ace.edit(
-                    'bot-modelfile-editor')
-                .getValue())))
-            ace.edit('bot-modelfile-editor').gotoLine(0);
-            return true;
+        let error_messages = {
+            bot_name: "{{ __('You must name your bot') }}",
+            llm_name: "{{ __('store.hint.must_select_base_model') }}",
         }
-        if (!$("#create_room input[name='llm_name']").val()) $("#create_error").text(
-            "{{ __('store.placeholder.must_select_base_model') }}")
-        else if (!$("#create_room input[name='bot_name']").val()) $("#create_error").text(
-            "{{ __('You must name your bot') }}")
-        $("#create_error").show().delay(3000).fadeOut();
-        return false;
+        if ($("#bot_type").val() === "server"){
+            $("#llm_name").val("Redirector");
+            error_messages["bot_server_url"] = "{{ __('store.hint.must_enter_server_url') }}";
+        }
+
+        for (let field_id in error_messages){
+            if(!$(`#${field_id}`).val()){
+                $("#create_error").text(error_messages[field_id]);
+                $("#create_error").show().delay(3000).fadeOut();
+                return false;
+            }
+        }
+
+        $('#create-bot-modal textarea[name=modelfile]').val(modelfile_to_string(modelfile_parse(ace.edit(
+                'bot-modelfile-editor')
+            .getValue())))
+        ace.edit('bot-modelfile-editor').setValue(modelfile_to_string(modelfile_parse(ace.edit(
+                'bot-modelfile-editor')
+            .getValue())))
+        ace.edit('bot-modelfile-editor').gotoLine(0);
+        return true;
     }
 
     function alterBotfile(inst, args) {
