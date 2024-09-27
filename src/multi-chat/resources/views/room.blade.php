@@ -191,6 +191,31 @@
                             </div>
                             <p class="text-center text-sm line-clamp-2 py-1">{{ $llms[0]->name }}</p>
                         </div>
+                        @if ($llms[0]->type === "server")
+                        @php
+                            $modelfile = json_decode($llms[0]->config)->modelfile;
+                            $url = null;
+                            foreach ($modelfile as $item) {
+                                if (isset($item->args)) {
+                                    $parts = explode(' ', $item->args);
+                                    if (count($parts) >= 2 && trim($parts[0]) === "redirect_url") {
+                                        $url = trim($parts[1]);
+                                        break;
+                                    }
+                                }
+                            }
+                        @endphp
+                        @if ($url)
+                            <script>
+                                let response = confirm('確定前往 {{$url}}?');
+                                if(response){
+                                    window.location.href = "{{$url}}";
+                                }else{
+                                    console.log('stay on same page...');
+                                }
+                            </script>
+                        @endif
+                        @endif
                     @endif
                 </div>
                 @if (
