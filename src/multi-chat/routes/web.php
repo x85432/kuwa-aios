@@ -217,6 +217,8 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
                         Route::middleware(AdminMiddleware::class . ':Store_delete_delete_bot')
                             ->delete('/delete', [BotController::class, 'delete'])
                             ->name('store.delete');
+                        Route::get('/knowledge', [BotController::class, 'listKnowledge'])
+                            ->name('store.list_knowledge');
                     })
                     ->name('store');
                 #---Cloud

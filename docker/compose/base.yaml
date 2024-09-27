@@ -43,6 +43,7 @@ services:
       "multi-chat-storage:/app/storage:rw",
       "../root/custom:/app/resources/views/components/custom:ro",
       "../root/bootstrap/bot:/var/kuwa/docker/root/bootstrap/bot:ro",
+      "../root/database:/var/kuwa/docker/root/database:ro",
     ]
     healthcheck:
       test: ["CMD-SHELL", "php-fpm-healthcheck"]

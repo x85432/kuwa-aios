@@ -389,4 +389,57 @@ class BotController extends Controller
         }
         return Redirect::route('store.home');
     }
+
+    public function listKnowledge(Request $request)
+    {
+        // Get the directory from the .env file
+        $directory = config('app.KNOWLEDGE_DIRECTORY');
+
+        // Check if the directory exists
+        if (!is_dir($directory)) {
+            return response()->json(['error' => 'Directory not found'], 404);
+        }
+
+        // Get the files in the directory
+        $files = scandir($directory);
+
+        // Remove the '.' and '..' entries
+        $files = array_diff($files, array('.', '..'));
+
+        // Create the response data
+        $responseData = [];
+        foreach ($files as $file) {
+            if (!$this->isKnowledgeBase($directory . '/' . $file)){
+                continue;
+            }
+            $responseData[] = [
+                'name' => $file,
+                // 'path' => $directory . '/' . $file,
+            ];
+        }
+
+        // Return the data in JSON format
+        return response()->json($responseData);
+    }
+
+    private function isKnowledgeBase($path) {
+        $CONFIG_NAME = "config.json";
+        // Check if config.json exists directly in the path
+        if (file_exists($path . '/' . $CONFIG_NAME)) {
+            return true;
+        }
+
+        // Check if config.json exists in the db subdirectory
+        if (file_exists($path . '/db/' . $CONFIG_NAME)) {
+            return true;
+        }
+
+        // Check if the path is a zip file
+        if (pathinfo($path, PATHINFO_EXTENSION) === "zip") {
+            return true;
+        }
+
+        // If none of the criteria hold, return false
+        return false;
+    }
 }

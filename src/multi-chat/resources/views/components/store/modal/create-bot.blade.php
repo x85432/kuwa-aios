@@ -299,6 +299,9 @@
     </div>
 </div>
 
+<datalist id="knowledge-list">
+</datalist>
+
 <script>
     function checkCreateBotForm() {
         if ($("#create_room input[name='llm_name']").val() && $("#create_room input[name='bot_name']").val()) {
@@ -429,6 +432,35 @@
         reader.onload = handleFileLoad;
         reader.readAsText(files[0]);
     }
+
+    async function updateDataListFromAPI(apiUrl, dataListElementId) {
+        try {
+            // Fetch data from the API
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            // Update the data list element
+            const dataListElement = document.getElementById(dataListElementId);
+
+            // Clear existing content
+            dataListElement.innerHTML = '';
+
+            // Add new data to the list
+            data.forEach(item => {
+            const listItem = document.createElement('option');
+            listItem.textContent = item.name || item; // Assuming 'name' property or default to the entire item
+            listItem.value = item.name || item;
+            dataListElement.appendChild(listItem);
+            });
+
+            dataListElement.focus();
+
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            // Handle error, display message to the user, etc.
+        }
+    }
+    updateDataListFromAPI("store/knowledge", "knowledge-list");
 
     var editor = ace.edit($('#bot-modelfile-editor')[0], {
         mode: "ace/mode/dockerfile",
