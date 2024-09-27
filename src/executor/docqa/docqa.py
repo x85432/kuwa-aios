@@ -126,7 +126,7 @@ class DocQaExecutor(LLMExecutor):
         self.llm = KuwaClient(
             base_url = self.args.api_base_url,
             kernel_base_url = self.kernel_url,
-            model=generator_params.get("model", self.args.model),
+            model=generator_params.get("model", params.get("next_bot", self.args.model)),
             auth_token=general_params.get("user_token", self.args.api_key),
             limit=generator_params.get("limit", self.args.limit)
         )
