@@ -81,6 +81,8 @@ class DocumentStoreFactory:
 
     path = file_uri2path(list(urls)[0])
     if path is None: return False
+    if not path.exists():
+      path = Path(os.environ.get('KUWA_ROOT', '.')) / path
     if path.is_dir():
       return (path / DocumentStore.config_filename).is_file()
     else:
