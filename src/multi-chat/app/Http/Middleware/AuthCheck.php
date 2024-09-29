@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\App;
 use Illuminate\Http\Request;
 use App\Jobs\CheckUpdate;
+use App\Jobs\HealthCheck;
+use Illuminate\Support\Facades\Redis;
 use Closure;
 
 class AuthCheck
@@ -32,6 +34,9 @@ class AuthCheck
                 return redirect()->route('change_password');
             }
         }
+
+        Redis::throttle('health_check')->block(0)->allow(1)->every(5)->then(fn() => HealthCheck::dispatch(), fn() => null);
+
         return $next($request);
     }
 }

@@ -10,7 +10,7 @@ class LLMs extends Model
 {
     use HasFactory;
     protected $table = 'llms';
-    protected $fillable = ['image', 'name', "access_code", "order", 'enabled', "description", "config"];
+    protected $fillable = ['image', 'name', "access_code", "order", 'enabled', "description", "config", 'healthy'];
     static function getModelPermIds()
     {
         return DB::table(function ($query) {

@@ -102,6 +102,14 @@
                             <div class="relative w-[50px] h-[50px]">
                                 <img class="rounded-full mx-auto bg-black w-full h-full overflow-hidden"
                                     src="{{ $bot->image ? asset(Storage::url($bot->image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
+
+                                <div class="absolute bottom-0 right-0 z-2 opacity-70">
+                                    @if ($bot->healthy)
+                                        <div class="bg-green-500 rounded-full w-3 h-3"></div>
+                                    @else
+                                        <div class="bg-red-500 rounded-full w-3 h-3"></div>
+                                    @endif
+                                </div>
                             </div>
                             <p class="text-sm line-clamp-2">{{ $bot->name }}</p>
                             <input name="llm[]" value="{{ $bot->id }}" style="display:none;">
