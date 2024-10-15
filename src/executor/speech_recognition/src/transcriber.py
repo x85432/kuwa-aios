@@ -28,12 +28,14 @@ class WhisperS2tTranscriber:
                 cache_dir=HUGGINGFACE_HUB_CACHE,
             )
         device="cuda" if torch.cuda.is_available() else "cpu"
+        device_index = os.environ.get("CUDA_VISIBLE_DEVICES", "").split(',')
+        device_index = [int(i) for i in device_index if i.isdecimal()]
         logger.info(f"Using device {device}")
         model = whisper_s2t.load_model(
             model_identifier=model_path,
             backend=backend,
             device=device,
-            device_index=os.environ["CUDA_VISIBLE_DEVICES"],
+            device_index=device_index,
             compute_type=compute_type,
             **model_params
         )
