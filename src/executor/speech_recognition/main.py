@@ -45,6 +45,7 @@ class SpeechRecognitionExecutor(LLMExecutor):
     def extend_arguments(self, parser):
         model_group = parser.add_argument_group('Model Options')
         model_group.add_argument('--model', default=self.default_model_name, help='The model name.')
+        model_group.add_argument('--visible_gpu', default=None, help='Specify the GPU IDs that this executor can use. Separate by comma.')
         model_group.add_argument('--backend', default=self.default_model_backend, help='The model backend.')
         model_group.add_argument('--language', default=self.language, help='The language to transcribe.')
         model_group.add_argument('--batch_size', default=self.batch_size, type=int, help='The batch size')
@@ -62,6 +63,8 @@ class SpeechRecognitionExecutor(LLMExecutor):
             )
 
     def setup(self):
+        if self.args.visible_gpu:
+            os.environ["CUDA_VISIBLE_DEVICES"] = self.args.visible_gpu
 
         os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
         self.default_model_name = self.args.model

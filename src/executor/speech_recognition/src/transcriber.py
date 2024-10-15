@@ -33,6 +33,7 @@ class WhisperS2tTranscriber:
             model_identifier=model_path,
             backend=backend,
             device=device,
+            device_index=os.environ["CUDA_VISIBLE_DEVICES"],
             compute_type=compute_type,
             **model_params
         )
