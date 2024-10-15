@@ -17,7 +17,7 @@ class WhisperS2tTranscriber:
         pass
 
     @functools.lru_cache
-    def load_model(self, name = None, backend = "CTranslate2", enable_word_ts:bool=False):
+    def load_model(self, name = None, backend = "CTranslate2", enable_word_ts:bool=False, compute_type:str="float16"):
         if name is None: return None
         model_params = {"asr_options":{"word_timestamps": True}} if enable_word_ts else {}
         if os.path.isdir(name):
@@ -28,7 +28,6 @@ class WhisperS2tTranscriber:
                 cache_dir=HUGGINGFACE_HUB_CACHE,
             )
         device="cuda" if torch.cuda.is_available() else "cpu"
-        compute_type="float16" if torch.cuda.is_available() else "int8"
         logger.info(f"Using device {device}")
         model = whisper_s2t.load_model(
             model_identifier=model_path,
@@ -52,10 +51,13 @@ class WhisperS2tTranscriber:
         result = None
         try:
             enable_word_ts = model_params.get("word_timestamps", False)
+            default_compute_type = "float16" if torch.cuda.is_available() else "int8"
+            compute_type = model_params.get("compute_type", default_compute_type)
             model = self.load_model(
                 name=model_name,
                 backend=model_backend,
                 enable_word_ts=enable_word_ts,
+                compute_type=compute_type,
             )
             if model_params is not None:
                 model.update_params({'asr_options': model_params})
