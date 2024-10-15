@@ -239,11 +239,11 @@ class SpeechRecognitionExecutor(LLMExecutor):
                 user="" if len(user_prompts) == 0 else user_prompts[-1]["content"],
                 after=modelfile.after_prompt
             )
-            model_name = transcribe_param.pop("model", self.default_model_name)
-            model_backend = transcribe_param.pop("backend", self.default_model_backend)
+            model_name = transcribe_param.pop("model", self.default_model_name).strip()
+            model_backend = transcribe_param.pop("backend", self.default_model_backend).strip()
             enable_timestamp = transcribe_param.pop("enable_timestamp", self.enable_timestamp)
             enable_diarization = transcribe_param.pop("enable_diarization", self.enable_diarization)
-            lang = transcribe_param.pop("language", self.language)
+            lang = transcribe_param.pop("language", self.language).strip()
             num_speakers = self.read_param_from_history(history=history, param="speakers", type=int)[-1]
             diar_thold_sec = transcribe_param.pop("diar_thold_sec", self.diar_thold_sec)
 
