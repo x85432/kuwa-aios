@@ -1,0 +1,20 @@
+en:
+  Language: Language
+  '# Text to CAD Model Generator': '# Text to CAD Model Generator'
+  Prompt: Prompt
+  Clear: Clear
+  Translate: Translate Prompt
+  Generate: Generate CAD Model
+  3D Model: 3D Model
+  Download: Download CAD Model
+  Examples: Example Prompts
+zh:
+  Language: 語言
+  '# Text to CAD Model Generator': '# 文字轉 CAD 模型生成器'
+  Prompt: 提示詞
+  Clear: 清除
+  Translate: 翻譯提示詞
+  Generate: 產生 CAD 模型
+  3D Model: 3D 模型
+  Download: 下載 CAD 模型
+  Examples: 範例提示詞
