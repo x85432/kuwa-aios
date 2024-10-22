@@ -72,4 +72,5 @@ return [
     'placeholder.must_select_llm' => 'You have not selected any model to chat with. Please choose one!',
     'placeholder.please_refresh' => 'Something seems to have gone wrong! Please refresh the page.',
     'placeholder.drag_and_drop' => 'You can also drag and drop files here...',
+    'hint.confirm_go_to' => 'Are you sure to go to',
 ];

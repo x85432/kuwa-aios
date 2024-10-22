@@ -78,4 +78,5 @@ return [
     'placeholder.must_select_llm' => '你沒有選擇任何要聊天的模型，請先選一個！',
     'placeholder.please_refresh' => '好像有東西出錯了！請重新整理網頁。',
     'placeholder.drag_and_drop' => '您也可以將檔案拖放至此...',
+    'hint.confirm_go_to' => '確定前往',
 ];

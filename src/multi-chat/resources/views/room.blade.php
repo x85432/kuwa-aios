@@ -207,11 +207,12 @@
                         @endphp
                         @if ($url)
                             <script>
-                                let response = confirm('確定前往 {{$url}}?');
-                                if(response){
-                                    window.location.href = "{{$url}}";
-                                }else{
+                                let response = confirm('{{ _("chat.hint.confirm_go_to") }} {{ $url }}?');
+                                if (response) {
+                                    window.open("{{ $url}}", "mozillaTab");
+                                } else {
                                     console.log('stay on same page...');
+                                    window.location.href = "{{ url()->previous() }}";
                                 }
                             </script>
                         @endif
