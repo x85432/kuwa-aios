@@ -1,6 +1,7 @@
 FROM nginx:stable-alpine
 
-RUN apk --no-cache add curl
+RUN apk --no-cache add curl dnsmasq
+COPY docker/web/18-start-resolver-daemon.sh /docker-entrypoint.d
 RUN mkdir -p /var/log/php-fpm
 
 WORKDIR /app
