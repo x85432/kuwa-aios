@@ -8,6 +8,7 @@ use App\Http\Controllers\ManageController;
 use App\Http\Controllers\BotController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CloudController;
+use App\Http\Controllers\AppProxyController;
 use App\Http\Controllers\KernelController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Middleware\AdminMiddleware;
@@ -304,6 +305,10 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
 
                         Route::post('/tab', [ManageController::class, 'tab'])->name('manage.tab');
                     });
+
+                # Third-party app proxy route.
+                Route::any('/app/{app_name}/{uri?}', [AppProxyController::class, 'proxy'])
+                    ->where(['app_name' => '[^/\?]+', 'uri' => '.*']);
             });
         });
     });
