@@ -207,7 +207,7 @@
                         @endphp
                         @if ($url)
                             <script>
-                                let response = confirm('{{ _("chat.hint.confirm_go_to") }} {{ $url }}?');
+                                let response = confirm('{{ __("chat.hint.confirm_go_to") }} {{ $url }}?');
                                 if (response) {
                                     window.open("{{ $url}}", "mozillaTab");
                                 } else {
