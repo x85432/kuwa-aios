@@ -1,5 +1,6 @@
 import os
 import logging
+import argparse
 import gradio as gr
 from pathlib import Path
 from dotenv import load_dotenv
@@ -57,4 +58,14 @@ if __name__ == "__main__":
         with Translate("translation.yaml", lang, placeholder_langs=["en", "zh"]):
             create_main_ui()
 
-    ui.launch(share=False, server_name='0.0.0.0')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--server_name', type=str, default=None, help='Gradio server host')
+    parser.add_argument('--server_port', type=int, default=None, help='Gradio server port')
+    parser.add_argument('--root_path', type=str, default=None, help='Gradio root path')
+    args = parser.parse_args()
+
+    ui.launch(
+        server_name=args.server_name,
+        server_port=args.server_port,
+        root_path=args.root_path,
+    )
