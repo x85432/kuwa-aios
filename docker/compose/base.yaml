@@ -7,8 +7,10 @@ services:
       dockerfile: docker/web/Dockerfile
     restart: unless-stopped
     environment:
-      DOMAIN_NAME: ${DOMAIN_NAME}
-    volumes: ["multi-chat-storage:/app/storage:ro"]
+      TRUST_DOWNSTREAM_PROXY: true
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - multi-chat-storage:/app/storage:ro
     ports: ["80:80", "443:443"]
     depends_on: ["multi-chat"]
     networks: ["frontend"]
@@ -28,6 +30,12 @@ services:
     depends_on:
       - redis
     environment:
+      # For nginx-proxy ("web" container) to generate configuration
+      VIRTUAL_PROTO: fastcgi
+      VIRTUAL_HOST: ${DOMAIN_NAME}
+      VIRTUAL_ROOT: /app/public
+      VIRTUAL_PATH: /index.php
+      
       APP_ENV: production
       APP_DEBUG: false
       APP_URL: ${PUBLIC_BASE_URL}
