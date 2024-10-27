@@ -206,23 +206,6 @@ This command will create the following images:
 - `kuwaai/kernel`
 - `kuwaai/multi-chat-web`
 
-### 7. (Optional) Setup HTTPS service
-
-Since version 0.4.0, the docker version of Kuwa supporting automatically acquire the HTTPS certification from let's encrypt.
-You can follow the following instruction to setup a HTTPS service.
-
-1. Ensure you have setup the correct DNS record and the firewall allows both port 80 and port 443.
-2. Edit `docker/.env` to set `DOMAIN_NAME` to your domain name (e.g. example.com)
-3. Edit `docker/run.sh` to add `"https-auto"` to the `confs` array
-4. Run the script `./run.sh`
-5. The certification acquiring process should start automatically
-6. Wait until the log shows
-  ```
-  letsencrypt-companion-1  | Reloading nginx (using separate container kuwa-web-1)...
-  ```
-7. As a known issue, you need to terminate the script manually then restart it again, otherwise the container "web" will repeating restarting.
-8. Now you can access https://example.com/
-
 ### 7. (Optional) Setting Up HTTPS Service with Let's Encrypt
 
 Starting with version 0.4.0, the Docker version of Kuwa offers automatic HTTPS certificate acquisition using Let's Encrypt. To set up your HTTPS service:
