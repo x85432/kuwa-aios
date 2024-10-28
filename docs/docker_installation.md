@@ -175,49 +175,6 @@ sudo ./run.sh
 
 By default, Kuwa will be deployed on `http://localhost`.
 
-### 6. (Optional) Building Docker Images from Source Code
+**Advanced Configuration:**
 
-Since version 0.3.4, Kuwa Docker Images are downloaded pre-built from Docker Hub by default. To build images from source code, follow these steps:
-
-1. Ensure the `.git` directory is present within the `genai-os` directory.
-2. Enable the containerd image store for [multi-platform builds](https://docs.docker.com/build/building/multi-platform/#enable-the-containerd-image-store)
-    Add the following configuration to your `/etc/docker/daemon.json` file:
-
-    ```json
-    {
-      "features": {
-        "containerd-snapshotter": true
-      }
-    }
-    ```
-    Restart the Docker daemon after saving the changes:
-    ```sh
-    sudo systemctl restart docker
-    ```
-3. **Build the Kuwa images using the following command:**
-    ```sh
-    sudo ./run.sh build
-    ```
-
-This command will create the following images: 
-
-- `kuwaai/model-executor`
-- `kuwaai/multi-chat`
-- `kuwaai/kernel`
-- `kuwaai/multi-chat-web`
-
-### 7. (Optional) Setting Up HTTPS Service with Let's Encrypt
-
-Starting with version 0.4.0, the Docker version of Kuwa offers automatic HTTPS certificate acquisition using Let's Encrypt. To set up your HTTPS service:
-
-1. Ensure your domain name's DNS records are properly configured and your firewall allows traffic on ports 80 and 443.
-2. In the `docker/.env` file, set the `DOMAIN_NAME` variable to your domain (e.g., `example.com`).
-3. Modify the `docker/run.sh` script by adding `"https-auto"` to the `confs` array.
-4. Run the `./run.sh` script. (You may need to run `./run.sh build web` first if the image isn't up-to-date).
-5. The certificate acquisition process will begin automatically.
-6. Watch for the following log message indicating successful configuration:
-   ```
-   letsencrypt-companion-1  | Reloading nginx (using separate container kuwa-web-1)...
-   ```
-7. Due to a known issue, you'll need to manually terminate the `run.sh` script and restart it to prevent the "web" container from repeatedly restarting.
-8. Your site is now accessible via HTTPS at `https://example.com/`.
+For advanced configuration options and customization, consult the document [docker_advanced.md](./docker_advanced.md).
