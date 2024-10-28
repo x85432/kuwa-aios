@@ -14,7 +14,6 @@ use App\Models\SystemSetting;
 use App\Jobs\RequestChat;
 use App\Models\LLMs; 
 use Illuminate\Support\Collection;
-use App\Jobs\Middleware\HealthRateLimit;
 
 class HealthCheck implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
@@ -42,8 +41,7 @@ class HealthCheck implements ShouldQueue, ShouldBeUniqueUntilProcessing
      */
     public function handle()
     {
-        // Fetch the 'agent_location' value from the SystemSetting model
-        $systemSetting = SystemSetting::where('key', 'agent_location')->first();
+        $systemSetting = SystemSetting::where('key', 'kernel_location')->first();
     
         if ($systemSetting && $systemSetting->value) {
             // Send GET request to the endpoint
@@ -74,17 +72,7 @@ class HealthCheck implements ShouldQueue, ShouldBeUniqueUntilProcessing
                 Log::error('GET request failed:', ['status' => $response->status()]);
             }
         } else {
-            Log::error('No valid endpoint found for agent_location');
+            Log::error('No valid endpoint found for kernel_location');
         }
-    }
-    
-    /**
-     * Get the middleware the job should pass through.
-     *
-     * @return array<int, object>
-     */
-    public function middleware(): array
-    {
-        return [new HealthRateLimit()];
     }
 }
