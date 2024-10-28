@@ -11,7 +11,7 @@ RUN apt-get update &&\
 # Ref: https://github.com/abetlen/llama-cpp-python/issues/1628
 RUN apt-get install -y musl-dev && \
     ln -s /usr/lib/$(uname -m)-linux-musl/libc.so /lib/libc.musl-$(uname -m).so.1 &&\
-    pip install --no-cache-dir "llama-cpp-python @ https://github.com/abetlen/llama-cpp-python/releases/download/v0.2.87-cu121/llama_cpp_python-0.2.87-cp310-cp310-linux_$(uname -a).whl"
+    pip install --no-cache-dir "llama-cpp-python @ https://github.com/abetlen/llama-cpp-python/releases/download/v0.2.87-cu121/llama_cpp_python-0.2.87-cp310-cp310-linux_$(uname -m).whl"
 
 COPY src/executor/requirements.txt ./
 RUN sed -i '/^\.[\/]*/d' ./requirements.txt &&\
