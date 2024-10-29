@@ -1,6 +1,7 @@
 import logging, requests
 import json, threading
 import time, os, subprocess
+from textwrap import dedent
 from datetime import datetime
 from urllib.parse import urlparse
 from flask import Blueprint, request, json, redirect, url_for, jsonify, Response, stream_with_context
@@ -62,16 +63,29 @@ def debug():
     if request.method == 'POST':
         load_records(json.loads(request.form.get('data')), True)
         return redirect(url_for('executor.debug'))
-    return """
-<form method="POST">
-    <textarea name="data" rows="4" cols="50">{0}</textarea><br>
-    <input type="submit" value="Submit">
-</form>
-<script>
-    document.querySelector("textarea").style.height = 'auto';
-    document.querySelector("textarea").style.height = (document.querySelector("textarea").scrollHeight) + 'px';
-</script>
-""".format(str(json.dumps(data, indent=2)))
+    if request.headers.get("Accept") == "application/json":
+        exported_data = {}
+        for access_code, group in data.items():
+            exported_group = []
+            for executor in group:
+                exported_group.append({
+                    "endpoint": executor[0],
+                    "status": executor[1],
+                    "job_history_id": executor[2],
+                    "job_user_id": executor[3]
+                })
+            exported_data[access_code] = exported_group
+        return jsonify(exported_data)
+    return dedent("""
+        <form method="POST">
+            <textarea name="data" rows="4" cols="50">{0}</textarea><br>
+            <input type="submit" value="Submit">
+        </form>
+        <script>
+            document.querySelector("textarea").style.height = 'auto';
+            document.querySelector("textarea").style.height = (document.querySelector("textarea").scrollHeight) + 'px';
+        </script>
+        """).format(str(json.dumps(data, indent=2)))
 
 @executor.route("/list", methods=["GET"])
 def list_executor():
