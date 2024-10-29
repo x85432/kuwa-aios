@@ -1,5 +1,7 @@
 FROM php:8.1-cli AS build
 
+RUN apt-get update
+
 # Install nodejs and composer
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - &&\
     apt-get install -y nodejs &&\

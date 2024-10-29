@@ -1,6 +1,6 @@
 FROM nginxproxy/nginx-proxy:1.6-alpine
 
-RUN apk --no-cache add curl dnsmasq
+RUN apk update && apk --no-cache add curl dnsmasq
 
 COPY docker/web/vhost.d/ /etc/nginx/vhost.d/
 
