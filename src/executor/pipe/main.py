@@ -5,6 +5,7 @@ import asyncio
 import logging
 import shlex
 import stat
+from urllib.parse import urljoin
 from importlib.metadata import version
 from kuwa.executor import LLMExecutor, Modelfile
 
@@ -130,6 +131,7 @@ class PipeExecutor(LLMExecutor):
         cmd = [program]+argv
         env = os.environ.copy()
         env["KUWA_BASE_URL"] = self.args.api_base_url
+        env["KUWA_KERNEL_BASE_URL"] = urljoin(self.kernel_url, f"{self.executor_iface_version}/")
         env["KUWA_API_KEY"] = modelfile.parameters["_"]["user_token"]
         env["KUWA_VERSION"] = version('kuwa-executor')
         logger.info(f"Cmd: {cmd}")
