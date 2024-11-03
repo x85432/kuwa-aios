@@ -109,9 +109,33 @@
                     @endif
                 </div>
             </div>
-            <div id="histories"
-                class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
-                <x-room.header :llms="$llms" />
+        </div>
+
+        @if (count($llms) == 1 && $llms[0]->type === 'server')
+            @php
+                $modelfile = json_decode($llms[0]->config)->modelfile;
+                $url = null;
+                foreach ($modelfile as $item) {
+                    if (isset($item->args)) {
+                        $parts = explode(' ', $item->args);
+                        if (count($parts) >= 2 && trim($parts[0]) === 'redirect_url') {
+                            $url = trim($parts[1]);
+                            break;
+                        }
+                    }
+                }
+            @endphp
+            @if ($url)
+                <div id="app-window"
+                    class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
+                    <iframe src="{{$url}}" style="height:100%;width:100%" frameborder="0" ></iframe>
+                </div>
+            @endif
+        @else
+
+        <div id="histories"
+            class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
+            <x-room.header :llms="$llms" />
 
                 <div id="chatroom" class="flex-1 p-4 overflow-y-auto flex flex-col-reverse scrollbar">
                     <div style="display:none;"
@@ -191,46 +215,24 @@
                             </div>
                             <p class="text-center text-sm line-clamp-2 py-1">{{ $llms[0]->name }}</p>
                         </div>
-                        @if ($llms[0]->type === "server")
-                        @php
-                            $modelfile = json_decode($llms[0]->config)->modelfile;
-                            $url = null;
-                            foreach ($modelfile as $item) {
-                                if (isset($item->args)) {
-                                    $parts = explode(' ', $item->args);
-                                    if (count($parts) >= 2 && trim($parts[0]) === "redirect_url") {
-                                        $url = trim($parts[1]);
-                                        break;
-                                    }
-                                }
-                            }
-                        @endphp
-                        @if ($url)
-                            <script>
-                                let response = confirm('{{ __("chat.hint.confirm_go_to") }} {{ $url }}?');
-                                if (response) {
-                                    window.open("{{ $url}}", "mozillaTab");
-                                } else {
-                                    console.log('stay on same page...');
-                                    window.location.href = "{{ url()->previous() }}";
-                                }
-                            </script>
-                        @endif
-                        @endif
-                    @endif
-                </div>
-                @if (
-                    (request()->user()->hasPerm('Room_update_new_chat') && session('llms')) ||
-                        (request()->user()->hasPerm('Room_update_send_message') && !session('llms')))
-                    <div class="bg-gray-300 dark:bg-gray-500 p-4 flex flex-col overflow-y-hidden">
-                        @if (request()->user()->hasPerm('Room_update_new_chat') && session('llms'))
-                            <x-room.prompt-area.create :llms="$llms" :tasks="$tasks ?? null" />
-                        @elseif (request()->user()->hasPerm('Room_update_send_message') && !session('llms'))
-                            <x-room.prompt-area.request :llms="$llms" :tasks="$tasks ?? null" />
-                        @endif
-                    </div>
+
+
+                        <p class="text-center text-sm line-clamp-2 py-1">{{ $llms[0]->name }}</p>
+                    </div> 
                 @endif
             </div>
+            @if (
+                (request()->user()->hasPerm('Room_update_new_chat') && session('llms')) ||
+                    (request()->user()->hasPerm('Room_update_send_message') && !session('llms')))
+                <div class="bg-gray-300 dark:bg-gray-500 p-4 flex flex-col overflow-y-hidden">
+                    @if (request()->user()->hasPerm('Room_update_new_chat') && session('llms'))
+                        <x-room.prompt-area.create :llms="$llms" :tasks="$tasks ?? null" />
+                    @elseif (request()->user()->hasPerm('Room_update_send_message') && !session('llms'))
+                        <x-room.prompt-area.request :llms="$llms" :tasks="$tasks ?? null" />
+                    @endif
+                </div>
+            @endif
+        </div>
         @endif
     </div>
 </x-app-layout>
