@@ -47,6 +47,7 @@ RUN usermod -u 101 www-data &&\
     groupmod -g 101 www-data
 
 # Configure PHP
+COPY docker/multi-chat/fpm-app-gateway-pool.conf /usr/local/etc/php-fpm.d/app-gateway-pool.conf
 COPY docker/multi-chat/php-override.ini ${PHP_INI_DIR}/conf.d/00-override.ini
 RUN mv "$PHP_INI_DIR/php.ini-production" "${PHP_INI_DIR}/php.ini"
 

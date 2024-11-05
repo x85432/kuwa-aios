@@ -32,7 +32,13 @@ services:
     environment:
       # For nginx-proxy ("web" container) to generate configuration
       VIRTUAL_PROTO: fastcgi
-      VIRTUAL_HOST: ${DOMAIN_NAME}
+      VIRTUAL_HOST_MULTIPORTS: |
+        ${DOMAIN_NAME}:
+          /index.php: {port: 9000}
+          /app/: {port: 9001}
+        web:
+          /index.php: {port: 9000}
+          /app/: {port: 9001}
       VIRTUAL_ROOT: /app/public
       VIRTUAL_PATH: /index.php
       

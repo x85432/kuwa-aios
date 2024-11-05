@@ -1,4 +1,7 @@
 services:
+  web:
+    environment:
+      DEBUG_ENDPOINT: "true"
   multi-chat:
     environment:
       APP_ENV: development
