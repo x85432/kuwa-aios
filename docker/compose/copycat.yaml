@@ -9,6 +9,6 @@ services:
     depends_on:
       - executor-builder
       - kernel
-    command: ["--delay", "0.02"]
+    command: ["--delay", "0.02", "--log", "debug"]
     restart: unless-stopped
     networks: ["backend"]

@@ -86,7 +86,7 @@ class KuwaClient:
             raise RuntimeError(f'Request failed with status {resp.status_code}, {resp.json()}')
         return resp.json()
 
-    async def chat_complete(self, auth_token: str = None, messages: list = [], timeout=120, streaming=True):
+    async def chat_complete(self, auth_token: str = None, messages: list = [], timeout=120, streaming=True, botfile=None):
         url = urljoin(self.base_url, "/v1.0/chat/completions")
         auth_token = self.auth_token if self.auth_token is not None else auth_token
         headers = {
@@ -100,6 +100,8 @@ class KuwaClient:
             "model": model,
             "stream": streaming
         }
+        if botfile is not None:
+            request_body["botfile"] = botfile
 
         async with httpx.AsyncClient() as client:
             response = await client.post(url, headers=headers, json=request_body, timeout=timeout)

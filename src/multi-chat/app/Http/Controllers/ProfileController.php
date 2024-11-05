@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Models\Groups;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\BotController;
 use DB;
 use Crypt;
 use Net_IPv4;
@@ -459,6 +460,14 @@ class ProfileController extends Controller
         }
 
         $llm = $llm->first();
+        $botFile = null;
+        if(isset($jsonData['botfile'])){
+            $botController = new BotController();
+            $botFile = $botController->modelfile_parse($jsonData['botfile']);
+            $botFile = array_map(function($item) {
+                return (object) $item;
+            }, $botFile);
+        }
 
         $jsonData['messages'] = array_map(function($x){
             return [
@@ -484,7 +493,8 @@ class ProfileController extends Controller
 
         Redis::rpush('api_' . $user->tokenable_id, $history->id);
         Redis::expire('usertask_' . $user->tokenable_id, 1200);
-        RequestChat::dispatch($messages_json, $llm->access_code, $user->id, $history->id, $lang, 'api_' . $history->id);
+        print(print_r($botFile, 1));
+        RequestChat::dispatch($messages_json, $llm->access_code, $user->id, $history->id, $lang, 'api_' . $history->id, $botFile);
 
         if (isset($jsonData['stream']) ? boolval($jsonData['stream']) : false){
             return $this->streaming_response($user, $history, $llm);
