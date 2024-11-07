@@ -11,6 +11,6 @@ if (isset($_POST["image"])){
     $image = "--image=".escapeshellarg($image);
 }
 
-exec(sprintf("php artisan model:config %s %s %s 2>&1", $access_code, $name, $image), $output, $retval);
+exec(sprintf("php /app/artisan model:config %s %s %s 2>&1", $access_code, $name, $image), $output, $retval);
 echo "Returned with status $retval and output:\n";
 print_r($output);
