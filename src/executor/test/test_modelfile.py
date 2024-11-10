@@ -19,6 +19,8 @@ class TestExtractTextFromQuotes(unittest.TestCase):
         '"She replied, \'Hi there!\'"': "She replied, \'Hi there!\'",
         "No quotes here": "No quotes here",
         "Invalid \'syntax\'": "Invalid \'syntax\'",
+        " No quote with spaces  ": "No quote with spaces",
+        ' "Quote with space "   ': 'Quote with space ',
     }
     def test(self):
         for test_case, correct_result in self.test_cases.items():

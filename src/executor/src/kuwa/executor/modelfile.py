@@ -40,9 +40,10 @@ def extract_text_from_quotes(text):
         The extracted text without the surrounding quotes, or None if no quoted text is found.
     """
 
+    text = text.strip()
     match = re.search(r"""
         # Match single, double, or triple quotes 
-        ^(\"\"\"|\'|\"|)
+        ^(\"\"\"|\'|\")
         # Capture the text inside the quotes (non-greedy)
         (.*?)
         # Match the same type of quote from the beginning
