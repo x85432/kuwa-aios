@@ -22,7 +22,7 @@ from kuwa.executor.util import merge_config
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from src.diarizer import PyannoteSpeakerDiarizer
+from src.diarizer import PyannoteSpeakerDiarizer, Diary
 from src.transcriber import WhisperS2tTranscriber
 
 logger = logging.getLogger(__name__)
@@ -289,7 +289,8 @@ class SpeechRecognitionExecutor(LLMExecutor):
             logger.debug(f"Final Result: {result}")
             output = ""
             if output_json:
-                output = json.dumps(result, ensure_ascii=False)
+                filtered_result = [{k:v for k, v in r.items() if k in Diary.segment_template.keys()} for i in result]
+                output = json.dumps(filtered_result, ensure_ascii=False)
             else:
                 output = "".join([self._format_output(i, enable_timestamp) for i in result])
                 output = self._replace(message=output, history=history)
