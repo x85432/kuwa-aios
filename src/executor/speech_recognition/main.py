@@ -163,10 +163,11 @@ class SpeechRecognitionExecutor(LLMExecutor):
 
         return result[0]
 
-    async def speaker_diarization(self, filepath:str, num_speakers:int, diar_thold_sec:float):
+    async def speaker_diarization(self, filepath:str, num_speakers:int, diar_thold_sec:float, device:str):
         self.diarizer = self.diarizer if hasattr(self, "diarizer") else PyannoteSpeakerDiarizer()
         logger.debug(f"num_speakers={num_speakers}")
         logger.debug(f"diar_thold_sec={diar_thold_sec}")
+        logger.debug(f"device={device}")
         
         loop = asyncio.get_event_loop()
         mp_context = mp.get_context("spawn") # Torch with CUDA needs a "spawn" context to work
@@ -175,7 +176,8 @@ class SpeechRecognitionExecutor(LLMExecutor):
                 self.diarizer.diarization,
                 src_audio_file=filepath,
                 num_speakers=num_speakers,
-                duration_thld_sec=diar_thold_sec
+                duration_thld_sec=diar_thold_sec,
+                device=device,
             )
             result = await loop.run_in_executor(pool, job)
 
@@ -270,10 +272,12 @@ class SpeechRecognitionExecutor(LLMExecutor):
             if not enable_diarization:
                 result = await transcribe_job
             else:
+                device = transcribe_param.get("device", None)
                 diarization_job = self.speaker_diarization(
                     filepath=src_file,
                     num_speakers=num_speakers,
-                    diar_thold_sec=diar_thold_sec
+                    diar_thold_sec=diar_thold_sec,
+                    device=device,
                 )
                 result, diary = await asyncio.gather(transcribe_job, diarization_job)
                 result = [
@@ -289,7 +293,7 @@ class SpeechRecognitionExecutor(LLMExecutor):
             logger.debug(f"Final Result: {result}")
             output = ""
             if output_json:
-                filtered_result = [{k:v for k, v in r.items() if k in Diary.segment_template.keys()} for i in result]
+                filtered_result = [{k:v for k, v in r.items() if k in Diary.segment_template.keys()} for r in result]
                 output = json.dumps(filtered_result, ensure_ascii=False)
             else:
                 output = "".join([self._format_output(i, enable_timestamp) for i in result])

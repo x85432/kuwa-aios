@@ -58,6 +58,7 @@ class Diary:
         """
         
         if len(transcript) == 0: return []
+        if len(self.diary) == 0: self.insert(start=0, end=float("inf"), speaker="SPEAKER_OO")
         last_segment = self.segment_template.copy()
         last_segment["speaker"] = [sorted(self.diary, key=lambda x: x["start"])[0]["speaker"]]
         result = []
@@ -103,16 +104,18 @@ class PyannoteSpeakerDiarizer(SpeakerDiarizer):
     def __init__(self, pipeline_name = "pyannote/speaker-diarization-3.1"):
         self.pipeline_name = pipeline_name
 
-    def _load_pipeline(self):
+    def _load_pipeline(self, device:str = None):
         self.pipeline = pyannote.audio.Pipeline.from_pretrained(
             self.pipeline_name
         )
-        if torch.cuda.is_available():
+        if device is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.cuda.is_available() and device.strip() == "cuda":
             logger.info("Using CUDA")
             self.pipeline.to(torch.device("cuda"))
 
-    def diarization(self, src_audio_file:str, num_speakers:int, **kwargs) -> [dict]:
-        self._load_pipeline()
+    def diarization(self, src_audio_file:str, num_speakers:int, device:str, **kwargs) -> [dict]:
+        self._load_pipeline(device)
         waveform, sample_rate = torchaudio.load(src_audio_file, normalize=True)
         logger.debug("Diarizing...")
         logger.debug(f"Loaded {src_audio_file}")
