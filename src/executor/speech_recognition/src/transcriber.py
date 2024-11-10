@@ -17,9 +17,13 @@ class WhisperS2tTranscriber:
         pass
 
     @functools.lru_cache
-    def load_model(self, name = None, backend = "CTranslate2", enable_word_ts:bool=False, compute_type:str="float16"):
+    def load_model(
+        self,
+        name = None,
+        enable_word_ts:bool = False,
+        **model_params
+    ):
         if name is None: return None
-        model_params = {"asr_options":{"word_timestamps": True}} if enable_word_ts else {}
         if os.path.isdir(name):
             model_path = name
         else:
@@ -27,18 +31,19 @@ class WhisperS2tTranscriber:
                 name,
                 cache_dir=HUGGINGFACE_HUB_CACHE,
             )
-        device="cuda" if torch.cuda.is_available() else "cpu"
+        
         device_index = os.environ.get("CUDA_VISIBLE_DEVICES", "").split(',')
         device_index = [int(i) for i in device_index if i.isdecimal()]
-        logger.info(f"Using device {device}")
-        model = whisper_s2t.load_model(
+
+        # "word_timestamps" needs configuring when loading model.
+        model_params.update({"asr_options":{"word_timestamps": True}} if enable_word_ts else {})
+        model_params.update(dict(
             model_identifier=model_path,
-            backend=backend,
-            device=device,
             device_index=device_index,
-            compute_type=compute_type,
-            **model_params
-        )
+        ))
+
+        logger.debug(f"Parameters to load model: {model_params}")
+        model = whisper_s2t.load_model(**model_params)
         logger.debug(f"Model {name} loaded")
         return model
     
@@ -53,21 +58,27 @@ class WhisperS2tTranscriber:
         logger.debug("Transcribing...")
         result = None
         try:
-            enable_word_ts = model_params.get("word_timestamps", False)
-            default_compute_type = "float16" if torch.cuda.is_available() else "int8"
-            compute_type = model_params.get("compute_type", default_compute_type)
+            default_device, default_compute_type = ("cpu", "int8")
+            if torch.cuda.is_available():
+                default_device, default_compute_type = ("cuda", "float16")
+            device = model_params.pop("device", default_device)
+            compute_type = model_params.pop("compute_type", default_compute_type)
+            logger.info(f"Using device {device}. And compute type {compute_type}")
             model = self.load_model(
                 name=model_name,
+                enable_word_ts=model_params.get("word_timestamps", False),
+                # ---Transparent kwargs---
                 backend=model_backend,
-                enable_word_ts=enable_word_ts,
+                device=device,
                 compute_type=compute_type,
             )
-            if model_params is not None:
+            if model_params is not None and len(model_params) > 0:
                 model.update_params({'asr_options': model_params})
             result = model.transcribe_with_vad(audio_files, **transcribe_kwargs)
 
         except Exception:
             logger.exception("Error when generating transcription")
+            raise
 
         logger.debug("Done transcribe.")
         return result

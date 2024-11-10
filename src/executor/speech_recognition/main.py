@@ -33,11 +33,14 @@ class SpeechRecognitionExecutor(LLMExecutor):
     param_prefix:str = "whisper_"
     default_model_name:str = "medium"
     default_model_backend:str = "CTranslate2"
+    default_device:str = None
+    default_compute_type:str = "int8"
     language:str = "en"
     batch_size:int = 24
     diar_thold_sec:float = 1.0
     enable_timestamp:bool = False
     enable_diarization:bool = False
+    output_json:bool = False
 
     def __init__(self):
         super().__init__()
@@ -46,6 +49,8 @@ class SpeechRecognitionExecutor(LLMExecutor):
         model_group = parser.add_argument_group('Model Options')
         model_group.add_argument('--model', default=self.default_model_name, help='The model name.')
         model_group.add_argument('--visible_gpu', default=None, help='Specify the GPU IDs that this executor can use. Separate by comma.')
+        model_group.add_argument('--device', default=self.default_device, help='The device to load model. By default the system will automatically detect the capable device.')
+        model_group.add_argument('--compute_type', default=self.default_compute_type, help='The compute data type of the model.')
         model_group.add_argument('--backend', default=self.default_model_backend, help='The model backend.')
         model_group.add_argument('--language', default=self.language, help='The language to transcribe.')
         model_group.add_argument('--batch_size', default=self.batch_size, type=int, help='The batch size')
@@ -79,6 +84,8 @@ class SpeechRecognitionExecutor(LLMExecutor):
             if f"--{k}" in sys.argv
         }
         self.transcribe_param = merge_config(self.transcribe_param, transcribe_param_arg)
+        self.transcribe_param['device'] = self.args.device
+        self.transcribe_param['compute_type'] = self.args.compute_type
         self.enable_timestamp = self.args.enable_timestamp
         self.enable_diarization = self.args.enable_diarization
 
@@ -249,6 +256,7 @@ class SpeechRecognitionExecutor(LLMExecutor):
             lang = transcribe_param.pop("language", self.language).strip()
             num_speakers = self.read_param_from_history(history=history, param="speakers", type=int)[-1]
             diar_thold_sec = transcribe_param.pop("diar_thold_sec", self.diar_thold_sec)
+            output_json = transcribe_param.pop("output_json", self.output_json)
 
             transcribe_param["word_timestamps"] = enable_diarization
             transcribe_job = self.transcribe(
@@ -279,8 +287,12 @@ class SpeechRecognitionExecutor(LLMExecutor):
                 result = diary.annotate_transcript(result)
 
             logger.debug(f"Final Result: {result}")
-            output = "".join([self._format_output(i, enable_timestamp) for i in result])
-            output = self._replace(message=output, history=history)
+            output = ""
+            if output_json:
+                output = json.dumps(result, ensure_ascii=False)
+            else:
+                output = "".join([self._format_output(i, enable_timestamp) for i in result])
+                output = self._replace(message=output, history=history)
 
             yield output
             
