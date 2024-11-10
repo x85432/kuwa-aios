@@ -15,9 +15,6 @@
   <a href="http://makeapullrequest.com">
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?logo=github&logoColor=white">
   </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square">
-  </a>
   <a href="https://laravel.com/docs/10.x/releases">
     <img src="https://img.shields.io/badge/maintained%20with-Laravel-cc00ff.svg?logo=laravel&logoColor=white">
   </a>
