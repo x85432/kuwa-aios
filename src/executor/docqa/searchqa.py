@@ -179,8 +179,11 @@ class SearchQaExecutor(LLMExecutor):
 
         try:
 
-            if self.google_api_key and self.searching_engine_id:
-                urls = await google_search(query=query, api_key=self.google_api_key, cse_id=self.searching_engine_id)
+            if self.engine_url is None:
+                if self.google_api_key and self.searching_engine_id:
+                    urls = await google_search(query=query, api_key=self.google_api_key, cse_id=self.searching_engine_id)
+                else:
+                    raise ValueError("Empty Google API key or CSE ID.")
             else:
                 urls = [self.generate_url_from_query(template=self.engine_url, query=query)]
                 if not self.no_extract_url:
