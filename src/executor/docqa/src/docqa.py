@@ -92,13 +92,20 @@ class DocQa: #DatabaseQA actually
     ]
     refs = filter(lambda x: x.source, refs)
     result = f"\n\n<details><summary>{i18n.t('docqa.reference')}</summary>\n\n"
+    shown_links = []
     for i, ref in enumerate(refs):
       
       src = ref.source
+      link = src if src.startswith("http") else pathlib.Path(src).as_uri()
+      if link in shown_links:
+        continue
+      else:
+        shown_links.append(link)
+      
       title = ref.title if ref.title is not None else src
       content = f'\n\n```plaintext\n{ref.content}\n```\n' if self.display_ref_content else ''
-      link = src if src.startswith("http") else pathlib.Path(src).as_uri()
       result += f'{i+1}. [{title}]({link}){content}\n'
+
     result += f"</details>"
 
     return result
