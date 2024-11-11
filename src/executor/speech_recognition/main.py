@@ -70,6 +70,7 @@ class SpeechRecognitionExecutor(LLMExecutor):
     def setup(self):
         if self.args.visible_gpu:
             os.environ["CUDA_VISIBLE_DEVICES"] = self.args.visible_gpu
+            torch.cuda.device_count.cache_clear()
 
         os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
         self.default_model_name = self.args.model

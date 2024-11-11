@@ -32,14 +32,13 @@ class WhisperS2tTranscriber:
                 cache_dir=HUGGINGFACE_HUB_CACHE,
             )
         
-        device_index = os.environ.get("CUDA_VISIBLE_DEVICES", "").split(',')
-        device_index = [int(i) for i in device_index if i.isdecimal()]
+        device_num = sum(1 for i in os.environ.get("CUDA_VISIBLE_DEVICES", "").split(',') if i.isdecimal())
 
         # "word_timestamps" needs configuring when loading model.
         model_params.update({"asr_options":{"word_timestamps": True}} if enable_word_ts else {})
         model_params.update(dict(
             model_identifier=model_path,
-            device_index=device_index,
+            device_index=list(range(device_num)),
         ))
 
         logger.debug(f"Parameters to load model: {model_params}")
