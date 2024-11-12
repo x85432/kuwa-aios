@@ -95,7 +95,7 @@ async def construct_db(
     chunk_size:int = 512,
     chunk_overlap:int = 128,
     embedding_model:str = 'intfloat/multilingual-e5-small',
-    should_create_bot:bool = True
+    should_create_bot:bool = True,
     bot_template:str = None,
     ):
     """
@@ -125,7 +125,7 @@ async def construct_db(
 async def create_bot(
     db_name,
     db_path,
-    template:str = "PARAMETER retriever_database '{db_path}'"
+    template:str = "PARAMETER retriever_database '{db_path}'",
 ):
 
     client = KuwaClient(
