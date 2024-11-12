@@ -82,6 +82,7 @@ class KuwaClient:
             "visibility": visibility,
             "type": type,
         }
+        logger.debug(f"Request body: {request_body}")
         resp = requests.post(url, headers=headers, json=request_body)
         if not resp.ok:
             raise RuntimeError(f'Request failed with status {resp.status_code}, {resp.text}')
