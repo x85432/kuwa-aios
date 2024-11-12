@@ -36,6 +36,7 @@ import fileinput
 import requests
 import base64
 import tempfile
+import mimetypes
 from magika import Magika
 from urllib.parse import urlparse
 from kuwa.rag.file_text_loader import FileTextLoader
@@ -70,8 +71,10 @@ def cat_tool(input_line):
         print(f"![](data:{content_type};base64,{encoded_image})")
 
     try:
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        guessed_suffix = next(iter(mimetypes.guess_all_extensions(content_type)), None)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=guessed_suffix) as temp_file:
             temp_file.write(content)
+            temp_file.flush()
             temp_file_path = temp_file.name
             loader = FileTextLoader(file_path=temp_file.name)
             docs = loader.load()
