@@ -96,6 +96,7 @@ async def construct_db(
     chunk_overlap:int = 128,
     embedding_model:str = 'intfloat/multilingual-e5-small',
     should_create_bot:bool = True
+    bot_template:str = None,
     ):
     """
     Construct vector database from local documents and save to the destination.
@@ -119,9 +120,13 @@ async def construct_db(
     db.save(output_path)
     logger.info(f'Saved vector store to {output_path}.')
     if should_create_bot:
-        await create_bot(db_name=db_name, db_path=output_path)
+        await create_bot(db_name=db_name, db_path=output_path, template=bot_template)
 
-async def create_bot(db_name, db_path):
+async def create_bot(
+    db_name,
+    db_path,
+    template:str = "PARAMETER retriever_database '{db_path}'"
+):
 
     client = KuwaClient(
         base_url = os.environ["KUWA_BASE_URL"],
@@ -132,7 +137,7 @@ async def create_bot(db_name, db_path):
         bot_name = bot_name,
         bot_description = "Created by \"Construct Vector DB\"",
         llm_access_code = "db-qa",
-        modelfile = f"PARAMETER retriever_database '{db_path}'"
+        modelfile = template.format(db_path=db_path)
     )
     logger.info(f"Bot \"{bot_name}\" created successfully.")
 
@@ -144,6 +149,7 @@ def parse_args():
     parser.add_argument("--chunk-overlap", help="The chunk size to split the document.", type=int, default=128)
     parser.add_argument("--embedding-model", help="The embedding model to use", type=str, default="intfloat/multilingual-e5-small")
     parser.add_argument("--no-create-bot", help="Do not create corresponding bot", action="store_true")
+    parser.add_argument("--bot-template", help="The template to create bot.", default="PARAMETER retriever_database '{db_path}'")
     parser.add_argument("--log", help="The log level. (INFO, DEBUG, ...)", type=str, default="INFO")
     args, unknown_args = parser.parse_known_args()
     return args,unknown_args
@@ -189,6 +195,7 @@ if __name__ == "__main__":
                     chunk_overlap=args.chunk_overlap,
                     embedding_model=args.embedding_model,
                     should_create_bot=not args.no_create_bot,
+                    bot_template=args.bot_template,
                 )
             )
 
