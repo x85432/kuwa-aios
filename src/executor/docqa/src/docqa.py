@@ -96,7 +96,7 @@ class DocQa: #DatabaseQA actually
     for i, ref in enumerate(refs):
       
       src = ref.source
-      link = src if src.startswith("http") else pathlib.Path(src).as_uri()
+      link = src if str(src).startswith("http") else pathlib.Path(src).as_uri()
       if link in shown_links:
         continue
       else:
