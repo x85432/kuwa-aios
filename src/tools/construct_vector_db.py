@@ -133,11 +133,13 @@ async def create_bot(
         auth_token = os.environ["KUWA_API_KEY"]
     )
     bot_name = f"DB QA ({db_name})"
+    modelfile = template.format(db_path=db_path)
+    logger.debug(f"Modelfile: {modelfile}")
     response = await client.create_bot(
         bot_name = bot_name,
         bot_description = "Created by \"Construct Vector DB\"",
         llm_access_code = "db-qa",
-        modelfile = template.format(db_path=db_path)
+        modelfile = modelfile,
     )
     logger.info(f"Bot \"{bot_name}\" created successfully.")
 
