@@ -95,7 +95,7 @@ async def construct_db(
     chunk_size:int = 512,
     chunk_overlap:int = 128,
     embedding_model:str = 'intfloat/multilingual-e5-small',
-    create_bot:bool = True
+    should_create_bot:bool = True
     ):
     """
     Construct vector database from local documents and save to the destination.
@@ -118,7 +118,7 @@ async def construct_db(
     #    os.replace(tmpdirname, output_path)
     db.save(output_path)
     logger.info(f'Saved vector store to {output_path}.')
-    if create_bot:
+    if should_create_bot:
         await create_bot(db_name=db_name, db_path=output_path)
 
 async def create_bot(db_name, db_path):
@@ -188,7 +188,7 @@ if __name__ == "__main__":
                     chunk_size=args.chunk_size,
                     chunk_overlap=args.chunk_overlap,
                     embedding_model=args.embedding_model,
-                    create_bot=not args.no_create_bot,
+                    should_create_bot=not args.no_create_bot,
                 )
             )
 
