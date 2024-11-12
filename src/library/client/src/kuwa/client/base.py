@@ -80,7 +80,7 @@ class KuwaClient:
             "bot_name": bot_name,
             "bot_describe": bot_description,
             "visibility": visibility,
-            "type": type,
+            "bot_type": type,
         }
         logger.debug(f"Request body: {request_body}")
         resp = requests.post(url, headers=headers, json=request_body)
