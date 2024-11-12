@@ -66,7 +66,7 @@ class KuwaClient:
             raise RuntimeError(f'Request failed with status {resp.status_code}, {resp.json()}')
         return resp.json()
 
-    async def create_bot(self, llm_access_code:str, bot_name: str, auth_token: str = None, modelfile:str=None, react_btn:str=None, bot_description:str=None, visibility:int=3):
+    async def create_bot(self, llm_access_code:str, bot_name: str, auth_token: str = None, modelfile:str=None, react_btn:str=None, bot_description:str=None, visibility:int=3, type:str="prompt"):
         url = urljoin(self.base_url, "/api/user/create/bot")
         auth_token = self.auth_token if self.auth_token is not None else auth_token
         headers = {
@@ -80,6 +80,7 @@ class KuwaClient:
             "bot_name": bot_name,
             "bot_describe": bot_description,
             "visibility": visibility,
+            "type": type,
         }
         resp = requests.post(url, headers=headers, json=request_body)
         if not resp.ok:
