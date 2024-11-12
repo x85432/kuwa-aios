@@ -83,7 +83,7 @@ class KuwaClient:
         }
         resp = requests.post(url, headers=headers, json=request_body)
         if not resp.ok:
-            raise RuntimeError(f'Request failed with status {resp.status_code}, {resp.json()}')
+            raise RuntimeError(f'Request failed with status {resp.status_code}, {resp.text}')
         return resp.json()
 
     async def chat_complete(self, auth_token: str = None, messages: list = [], timeout=120, streaming=True, botfile=None):
