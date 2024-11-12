@@ -134,7 +134,7 @@ async def create_bot(
     )
     bot_name = f"DB QA ({db_name})"
     modelfile = template.format(db_path=db_path)
-    logger.debug(f"Modelfile: {modelfile}")
+    logger.debug(f"Template: {template}\nModelfile:{modelfile}")
     response = await client.create_bot(
         bot_name = bot_name,
         bot_description = "Created by \"Construct Vector DB\"",
