@@ -38,6 +38,7 @@ import base64
 import tempfile
 from magika import Magika
 from urllib.parse import urlparse
+from kuwa.rag.file_text_loader import FileTextLoader
 
 magika = Magika()
 
@@ -52,25 +53,36 @@ def cat_tool(input_line):
     if not is_url(input_line):
         print(input_line)
         return
+    response = None
     try:
         response = requests.get(input_line)
         response.raise_for_status()
-
-        content = response.content
-        magic_result = magika.identify_bytes(content)
-        content_type = magic_result.output.mime_type.split(';', 1)[0]
-
-        if 'text' in content_type:
-            print(response.text)
-        elif 'image' in content_type:
-            encoded_image = base64.b64encode(content).decode('utf-8')
-            print(f"![](data:{content_type};base64,{encoded_image})")
-        else:
-            print("Unrecognized binary format")
-
     except requests.exceptions.RequestException as e:
         print(f"Error fetching URL: {e}")
+        return
 
+    content = response.content
+    magic_result = magika.identify_bytes(content)
+    content_type = magic_result.output.mime_type.split(';', 1)[0]
+    
+    if 'image' in content_type:
+        encoded_image = base64.b64encode(content).decode('utf-8')
+        print(f"![](data:{content_type};base64,{encoded_image})")
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+            loader = FileTextLoader(file_path=temp_file.name)
+            docs = loader.load()
+            if len(docs) > 0:
+                print('\n'.join([i.page_content for i in docs]))
+            else:
+                print("Extracted text is empty.")
+    except Exception as e:
+        print(f"Error extracting text from file: {e}")
+        return
+        
 def is_url(input_line):
     """
     Checks if the input line is a valid URL.
