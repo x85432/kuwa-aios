@@ -37,6 +37,10 @@ if "%set_version%"=="" (
 			) else if !minor! equ 1 (
 				set "version=12.1"
 			)
+		) else if !major:~1! equ 11 (
+			if !minor! equ 8 (
+				set "version=11.8"
+			)
 		)
 	)
 ) else (
