@@ -21,8 +21,7 @@
         <x-chat.modals.import_history :llms="$llms ?? []" />
     @endif
     <div class="flex h-full mx-auto">
-        <div
-            class="bg-white dark:bg-gray-800 text-white w-64 hidden sm:flex flex-shrink-0 relative overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 text-white w-64 hidden sm:flex flex-shrink-0 relative overflow-hidden">
             <div class="p-3 flex flex-1 flex-col w-full h-full">
                 @if ($bots->count() == 0)
                     <div
@@ -58,9 +57,10 @@
                     <div class="mb-2 border border-black dark:border-white border-1 rounded-lg overflow-hidden">
                         <div class="flex">
                             <div class="w-full">
-                                <input type="search" oninput="chatroom_filter($(this).val(), $(this).parent().parent().parent().next().next())"
+                                <input type="search"
+                                    oninput="chatroom_filter($(this).val(), $(this).parent().parent().parent().next().next())"
                                     class="p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-r-lg border-l-gray-50 border-l-2 border border-gray-300 dark:bg-gray-700 dark:border-l-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
-                                    placeholder="{{__('room.label.search_chat')}}" autocomplete="off">
+                                    placeholder="{{ __('room.label.search_chat') }}" autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -79,7 +79,8 @@
                 </button>
                 <div class="flex-1">
                     <div class="flex h-full items-center">
-                        <div class="w-full border border-black dark:border-white border-1 rounded-lg overflow-hidden ml-2">
+                        <div
+                            class="w-full border border-black dark:border-white border-1 rounded-lg overflow-hidden ml-2">
                             <input type="search"
                                 oninput="filterItems($(this).val(), $(this).parent().parent().parent().parent().next(), '> form', '> button > p', (el) => el.text());"
                                 class="p-2.5 m-auto w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-r-lg border-l-gray-50 border-l-2 border border-gray-300 dark:bg-gray-700 dark:border-l-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
@@ -95,19 +96,19 @@
                 class="mb-4 grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 xl:grid-cols-10 2xl:grid-cols-12 mb-auto overflow-y-auto scrollbar">
                 @foreach ($bots as $bot)
                     <x-sorted-list.item html_tag="form" :$sorting_methods :record="$bot" method="post"
-                        class="text-black dark:text-white h-[110px] p-2 hover:bg-gray-200 dark:hover:bg-gray-500 transition"
+                        class="text-black dark:text-white h-[115px] p-2 hover:bg-gray-200 dark:hover:bg-gray-500 transition"
                         action="{{ route('room.new') }}">
                         @csrf
-                        <button class="h-full w-full flex flex-col items-center justify-start">
-                            <div class="relative w-[50px] h-[50px]">
-                                <img class="rounded-full mx-auto bg-black w-full h-full overflow-hidden"
-                                    src="{{ $bot->image ? asset(Storage::url($bot->image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
-
-                                <div class="absolute bottom-0 right-0 z-2 opacity-70">
-                                    @if ($bot->healthy)
-                                        <div class="bg-green-500 rounded-full w-3 h-3"></div>
-                                    @else
-                                        <div class="bg-red-500 rounded-full w-3 h-3"></div>
+                        <button class="relative h-full w-full flex flex-col items-center justify-start">
+                            <div class="relative w-[50px] h-[50px] mx-auto">
+                                <div class="flex justify-center items-center h-full">
+                                    <img class="rounded-full bg-black w-full h-full overflow-hidden"
+                                        src="{{ $bot->image ?? $bot->base_image ? asset(Storage::url($bot->image ?? $bot->base_image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
+                                </div>
+                                <div class="absolute bottom-0 right-0 z-2 opacity-90">
+                                    @if (!$bot->healthy || time() - strtotime($bot->updated_at) > 300)
+                                        <div class="bg-red-500 rounded-full w-3 h-3"
+                                            data-updated-at="{{ $bot->updated_at }}"></div>
                                     @endif
                                 </div>
                             </div>

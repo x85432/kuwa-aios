@@ -30,6 +30,20 @@ class AuthCheck
         }
 
         if ($request->user()) {
+            $jobs = Redis::lrange('queues:default', 0, -1);
+            $runningJobs = [];
+
+            foreach ($jobs as $job) {
+                $jobData = json_decode($job);
+                $displayName = $jobData->displayName;
+
+                if (!in_array($displayName, $runningJobs)) {
+                    $runningJobs[] = $displayName;
+                } elseif (in_array($displayName, ['App\Jobs\CheckUpdate', 'App\Jobs\HealthCheck'])) {
+                    Redis::lrem('queues:default', 0, $job);
+                }
+            }
+
             if ($request->user()->require_change_password) {
                 return redirect()->route('change_password');
             }

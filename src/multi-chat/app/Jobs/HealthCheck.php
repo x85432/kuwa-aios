@@ -12,27 +12,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Bus\Queueable;
 use App\Models\SystemSetting;
 use App\Jobs\RequestChat;
-use App\Models\LLMs; 
+use App\Models\LLMs;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-class HealthCheck implements ShouldQueue, ShouldBeUniqueUntilProcessing
+class HealthCheck implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    /**
-     * The number of seconds after which the job's unique lock will be released.
-     *
-     * @var int
-     */
-    public $uniqueFor = 5;
-
-    /**
-     * Get the unique ID for the job.
-     */
-    public function uniqueId(): string
-    {
-        return 'health_check_job';
-    }
 
     /**
      * Execute the job.
@@ -42,16 +28,16 @@ class HealthCheck implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public function handle()
     {
         $systemSetting = SystemSetting::where('key', 'kernel_location')->first();
-    
+
         if ($systemSetting && $systemSetting->value) {
             // Send GET request to the endpoint
             $response = Http::get($systemSetting->value . '/' . RequestChat::$agent_version . '/worker/debug');
-    
+
             if ($response->ok()) {
                 // Get the response body and all LLMs
                 $responseData = $response->body();
                 $llms = LLMs::select('id', 'access_code')->get();
-    
+
                 // Separate found and not found LLMs
                 $foundIds = [];
                 foreach ($llms as $llm) {
@@ -59,11 +45,17 @@ class HealthCheck implements ShouldQueue, ShouldBeUniqueUntilProcessing
                         $foundIds[] = $llm->id;
                     }
                 }
-    
+
                 // Update healthy status and log results in one query each
-                LLMs::whereIn('id', $foundIds)->update(['healthy' => true]);
-                LLMs::whereNotIn('id', $foundIds)->update(['healthy' => false]);
-    
+                LLMs::whereIn('id', $foundIds)->update([
+                    'healthy' => true,
+                    'updated_at' => Carbon::now(),
+                ]);
+                LLMs::whereNotIn('id', $foundIds)->update([
+                    'healthy' => false,
+                    'updated_at' => Carbon::now(),
+                ]);
+
                 Log::info('LLM health status updated.', [
                     'found' => $foundIds,
                     'not_found' => array_diff($llms->pluck('id')->toArray(), $foundIds),

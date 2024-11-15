@@ -144,35 +144,24 @@
             </div>
         </div>
 
-                <div
-                    class="mb-4 grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 mb-auto overflow-y-auto scrollbar">
-                    @foreach ($bots as $bot)
-                        <x-sorted-list.item html_tag="form" :$sorting_methods :record="$bot" method="post"
-                            class="text-black dark:text-white h-[135px] p-2 hover:bg-gray-200 dark:hover:bg-gray-500 transition"
-                            action="{{ route('room.new') }}">
-                            @csrf
-                            <button class="h-full w-full flex flex-col items-center justify-start">
-                                <div class="relative w-[50px] h-[50px]">
-                                    <img class="rounded-full mx-auto bg-black w-full h-full overflow-hidden"
-                                        src="{{ $bot->image ? asset(Storage::url($bot->image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
-    
-                                    <div class="absolute bottom-0 right-0 z-2 opacity-70">
-                                        @if ($bot->healthy)
-                                            <div class="bg-green-500 rounded-full w-3 h-3"></div>
-                                        @else
-                                            <div class="bg-red-500 rounded-full w-3 h-3"></div>
-                                        @endif
-                                    </div>
-                                </div>
-                                <p class="text-sm line-clamp-2">{{ $bot->name }}</p>
-                                @if ($bot->description)
-                                    <p class="text-gray-500 dark:text-gray-300 line-clamp-1 max-w-full text-xs">
-                                        {{ $bot->description }}</p>
-                                @endif
-                                <input name="llm[]" value="{{ $bot->id }}" style="display:none;">
-                            </button>
-                        </x-sorted-list.item>
-                    @endforeach
+        @if (count($llms) == 1 && $llms[0]->type === 'server')
+            @php
+                $modelfile = json_decode($llms[0]->config)->modelfile;
+                $url = null;
+                foreach ($modelfile as $item) {
+                    if (isset($item->args)) {
+                        $parts = explode(' ', $item->args);
+                        if (count($parts) >= 2 && trim($parts[0]) === 'redirect_url') {
+                            $url = trim($parts[1]);
+                            break;
+                        }
+                    }
+                }
+            @endphp
+            @if ($url)
+                <div id="app-window"
+                    class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
+                    <iframe src="{{ $url }}" style="height:100%;width:100%" frameborder="0"></iframe>
                 </div>
             </div>
         @else
@@ -189,92 +178,10 @@
                     @if (!session('llms'))
                         @php
                             $tasks = \Illuminate\Support\Facades\Redis::lrange('usertask_' . Auth::user()->id, 0, -1);
-
-                            $roomId = request()->route('room_id');
-
-                            $roomId = Illuminate\Support\Facades\Request::route('room_id');
-
-                            $botChats = App\Models\Chats::join('histories', 'chats.id', '=', 'histories.chat_id')
-                                ->leftJoin('feedback', 'history_id', '=', 'histories.id')
-                                ->join('bots', 'bots.id', '=', 'chats.bot_id')
-                                ->Join('llms', function ($join) {
-                                    $join->on('llms.id', '=', 'bots.model_id');
-                                })
-                                ->where('isbot', true)
-                                ->whereIn('chats.id', App\Models\Chats::where('roomID', $roomId)->pluck('id'))
-                                ->select(
-                                    'histories.chained as chained',
-                                    'chats.id as chat_id',
-                                    'histories.id as id',
-                                    'chats.bot_id as bot_id',
-                                    'histories.created_at as created_at',
-                                    'histories.msg as msg',
-                                    'histories.isbot as isbot',
-                                    DB::raw('COALESCE(bots.description, llms.description) as description'),
-                                    DB::raw('COALESCE(bots.config, llms.config) as config'),
-                                    DB::raw('COALESCE(bots.image, llms.image) as image'),
-                                    DB::raw('COALESCE(bots.name, llms.name) as name'),
-                                    'feedback.nice',
-                                    'feedback.detail',
-                                    'feedback.flags',
-                                    'access_code',
-                                    'llms.updated_at as updated_at',
-                                    'healthy',
-                                );
-
-                            $nonBotChats = App\Models\Chats::join('histories', 'chats.id', '=', 'histories.chat_id')
-                                ->leftjoin('bots', 'bots.id', '=', 'chats.bot_id')
-                                ->Join('llms', function ($join) {
-                                    $join->on('llms.id', '=', 'bots.model_id');
-                                })
-                                ->where('isbot', false)
-                                ->whereIn('chats.id', App\Models\Chats::where('roomID', $roomId)->pluck('id'))
-                                ->select(
-                                    'histories.chained as chained',
-                                    'chats.id as chat_id',
-                                    'histories.id as id',
-                                    'chats.bot_id as bot_id',
-                                    'histories.created_at as created_at',
-                                    'histories.msg as msg',
-                                    'histories.isbot as isbot',
-                                    DB::raw('COALESCE(bots.description, llms.description) as description'),
-                                    DB::raw('COALESCE(bots.config, llms.config) as config'),
-                                    DB::raw('COALESCE(bots.image, llms.image) as image'),
-                                    DB::raw('COALESCE(bots.name, llms.name) as name'),
-                                    DB::raw('NULL as nice'),
-                                    DB::raw('NULL as detail'),
-                                    DB::raw('NULL as flags'),
-                                    'access_code',
-                                    'llms.updated_at as updated_at',
-                                    'healthy',
-                                );
-
-                            $mergedChats = $botChats
-                                ->union($nonBotChats)
-                                ->get()
-                                ->sortBy(function ($chat) {
-                                    return [$chat->created_at, $chat->id, $chat->bot_id, -$chat->history_id];
-                                });
-                            $mergedMessages = [];
-                            // Filter and merge the chats based on the condition
-                            $filteredChats = $mergedChats->filter(function ($chat) use (&$mergedMessages) {
-                                if (!$chat->isbot && !in_array($chat->msg, $mergedMessages)) {
-                                    // Add the message to the merged messages array
-                                    $mergedMessages[] = $chat->msg;
-                                    return true; // Keep this chat in the final result
-                                } elseif ($chat->isbot) {
-                                    $mergedMessages = [];
-                                    return true; // Keep bot chats in the final result
-                                }
-                                return false; // Exclude duplicate non-bot chats
-                            });
-
-                            // Sort the filtered chats
-                            $mergedChats = $filteredChats->sortBy(function ($chat) {
-                                return [$chat->created_at, $chat->bot_id, -$chat->id];
-                            });
-                            $refers = $mergedChats->where('isbot', '=', true);
+                            $mergedChats = \App\Models\Chatroom::getMergedChats(request()->route('room_id'));
+                            $refers = $mergedChats->where('isbot', true);
                         @endphp
+
                         @env('arena')
                         @php
                             $output = collect();
@@ -290,75 +197,56 @@
                                         // If there are buffered bot messages, push them into the output collection
                                         $output = $output->merge($bufferedBotMessages);
 
-                                    // Reset the buffered bot messages array
-                                    $bufferedBotMessages = [];
+                                        // Reset the buffered bot messages array
+                                        $bufferedBotMessages = [];
+                                    }
+
+                                    // Push the current non-bot message into the output collection
+                                    $output->push($history);
                                 }
-
-                                // Push the current non-bot message into the output collection
-                                $output->push($history);
                             }
-                        }
-                        if (!empty($bufferedBotMessages)) {
-                            shuffle($bufferedBotMessages);
-                            // If there are buffered bot messages, push them into the output collection
-                            $output = $output->merge($bufferedBotMessages);
+                            if (!empty($bufferedBotMessages)) {
+                                shuffle($bufferedBotMessages);
+                                // If there are buffered bot messages, push them into the output collection
+                                $output = $output->merge($bufferedBotMessages);
 
-                            // Reset the buffered bot messages array
-                            $bufferedBotMessages = [];
-                        }
-                        $mergedChats = $output;
-                    @endphp
-                    <div>
-                        @foreach ($mergedChats as $history)
-                            <x-chat.message :history="$history" :tasks="$tasks" :refers="$refers"
-                                :anonymous="true" />
-                        @endforeach
-                    </div>
-                @else
-                    <div>
-                        @foreach ($mergedChats as $history)
-                            <x-chat.message :history="$history" :tasks="$tasks" :refers="$refers" />
-                        @endforeach
-                    </div>
-                    @endenv
-                @endif
+                                // Reset the buffered bot messages array
+                                $bufferedBotMessages = [];
+                            }
+                            $mergedChats = $output;
+                        @endphp
+                        <div>
+                            @foreach ($mergedChats as $history)
+                                <x-chat.message :history="$history" :tasks="$tasks" :refers="$refers"
+                                    :anonymous="true" />
+                            @endforeach
+                        </div>
+                    @else
+                        <div>
+                            @foreach ($mergedChats as $history)
+                                <x-chat.message :history="$history" :tasks="$tasks" :refers="$refers" />
+                            @endforeach
+                        </div>
+                        @endenv
+                    @endif
 
                     @if (count($llms) == 1)
                         <div class="text-black dark:text-white p-2 mb-auto">
-                            <img id="llm_img" class="rounded-full mx-auto bg-black" width="100px" height="100px"
-                                src="{{ $llms[0]->image ?? $llms[0]->base_image ? asset(Storage::url($llms[0]->image ?? $llms[0]->base_image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
-                            <p class="text-center text-sm line-clamp-4 py-1">{{ $llms[0]->name }}</p>
-                            @if ($llms[0]->description)
-                                <p
-                                    class="text-gray-500 dark:text-gray-300 line-clamp-4 max-w-full text-xs text-center py-1">
-                                    {{ $llms[0]->description }}</p>
-                            @endif
+                            <div class="relative w-[100px] h-[100px] mx-auto">
+                                <div class="flex justify-center items-center h-full">
+                                    <img class="rounded-full bg-black w-full h-full overflow-hidden"
+                                        src="{{ $llms[0]->image ?? $llms[0]->base_image ? asset(Storage::url($llms[0]->image ?? $llms[0]->base_image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
+                                </div>
+
+                                <div class="absolute bottom-0 right-0 z-2 opacity-90">
+                                    @if (!$llms[0]->healthy || time() - strtotime($llms[0]->updated_at) > 300)
+                                        <div class="bg-red-500 rounded-full w-6 h-6"
+                                            data-updated-at="{{ $llms[0]->updated_at }}"></div>
+                                    @endif
+                                </div>
+                            </div>
+                            <p class="text-center text-sm line-clamp-2 py-1">{{ $llms[0]->name }}</p>
                         </div>
-                        @if ($llms[0]->type === 'server')
-                            @php
-                                $modelfile = json_decode($llms[0]->config)->modelfile;
-                                $url = null;
-                                foreach ($modelfile as $item) {
-                                    if (isset($item->args)) {
-                                        $parts = explode(' ', $item->args);
-                                        if (count($parts) >= 2 && trim($parts[0]) === 'redirect_url') {
-                                            $url = trim($parts[1]);
-                                            break;
-                                        }
-                                    }
-                                }
-                            @endphp
-                            @if ($url)
-                                <script>
-                                    let response = confirm('確定前往 {{ $url }}?');
-                                    if (response) {
-                                        window.location.href = "{{ $url }}";
-                                    } else {
-                                        console.log('stay on same page...');
-                                    }
-                                </script>
-                            @endif
-                        @endif
                     @endif
                 </div>
                 @if (
