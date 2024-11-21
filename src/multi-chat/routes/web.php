@@ -307,8 +307,8 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
                     });
 
                 # Third-party app proxy route.
-                Route::any('/app/{app_name}/{uri?}', [AppProxyController::class, 'proxy'])
-                    ->where(['app_name' => '[^/\?]+', 'uri' => '.*']);
+                Route::any('/app/{app_name}/{app_path_segment?}', [AppProxyController::class, 'proxy'])
+                    ->where(['app_name' => '[^/\?]+', 'app_path_segment' => '.*']);
             });
         });
     });
