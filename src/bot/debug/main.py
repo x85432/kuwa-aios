@@ -20,7 +20,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         # If there's a body, read it
         content_length = int(self.headers.get('Content-Length', 0))
         if content_length > 0:
-            raw_request += "\n" + self.rfile.read(content_length).decode('utf-8')
+            raw_request += "\n" + self.rfile.read(content_length).decode('utf-8', errors='backslashreplace')
 
         # Send response status code
         self.send_response(200)
