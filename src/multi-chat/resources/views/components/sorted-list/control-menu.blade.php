@@ -13,7 +13,8 @@ Structure of sorting_methods:
         "name" => "The name to display"
     ]
 ]
-*/ ?>
+*/
+?>
 
 @props(['sorting_methods' => [], 'id' => 'bots', 'btn_class' => ''])
 
@@ -21,11 +22,10 @@ Structure of sorting_methods:
     <x-slot name="trigger">
         <button onclick="event.preventDefault();$(this).find('.fa-chevron-up').toggleClass('rotate-180')"
             class="{{ $btn_class }} inline-flex items-center focus:outline-none transition ease-in-out duration-150">
-            <div>{{__('room.button.sort_by')}}</div>
+            <div>{{ __('room.button.sort_by') }}</div>
 
             <div class="ml-1">
-                <i class="fas fa-chevron-up mx-3 transform duration-500 rotate-180"
-                    style="font-size:10px;"></i>
+                <i class="fas fa-chevron-up mx-3 transform duration-500 rotate-180" style="font-size:10px;"></i>
             </div>
         </button>
     </x-slot>
@@ -33,45 +33,50 @@ Structure of sorting_methods:
     <x-slot name="content">
         @foreach ($sorting_methods as $method)
             @php
-            $onclick = "sortLists('" . $id . "', $(this).data('key'))";
+                $onclick = "sortLists('" . $id . "', $(this).data('key'))";
             @endphp
-            <x-dropdown-link href="javascript:;" onclick="{{ $onclick }}" class="kuwa-{{ $id }}-sorting-method" data-key="{{ $method['index_key'] }}">
-                {{ __($method["name"]) }}
+            <x-dropdown-link href="javascript:;" onclick="{{ $onclick }}"
+                class="kuwa-{{ $id }}-sorting-method" data-key="{{ $method['index_key'] }}">
+                {{ __($method['name']) }}
             </x-dropdown-link>
         @endforeach
     </x-slot>
-    
+
 </x-dropdown>
 
 @once
-<script>
-    function toggleSortingOptions(id, key) {
-        let sorting_options = $(`.kuwa-${id}-sorting-method`);
-        sorting_options.removeClass('underline');
-        sorting_options.filter(`*[data-key="${key}"]`).addClass('underline');
-        localStorage.setItem(`kuwa-${id}-sort-by`, key);
-    }
-    function sortLists(id, key) {
-        let containers = $(`.kuwa-sorted-list-item-${id}`).parent();
-        let data_attr = `${key}-order-index`;
-        containers.each((index, container) => {
-            let bots = $(container).children();
-            bots.sort((a, b) => $(a).data(data_attr) - $(b).data(data_attr))
-                .appendTo(container);
-        })
+    <script>
+        function toggleSortingOptions(id, key) {
+            let sorting_options = $(`.kuwa-${id}-sorting-method`);
+            sorting_options.removeClass('underline');
+            sorting_options.filter(`*[data-key="${key}"]`).addClass('underline');
+            localStorage.setItem(`kuwa-${id}-sort-by`, key);
+            sorting_method = key;
+        }
 
-        toggleSortingOptions(id, key);
-    }
-</script>
+        function sortLists(id, key) {
+            const dataAttr = `${key}-order-index`;
+
+            $(`.kuwa-sorted-list-item-${id}`).parent().each((_, container) => {
+                $(container).children().sort((a, b) =>
+                    $(b).find('input:checked').length - $(a).find('input:checked').length ||
+                    $(a).data(dataAttr) - $(b).data(dataAttr)
+                ).appendTo(container);
+            });
+
+            toggleSortingOptions(id, key);
+        }
+    </script>
 @endonce
 
-@if(count($sorting_methods) > 0)
-<script>
-    <?php //Restoring default sorting method from local storage. ?>
-    $(window).on('load', function(){
-        const default_sorting_method = "{{$sorting_methods[0]['index_key']}}";
-        let sorting_method = localStorage.getItem("kuwa-{{ $id }}-sort-by") || default_sorting_method;
-        sortLists("{{ $id }}", sorting_method);
-    });
-</script>
+@if (count($sorting_methods) > 0)
+    <script>
+        <?php //Restoring default sorting method from local storage.
+        ?>
+        $(window).on('load', function() {
+            const default_sorting_method = "{{ $sorting_methods[0]['index_key'] }}";
+            let sorting_method = localStorage.getItem("kuwa-{{ $id }}-sort-by") || default_sorting_method;
+            sortLists("{{ $id }}", sorting_method);
+        });
+    </script>
 @endif
