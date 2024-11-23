@@ -95,7 +95,7 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
         });
 
         # Admin routes, require admin permission
-        Route::middleware('auth', 'verified', AdminMiddleware::class . ':tab_Dashboard', 'auth.check')->group(function () {
+        Route::middleware('auth', 'auth.session', 'verified', AdminMiddleware::class . ':tab_Dashboard', 'auth.check')->group(function () {
             Route::group(['prefix' => 'dashboard'], function () {
                 Route::get('/', [DashboardController::class, 'home'])->name('dashboard.home');
                 Route::middleware(AdminMiddleware::class . ':Dashboard_read_feedbacks')
@@ -113,7 +113,7 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
         });
 
         # User routes, required email verified
-        Route::middleware('auth', 'verified')->group(function () {
+        Route::middleware('auth', 'auth.session', 'verified')->group(function () {
             Route::get('/change_password', function () {
                 if (request()->user()->require_change_password) {
                     return view('profile.change_password');
