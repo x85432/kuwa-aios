@@ -256,10 +256,6 @@
                         class="bg-blue-500 inline-block hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-center"
                         href="{{ route('manage.setting.resetRedis') }}">{{ __('settings.button.reset_redis') }}</a>
                 </div>
-                <div class="my-2"><a
-                        class="bg-blue-500 inline-block hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-center"
-                        href="{{ route('manage.setup') }}">{{ __('settings.button.setup_page') }}</a>
-                </div>
             </div>
             <div class="h-[400px]"></div>
         </form>

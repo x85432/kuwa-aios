@@ -8,7 +8,6 @@ return [
     'button.close' => '關閉',
     'button.accept' => '我同意',
     'button.updateWeb' => '強制更新網站系統',
-    'button.setup_page' => 'Kuwa快速設定',
     'button.reset_redis' => '重設Redis快取',
 
     'header.setting.ui' => '使用者介面',
