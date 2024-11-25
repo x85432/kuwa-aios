@@ -14,31 +14,30 @@ class CloudController extends Controller
 {
     function getFileCategory($extension)
     {
-        switch ($extension) {
-            case 'jpg':
-            case 'jpeg':
-            case 'png':
-            case 'gif':
-                return 'image';
-            case 'pdf':
-                return 'pdf';
-            case 'doc':
-            case 'docx':
-                return 'word';
-            case 'xls':
-            case 'xlsx':
-                return 'excel';
-            case 'ppt':
-            case 'pptx':
-                return 'powerpoint';
-            case 'zip':
-            case 'rar':
-                return 'archive';
-            case '/':
-                return 'folder';
-            default:
-                return 'file';
+        $extension = strtolower($extension);
+
+        $categories = [
+            'image' => ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'tiff', 'tif', 'ico', 'heic', 'img', 'dds'],
+            'audio' => ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'wma'],
+            'video' => ['mp4', 'webm', 'ogv', 'mkv', 'mov', 'avi', '3gp', 'flv', 'wmv'],
+            'document' => ['doc', 'docx', 'odt', 'rtf', 'pages', 'numbers', 'key', 'epub', 'mobi'],
+            'pdf' => ['pdf'],
+            'html' => ['html', 'htm', 'xhtml'],
+            'text' => ['txt', 'json', 'log', 'sql', 'csv', 'xml', 'ini', 'md', 'conf', 'config', 'yml', 'yaml', 'sh', 'bash', 'bat', 'c', 'cpp', 'h', 'hpp', 'java', 'py', 'js', 'ts', 'jsx', 'tsx', 'php', 'rb', 'go', 'cs', 'swift', 'rs', 'kt', 'scala', 'rst', 'adoc', 'env', 'properties', 'manifest', 'plist', 'tex', 'lua', 'perl', 'pl', 'r', 'm', 'matlab', 'sas'],
+            'archive' => ['zip', 'rar', 'tar', 'gz', '7z', 'bz2', 'xz', 'tgz', 'zst', 'cab', 'iso', 'jar', 'apk', 'dmg'],
+            'code' => ['py', 'c', 'cpp', 'js', 'ts', 'php', 'rb', 'go', 'java', 'cs', 'swift', 'rs', 'kt', 'scala'],
+            'spreadsheet' => ['xls', 'xlsx', 'ods', 'csv'],
+            'presentation' => ['ppt', 'pptx', 'odp', 'key'],
+            'font' => ['ttf', 'otf', 'woff', 'woff2', 'eot'],
+        ];
+
+        foreach ($categories as $category => $extensions) {
+            if (in_array($extension, $extensions, true)) {
+                return $category;
+            }
         }
+
+        return 'file';
     }
 
     public function home(Request $request)

@@ -49,14 +49,20 @@
                 .catch(console.error);
         }
         const categoryToIcon = {
-            image: 'file-image',
-            pdf: 'file-pdf',
-            word: 'file-word',
-            excel: 'file-excel',
-            powerpoint: 'file-powerpoint',
-            archive: 'file-archive',
-            folder: 'folder',
-            file: 'file-alt'
+            image: 'fas fa-file-image',
+            audio: 'fas fa-file-audio',
+            video: 'fas fa-file-video',
+            html: 'fab fa-html5',
+            document: 'fas fa-file-word',
+            pdf: 'fas fa-file-pdf',
+            text: 'fas fa-file-alt',
+            archive: 'fas fa-file-archive',
+            folder: 'fas fa-folder',
+            file: 'fas fa-file-alt',
+            code: 'fas fa-file-code',
+            spreadsheet: 'fas fa-file-excel',
+            presentation: 'fas fa-file-powerpoint',
+            font: 'fas fa-font',
         };
 
         function cloud_open(obj) {
@@ -162,19 +168,39 @@
 
             data.result.explorer.forEach(item => {
                 const div = $('<div></div>').addClass(
-                        'hover:bg-gray-300 w-[100px] max-w-[100px] min-w-[100px] md:w-[150px] md:max-w-[150px] md:min-w-[150px] m-1 dark:hover:bg-gray-700 text-center overflow-hidden flex flex-col justify-center border border-1 rounded-lg cursor-pointer border-gray-500 p-2'
+                        'hover:bg-gray-300 m-1 dark:hover:bg-gray-700 text-center overflow-hidden flex flex-col justify-center rounded-lg cursor-pointer p-2'
                     )
                     .attr('title', item.name)
                     .attr('data-isdir', item.is_directory)
                     .attr('data-url', data.result.query_path + item.name);
-                const icon = $('<i></i>').addClass('fas fa-' + categoryToIcon[item.icon] + ' text-4xl mb-2');
-                const span = $('<span></span>').addClass(
-                        'text-gray-500 dark:text-gray-300 text-xs line-clamp-1 max-w-full flex-1')
-                    .css('word-wrap', 'break-word')
-                    .text(item.name);
-                div.append(icon, span);
+
+                // Create the icon element
+                const icon = $('<i></i>').addClass(categoryToIcon[item.icon] + ' text-4xl mb-1');
+
+                // Create the filename span without extension
+                const filenameSpan = $('<span></span>').addClass(
+                        'text-gray-500 dark:text-gray-300 text-xs line-clamp-3 max-w-full flex-1'
+                    ).css('word-wrap', 'break-word')
+                    .text(item.name.split('.').slice(0, -1).join('.')); // Remove extension from filename
+
+                // Create the extension span and add it above the icon
+                let extensionSpan = null;
+                if (item.name.includes('.')) {
+                    const fileExtension = item.name.split('.').pop();
+
+                    extensionSpan = $('<span></span>')
+                        .addClass('text-black dark:text-white')
+                        .text(fileExtension); // Display the file extension above the icon
+                }
+
+                // Append elements to the container div
+                if (extensionSpan) div.append(extensionSpan); // Add the extension span if it exists
+                div.append(icon); // Add the icon below the extension (or above filename if no extension)
+                div.append(filenameSpan); // Add the filename span without extension
+
                 fileList.append(div);
             });
+
             const contextMenu = $('#context-menu');
             let selectedFile = null;
             $(document).off('contextmenu', '#file-list > div');
@@ -398,7 +424,8 @@
 
                     <div id="file-window"
                         class="flex-grow border-2 border-gray-400 rounded-lg p-2 flex flex-col transition-colors">
-                        <div class="flex flex-wrap overflow-auto" id="file-list"></div>
+                        <div class="mb-4 grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 xl:grid-cols-10 2xl:grid-cols-12 mb-auto overflow-y-auto scrollbar"
+                            id="file-list"></div>
 
                         <div id="drop-message" class="mt-2 text-center text-gray-600 dark:text-gray-400 hidden">
                             Drop to upload
