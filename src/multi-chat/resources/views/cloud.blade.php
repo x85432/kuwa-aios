@@ -59,22 +59,124 @@
             file: 'file-alt'
         };
 
+        function cloud_open(obj) {
+            const url = obj.data('url');
+            const title = obj.prop('title');
+            const isdir = obj.data('isdir');
+            const publicUrl = `{{ Storage::url('root') }}${url}`;
+
+            if (isdir) {
+                client.listCloud(url)
+                    .then(response => populateFileList(response))
+                    .catch(error => console.error('Error:', error));
+                return;
+            }
+
+            const extension = url.split('.').pop().toLowerCase();
+            const $contentWrapper = $('<div>', {
+                class: 'w-full h-full'
+            });
+
+            const fileTypes = {
+                image: ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'tiff', 'tif', 'ico', 'heic', 'img', 'dds'],
+                audio: ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'wma'],
+                video: ['mp4', 'webm', 'ogv', 'mkv', 'mov', 'avi', '3gp'],
+                document: ['pdf', 'html', 'htm'],
+                text: ['txt', 'json', 'log', 'sql', 'csv', 'xml', 'ini', 'md', 'conf', 'config', 'yml', 'yaml', 'sh',
+                    'bash', 'bat', 'c', 'cpp', 'h', 'java', 'py', 'js', 'ts', 'php', 'rb', 'go', 'cs', 'swift',
+                    'rs', 'kt', 'scala', 'rst', 'adoc', 'env', 'properties', 'manifest', 'plist', 'tex'
+                ]
+            };
+
+            if (fileTypes.image.includes(extension)) {
+                $contentWrapper.append($('<img>', {
+                    class: 'w-full h-full object-fill',
+                    alt: title,
+                    src: publicUrl
+                }));
+            } else if (fileTypes.audio.includes(extension)) {
+                const $audioContainer = $('<div>', {
+                        class: 'flex flex-col items-center justify-center w-full p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-md'
+                    })
+                    .append($('<audio>', {
+                            controls: true,
+                            autoplay: true,
+                            class: 'w-full'
+                        })
+                        .append($('<source>', {
+                            src: publicUrl,
+                            type: `audio/${extension}`
+                        })))
+                    .append($('<span>', {
+                        class: 'mt-2 text-gray-800 dark:text-gray-200',
+                        text: title
+                    }));
+                $contentWrapper.append($audioContainer);
+            } else if (fileTypes.video.includes(extension)) {
+                $contentWrapper.append($('<video>', {
+                        controls: true,
+                        autoplay: true,
+                        class: 'w-full h-full object-fill'
+                    })
+                    .append($('<source>', {
+                        src: publicUrl,
+                        type: `video/${extension}`
+                    })));
+            } else if (fileTypes.document.includes(extension)) {
+                $contentWrapper.append($('<iframe>', {
+                    src: publicUrl,
+                    class: 'w-full h-full',
+                    frameborder: 0
+                }));
+            } else if (fileTypes.text.includes(extension)) {
+                fetch(publicUrl)
+                    .then(response => response.text())
+                    .then(text => {
+                        $contentWrapper.append($('<pre>', {
+                            class: 'w-full h-full p-4 overflow-auto bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
+                            text: text
+                        }));
+                        createWindow(title, $contentWrapper.html());
+                    })
+                    .catch(error => console.error('Error fetching text file:', error));
+                return;
+            } else {
+                showConfirmationModal(
+                    '{{ __('cloud.header.cannot_preview') }}',
+                    `{{ __('cloud.label.cannot_preview') }}`,
+                    () => window.location.href = publicUrl,
+                    null,
+                    '{{ __('cloud.button.preview') }}',
+                    '{{ __('cloud.button.cancel') }}'
+                );
+                return;
+            }
+
+            createWindow(title, $contentWrapper.html());
+        }
+
+
         function populateFileList(data) {
             const fileList = $('#file-list');
             fileList.empty();
+
             data.result.explorer.forEach(item => {
-                const div = $(`<div class="hover:bg-gray-300 w-[100px] max-w-[100px] min-w-[100px] md:w-[150px] md:max-w-[150px] md:min-w-[150px] m-1 dark:hover:bg-gray-700 text-center overflow-hidden flex flex-col justify-center border border-1 rounded-lg cursor-pointer border-gray-500 p-2" 
-    title="${item.name}" data-isdir="${item.is_directory}"
-    data-url="${data.result.query_path}${item.name}">
-<i class="fas fa-${categoryToIcon[item.icon]} text-4xl mb-2"></i>
-<span class="text-gray-500 dark:text-gray-300 text-xs line-clamp-1 max-w-full flex-1" style="word-wrap: break-word;">${item.name}</span>
-</div>`);
+                const div = $('<div></div>').addClass(
+                        'hover:bg-gray-300 w-[100px] max-w-[100px] min-w-[100px] md:w-[150px] md:max-w-[150px] md:min-w-[150px] m-1 dark:hover:bg-gray-700 text-center overflow-hidden flex flex-col justify-center border border-1 rounded-lg cursor-pointer border-gray-500 p-2'
+                    )
+                    .attr('title', item.name)
+                    .attr('data-isdir', item.is_directory)
+                    .attr('data-url', data.result.query_path + item.name);
+                const icon = $('<i></i>').addClass('fas fa-' + categoryToIcon[item.icon] + ' text-4xl mb-2');
+                const span = $('<span></span>').addClass(
+                        'text-gray-500 dark:text-gray-300 text-xs line-clamp-1 max-w-full flex-1')
+                    .css('word-wrap', 'break-word')
+                    .text(item.name);
+                div.append(icon, span);
                 fileList.append(div);
             });
-
             const contextMenu = $('#context-menu');
             let selectedFile = null;
-
             $(document).off('contextmenu', '#file-list > div');
             $(document).off('click', '#file-list > div');
             $(document).off('touchstart', '#file-list > div');
@@ -84,10 +186,8 @@
             $('#rename-file').off('click');
             $('#delete-file').off('click');
             $(document).off('touchend');
-
             $(document).on('contextmenu', '#file-list > div', function(event) {
-                $('#open-file-tab').show()
-
+                $('#open-file-tab').show();
                 event.preventDefault();
                 selectedFile = $(this);
                 contextMenu.css({
@@ -97,127 +197,27 @@
                 });
                 const isdir = $(this).data('isdir');
                 if (isdir) {
-                    $('#open-file-tab').hide()
+                    $('#open-file-tab').hide();
                 }
             });
-
-            function cloud_open(obj) {
-                const url = obj.data('url');
-                const title = obj.prop('title');
-                const isdir = obj.data('isdir');
-                const publicUrl = `{{ Storage::url('root') }}${url}`;
-
-                if (isdir) {
-                    client.listCloud(url)
-                        .then(response => populateFileList(response))
-                        .catch(error => console.error('Error:', error));
-                } else {
-                    const extension = url.split('.').pop().toLowerCase();
-                    let content;
-                    const $contentWrapper = $('<div class="w-full h-full"></div>'); // Create a wrapper for the content
-
-                    if ([
-                            'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'tiff', 'tif', 'ico', 'heic', 'img', 'dds'
-                        ].includes(extension)) {
-                        const $img = $('<img>', {
-                            class: 'w-full h-full object-fill',
-                            alt: title
-                        }).attr('src', publicUrl);
-                        $contentWrapper.append($img);
-                    } else if ([
-                            'mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'wma'
-                        ].includes(extension)) {
-                        const $audio = $('<audio>', {
-                            controls: true,
-                            autoplay: true,
-                            class: 'w-full'
-                        }).append(
-                            $('<source>').attr('src', publicUrl).attr('type', `audio/${extension}`)
-                        );
-                        const $audioContainer = $('<div>', {
-                                class: 'flex flex-col items-center justify-center w-full p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-md'
-                            }).append($audio)
-                            .append($('<span>', {
-                                class: 'mt-2 text-gray-800 dark:text-gray-200',
-                                text: title
-                            }));
-                        $contentWrapper.append($audioContainer);
-                    } else if ([
-                            'mp4', 'webm', 'ogv', 'mkv', 'mov', 'avi', '3gp'
-                        ].includes(extension)) {
-                        const $video = $('<video>', {
-                            controls: true,
-                            autoplay: true,
-                            class: 'w-full h-full object-fill'
-                        }).append(
-                            $('<source>').attr('src', publicUrl).attr('type', `video/${extension}`)
-                        );
-                        $contentWrapper.append($video);
-                    } else if (extension === 'pdf' || ['html', 'htm'].includes(extension)) {
-                        const $iframe = $('<iframe>', {
-                            src: publicUrl,
-                            class: 'w-full h-full',
-                            frameborder: 0
-                        });
-                        $contentWrapper.append($iframe);
-                    } else if ([
-                            'txt', 'json', 'log', 'sql', 'csv', 'xml', 'ini', 'md', 'conf', 'config', 'yml', 'yaml', 'sh',
-                            'bash', 'bat',
-                            'c', 'cpp', 'h', 'java', 'py', 'js', 'ts', 'php', 'rb', 'go', 'cs', 'swift', 'rs', 'kt',
-                            'scala', 'rst', 'adoc',
-                            'env', 'properties', 'manifest', 'plist', 'tex'
-                        ].includes(extension)) {
-                        // Fetch the content of the text file and display it
-                        fetch(publicUrl)
-                            .then(response => response.text())
-                            .then(text => {
-                                const $pre = $('<pre>', {
-                                    class: 'w-full h-full p-4 overflow-auto bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
-                                    text: text
-                                });
-                                $contentWrapper.append($pre);
-                                createWindow(title, $contentWrapper.html());
-                            })
-                            .catch(error => console.error('Error fetching text file:', error));
-                        return;
-                    } else {
-                        showConfirmationModal(
-                            '{{ __('cloud.header.cannot_preview') }}',
-                            `{{ __('cloud.label.cannot_preview') }}`,
-                            () => {
-                                window.location.href = `${publicUrl}`;
-                            },
-                            null,
-                            '{{ __('cloud.button.preview') }}',
-                            '{{ __('cloud.button.cancel') }}',
-                        );
-                        return;
-                    }
-
-                    createWindow(title, $contentWrapper.html());
-                }
-            }
             $(document).on('click', '#file-list > div', function() {
                 contextMenu.hide();
                 cloud_open($(this));
             });
-
             $('#open-file').on('click', function() {
                 contextMenu.hide();
-                cloud_open(selectedFile)
+                cloud_open(selectedFile);
             });
-
             $('#open-file-tab').on('click', function() {
                 const url = selectedFile.data('url');
                 const baseUrl = window.location.origin;
                 const fullUrl = baseUrl + '/storage/root' + url;
-                window.open(fullUrl, '_blank')
+                window.open(fullUrl, '_blank');
                 contextMenu.hide();
             });
             $('#copy-file-url').on('click', function() {
                 const fileUrl = selectedFile.data('url');
                 const baseUrl = window.location.origin;
-
                 const fullUrl = baseUrl + '/storage/root' + fileUrl;
 
                 var textArea = document.createElement("textarea");
@@ -232,10 +232,8 @@
                 }
 
                 document.body.removeChild(textArea);
-
                 contextMenu.hide();
             });
-
             $('#rename-file').on('click', function() {
                 const url = selectedFile.data('url');
                 contextMenu.hide();
@@ -254,9 +252,7 @@
                             .then(function(response) {
                                 if (response.status == 'success') {
                                     updatePath(currentPath);
-                                } else {
-
-                                }
+                                } else {}
                             })
                             .catch(console.error);
                     },
@@ -265,15 +261,12 @@
                     '{{ __('cloud.button.cancel') }}',
                 );
             });
-
-
             $(document).on('click', function(event) {
-                if (!contextMenu.is(event.target) && contextMenu.has(event.target).length === 0 && selectedFile && !
-                    selectedFile.is(event.target) && selectedFile.has(event.target).length === 0) {
+                if (!contextMenu.is(event.target) && contextMenu.has(event.target).length === 0 && selectedFile &&
+                    !selectedFile.is(event.target) && selectedFile.has(event.target).length === 0) {
                     contextMenu.hide();
                 }
             });
-
             $(document).on('touchstart', '#file-list > div', function(event) {
                 selectedFile = $(this);
                 setTimeout(() => {
@@ -284,30 +277,34 @@
                     });
                 }, 500);
             });
-
             $(document).on('touchend', function() {
                 contextMenu.hide();
             });
-            generatePathHtml($('nav .cloud-path'), data.result.query_path)
+            generatePathHtml($('nav .cloud-path'), data.result.query_path);
         }
 
-        function createWindow(windowName, contentTag) {
-            const $window = $(`<div class="window bg-white border flex flex-col border-gray-400 shadow-lg w-96 h-72 absolute top-24 left-24">
-    <!-- Title Bar -->
-    <div class="title-bar bg-blue-600 text-white p-2 cursor-move flex justify-between items-center" id="titleBar">
-        <span class="text-xs line-clamp-1 max-w-full flex-1" style="word-wrap: break-word; text-white">${windowName}</span>
-        <div class="controls space-x-2">
-            <button class="minimize px-2" title="Minimize"><i class="fas fa-window-minimize"></i></button>
-            <button class="maximize px-2" title="Maximize"><i class="fas fa-window-maximize"></i></button>
-            <button class="close px-2" title="Close"><i class="fas fa-times"></i></button>
-        </div>
-    </div>
-    <!-- Content Area -->
-    <div class="content flex-1 p-1 overflow-hidden" id="contentArea">
-        ${contentTag}
-    </div>
-</div>`);
 
+        function createWindow(windowName, contentTag) {
+            const $window = $('<div>').addClass(
+                'window bg-white border flex flex-col border-gray-400 shadow-lg w-96 h-72 absolute top-24 left-24');
+            const $titleBar = $('<div>').addClass(
+                'title-bar bg-blue-600 text-white p-2 cursor-move flex justify-between items-center');
+            const $title = $('<span>').addClass('text-xs line-clamp-1 max-w-full flex-1').css('word-wrap', 'break-word')
+                .text(windowName);
+            const $controls = $('<div>').addClass('controls space-x-2');
+
+            const $minimizeBtn = $('<button>').addClass('minimize px-2').attr('title', 'Minimize').html(
+                '<i class="fas fa-window-minimize"></i>');
+            const $maximizeBtn = $('<button>').addClass('maximize px-2').attr('title', 'Maximize').html(
+                '<i class="fas fa-window-maximize"></i>');
+            const $closeBtn = $('<button>').addClass('close px-2').attr('title', 'Close').html(
+                '<i class="fas fa-times"></i>');
+
+            $controls.append($minimizeBtn, $maximizeBtn, $closeBtn);
+            $titleBar.append($title, $controls);
+            const $contentArea = $('<div>').addClass('content flex-1 p-1 overflow-hidden').attr('id', 'contentArea').html(
+                contentTag);
+            $window.append($titleBar, $contentArea);
             $('body').append($window);
 
             let isMinimized = false;
@@ -320,7 +317,6 @@
                 top: $window.position().top,
                 left: $window.position().left
             };
-
             $window.resizable({
                 handles: "n, e, s, w, ne, se, sw, nw",
                 minWidth: 300,
@@ -330,8 +326,7 @@
                 handle: ".title-bar",
                 containment: "body"
             });
-
-            $window.find(".minimize").on("click", function() {
+            $minimizeBtn.on("click", function() {
                 if (isMinimized) {
                     $window.css({
                         height: originalSize.height + 'px',
@@ -347,8 +342,7 @@
                     isMinimized = true;
                 }
             });
-
-            $window.find(".maximize").on("click", function() {
+            $maximizeBtn.on("click", function() {
                 if (isMaximized) {
                     $window.css({
                         width: originalSize.width + "px",
@@ -375,12 +369,11 @@
                     isMaximized = true;
                 }
             });
-
-            $window.find(".close").on("click", function() {
+            $closeBtn.on("click", function() {
                 $window.remove();
             });
-
         }
+
         updatePath('/homes/' + {{ Auth::user()->id }});
     </script>
     <div class="h-full">
@@ -514,7 +507,6 @@
             }
 
             function uploadFile(file) {
-                // Create a new progress bar for this file
                 const taskId = `task-${Date.now()}`;
                 const taskContainer = $('<div>', {
                     id: taskId,
@@ -535,11 +527,7 @@
 
                 progressWrapper.append(progressBar);
                 taskContainer.append(progressWrapper, progressText);
-
-                // Add task to the container
                 progressContainer.prepend(taskContainer);
-
-                // Remove extra tasks if there are more than maxTasks
                 if (progressContainer.children().length > maxTasks) {
                     progressContainer.children().last().remove();
                 }
