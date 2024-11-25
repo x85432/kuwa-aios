@@ -7,7 +7,7 @@ class KuwaClient {
         this.baseUrl = baseUrl;
     }
 
-    async createBaseModel(name, accessCode, options = {}) {
+    async createBaseModel(name, accessCode, options = {}, callbacks = {}) {
         const url = `${this.baseUrl}/api/user/create/base_model`;
         const headers = {
             "Content-Type": "application/json",
@@ -19,52 +19,55 @@ class KuwaClient {
             ...options
         };
 
-        const response = await this._makeRequest(url, "POST", headers, JSON.stringify(requestBody));
+        const response = await this._makeRequest(url, "POST", headers, JSON.stringify(requestBody), callbacks);
         return response;
     }
 
-    async listBaseModels() {
+    async listBaseModels(callbacks = {}) {
         const url = `${this.baseUrl}/api/user/read/models`;
         const headers = {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${this.authToken}`,
         };
 
-        const response = await this._makeRequest(url, "GET", headers);
+        const response = await this._makeRequest(url, "GET", headers, null, callbacks);
         return response;
     }
 
-    async listBots() {
+    async listBots(callbacks = {}) {
         const url = `${this.baseUrl}/api/user/read/bots`;
         const headers = {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${this.authToken}`,
         };
 
-        const response = await this._makeRequest(url, "GET", headers);
+        const response = await this._makeRequest(url, "GET", headers, null, callbacks);
         return response;
     }
-    async listRooms() {
+
+    async listRooms(callbacks = {}) {
         const url = `${this.baseUrl}/api/user/read/rooms`;
         const headers = {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${this.authToken}`,
         };
 
-        const response = await this._makeRequest(url, "GET", headers);
+        const response = await this._makeRequest(url, "GET", headers, null, callbacks);
         return response;
     }
-    async listCloud(path = '') {
+
+    async listCloud(path = '', callbacks = {}) {
         const url = `${this.baseUrl}/api/user/read/cloud${path}`;
         const headers = {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${this.authToken}`,
         };
 
-        const response = await this._makeRequest(url, "GET", headers);
+        const response = await this._makeRequest(url, "GET", headers, null, callbacks);
         return response;
     }
-    async createUsers(users) {
+
+    async createUsers(users, callbacks = {}) {
         const url = `${this.baseUrl}/api/user/create/user`;
         const headers = {
             "Content-Type": "application/json",
@@ -74,10 +77,11 @@ class KuwaClient {
             users: users.map(userInstance => userInstance.getUser())
         };
 
-        const response = await this._makeRequest(url, "POST", headers, JSON.stringify(requestBody));
+        const response = await this._makeRequest(url, "POST", headers, JSON.stringify(requestBody), callbacks);
         return response;
     }
-    async createRoom(bot_ids) {
+
+    async createRoom(bot_ids, callbacks = {}) {
         const url = `${this.baseUrl}/api/user/create/room`;
         const headers = {
             "Content-Type": "application/json",
@@ -87,24 +91,23 @@ class KuwaClient {
             llm: bot_ids
         };
 
-        const response = await this._makeRequest(url, "POST", headers, JSON.stringify(requestBody));
+        const response = await this._makeRequest(url, "POST", headers, JSON.stringify(requestBody), callbacks);
         return response;
     }
-    async uploadFile(file) {
-        try {
-            const url = `${this.baseUrl}/api/user/upload/file`;
-            const headers = {
-                "Authorization": `Bearer ${this.authToken}`,
-            };
-            const formData = new FormData();
-            formData.append('file', file);
-            const response = await this._makeRequest(url, "POST", headers, formData);
-            return response;
-        } catch (error) {
-            console.error('Error uploading file:', error);
-        }
+
+    async uploadFile(file, callbacks = {}) {
+        const url = `${this.baseUrl}/api/user/upload/file`;
+        const headers = {
+            "Authorization": `Bearer ${this.authToken}`,
+        };
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await this._makeRequest(url, "POST", headers, formData, callbacks);
+        return response;
     }
-    async deleteRoom(room_id) {
+
+    async deleteRoom(room_id, callbacks = {}) {
         const url = `${this.baseUrl}/api/user/delete/room/`;
         const headers = {
             "Content-Type": "application/json",
@@ -114,21 +117,22 @@ class KuwaClient {
             id: room_id
         };
 
-        const response = await this._makeRequest(url, "DELETE", headers, JSON.stringify(requestBody));
+        const response = await this._makeRequest(url, "DELETE", headers, JSON.stringify(requestBody), callbacks);
         return response;
     }
-    async deleteCloud(path = '') {
+
+    async deleteCloud(path = '', callbacks = {}) {
         const url = `${this.baseUrl}/api/user/delete/cloud${path}`;
         const headers = {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${this.authToken}`,
         };
 
-        const response = await this._makeRequest(url, "DELETE", headers);
+        const response = await this._makeRequest(url, "DELETE", headers, null, callbacks);
         return response;
     }
 
-    async createBot(llmAccessCode, botName, options = {}) {
+    async createBot(llmAccessCode, botName, options = {}, callbacks = {}) {
         const url = `${this.baseUrl}/api/user/create/bot`;
         const headers = {
             "Content-Type": "application/json",
@@ -141,7 +145,7 @@ class KuwaClient {
             ...options
         };
 
-        const response = await this._makeRequest(url, "POST", headers, JSON.stringify(requestBody));
+        const response = await this._makeRequest(url, "POST", headers, JSON.stringify(requestBody), callbacks);
         return response;
     }
 
@@ -215,19 +219,61 @@ class KuwaClient {
         const response = JSON.parse(xhr.responseText);
         return response;
     }
-
-    async _makeRequest(url, method, headers, body) {
-        const response = await fetch(url, {
-            method,
-            headers,
-            body: body
+    async _makeRequest(url, method, headers = {}, body = null, { onProgress, onSuccess, onError } = {}) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+    
+            xhr.open(method, url, true);
+    
+            // Set headers
+            for (const [key, value] of Object.entries(headers)) {
+                xhr.setRequestHeader(key, value);
+            }
+    
+            // Track upload progress
+            if (onProgress) {
+                xhr.upload.onprogress = (event) => {
+                    const total = event.lengthComputable ? event.total : body?.get('file')?.size;
+                    if (total) {
+                        onProgress({
+                            loaded: event.loaded,
+                            total: total,
+                            percent: (event.loaded / total) * 100
+                        });
+                    }
+                };
+            }
+    
+            // Handle request success
+            xhr.onload = () => {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        onSuccess && onSuccess(response);
+                        resolve(response);
+                    } else {
+                        const errorDetails = response.result || 'Unknown error occurred';
+                        const error = new Error(errorDetails);
+                        onError && onError(error);
+                        reject(error);
+                    }
+                } catch (err) {
+                    const parseError = new Error('Failed to parse response: ' + err.message);
+                    onError && onError(parseError);
+                    reject(parseError);
+                }
+            };
+    
+            // Handle request error
+            xhr.onerror = () => {
+                const networkError = new Error('Network error occurred');
+                onError && onError(networkError);
+                reject(networkError);
+            };
+    
+            // Send the request
+            xhr.send(body);
         });
-
-        if (!response.ok) {
-            const errorDetails = await response.json();
-            throw new Error(`Request failed with status ${response.status}, ${JSON.stringify(errorDetails)}`);
-        }
-        return await response.json();
     }
 }
 
@@ -239,7 +285,7 @@ class KuwaUser {
             password,
             group,
             detail,
-            require_change_password:require_change_password!=false
+            require_change_password: require_change_password != false
         };
     }
 

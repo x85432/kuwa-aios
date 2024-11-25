@@ -386,20 +386,30 @@
     <div class="h-full">
         <div class="mx-auto h-full">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg h-full">
-                <div class="p-2 text-gray-900 dark:text-gray-100 h-full flex flex-col">
+                <div class="relative p-2 text-gray-900 dark:text-gray-100 h-full flex flex-col">
                     <nav class="mb-2">
                         <ul class="flex space-x-2 cloud-path">
                         </ul>
                     </nav>
-                    <div id="drop-area"
-                        class="hidden flex-grow border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center justify-center">
-                        <p class="text-gray-600 mb-4">Drag & drop your files here or click to upload.</p>
-                        <input type="file" id="file-upload" class="hidden" multiple>
-                        <label for="file-upload"
-                            class="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg">{{ __('cloud.header.interface') }}</label>
+
+                    <!-- Error Popup -->
+                    <div id="upload-error-popup"
+                        class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
+                        <div class="bg-gray-500 dark:bg-gray-700 p-4 rounded-lg shadow-lg w-1/3 text-center">
+                            <h3 class="text-xl text-white mb-2">Error</h3>
+                            <p id="upload-error-message" class="text-white"></p>
+                            <button id="close-error-popup"
+                                class="mt-4 px-4 py-2 bg-gray-600 text-white rounded">Close</button>
+                        </div>
                     </div>
-                    <div class="flex-grow border-2 border-gray-400 rounded-lg p-2 flex flex-col">
+
+                    <div id="file-window"
+                        class="flex-grow border-2 border-gray-400 rounded-lg p-2 flex flex-col transition-colors">
                         <div class="flex flex-wrap overflow-auto" id="file-list"></div>
+
+                        <div id="drop-message" class="mt-2 text-center text-gray-600 dark:text-gray-400 hidden">
+                            Drop to upload
+                        </div>
                     </div>
 
                     <div id="context-menu"
@@ -422,56 +432,146 @@
                                 {{ __('cloud.button.delete') }}</li>
                         </ul>
                     </div>
+
+                    <!-- Progress Container at Bottom Right -->
+                    <div id="upload-progress-container"
+                        class="fixed bottom-5 right-5 w-80 max-h-[300px] overflow-y-auto overflow-x-hidden scrollbar bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg space-y-3">
+                        <!-- Dynamic Progress Bars will be inserted here -->
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const fileUpload = document.getElementById('file-upload');
-        const dropArea = document.getElementById('drop-area');
+        $(document).ready(function() {
+            const maxTasks = 5;
+            const progressContainer = $('#upload-progress-container');
 
-        fileUpload.addEventListener('change', handleFileUpload);
+            $('#file-window').on('dragover', function(event) {
+                event.preventDefault();
+                $(this).removeClass('border-gray-400').addClass('border-blue-500');
+                $('#drop-message').removeClass('hidden');
+            });
 
-        dropArea.addEventListener('dragover', (event) => {
-            event.preventDefault();
-            dropArea.classList.add('border-blue-500');
-        });
+            $('#file-window').on('drop', function(event) {
+                event.preventDefault();
+                $(this).removeClass('border-blue-500').addClass('border-gray-400');
+                $('#drop-message').addClass('hidden');
 
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.classList.remove('border-blue-500');
-        });
+                const files = event.originalEvent.dataTransfer.files;
+                if (files.length > 0) {
+                    uploadFile(files[0]);
+                }
+            });
 
-        dropArea.addEventListener('drop', (event) => {
-            event.preventDefault();
-            dropArea.classList.remove('border-blue-500');
-            const files = event.dataTransfer.files;
-            handleFiles(files);
-        });
+            $('#file-window').on('dragleave', function() {
+                $(this).removeClass('border-blue-500').addClass('border-gray-400');
+                $('#drop-message').addClass('hidden');
+            });
 
-        document.addEventListener('dragenter', (event) => {
-            if (event.dataTransfer.items.length > 0) {
-                dropArea.classList.remove('hidden');
+            $('#uploadButton').on('click', function() {
+                $('#fileInput').click();
+            });
+
+            $('#fileInput').on('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    uploadFile(file);
+                }
+            });
+
+            function showNotification(type, message, duration = 3000) {
+                const id = `notification-${Date.now()}`;
+                const iconClass = type === 'success' ? 'fas fa-check-circle text-green-500' :
+                    type === 'error' ? 'fas fa-exclamation-circle text-red-500' :
+                    'fas fa-info-circle text-blue-500';
+
+                const notification = $('<div>')
+                    .attr('id', id)
+                    .addClass(
+                        'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-lg rounded-lg p-4 flex items-center space-x-3 animate-slide-in-right'
+                    );
+
+                const icon = $('<i>')
+                    .addClass(iconClass);
+
+                const messageSpan = $('<span>')
+                    .text(message);
+
+                notification.append(icon, messageSpan);
+
+                progressContainer.prepend(notification); // Append to upload-progress-container
+
+                setTimeout(() => hideNotification(id), duration);
             }
-        });
 
-        document.addEventListener('dragleave', (event) => {
-            if (!dropArea.contains(event.relatedTarget)) {
-                dropArea.classList.add('hidden');
+            function hideNotification(id) {
+                const notification = $(`#${id}`);
+                notification.addClass('animate-slide-out-right');
+                setTimeout(() => notification.remove(), 500);
             }
-        });
 
-        function handleFileUpload(event) {
-            const files = event.target.files;
-            handleFiles(files);
-        }
+            function uploadFile(file) {
+                // Create a new progress bar for this file
+                const taskId = `task-${Date.now()}`;
+                const taskContainer = $('<div>', {
+                    id: taskId,
+                    class: 'w-full bg-gray-100 dark:bg-gray-700 p-2 rounded-lg shadow-md'
+                });
 
-        function handleFiles(files) {
-            for (const file of files) {
-                const li = document.createElement('li');
-                li.textContent = file.name;
-                fileList.appendChild(li);
+                const progressWrapper = $('<div>', {
+                    class: 'w-full bg-gray-200 dark:bg-gray-600 rounded-full'
+                });
+                const progressBar = $('<div>', {
+                    class: 'bg-blue-500 h-2 rounded-full',
+                    style: 'width: 0%'
+                });
+                const progressText = $('<p>', {
+                    class: 'text-sm text-gray-600 dark:text-gray-400 mt-1',
+                    text: '0%'
+                });
+
+                progressWrapper.append(progressBar);
+                taskContainer.append(progressWrapper, progressText);
+
+                // Add task to the container
+                progressContainer.prepend(taskContainer);
+
+                // Remove extra tasks if there are more than maxTasks
+                if (progressContainer.children().length > maxTasks) {
+                    progressContainer.children().last().remove();
+                }
+
+                client.uploadFile(file, {
+                    onProgress: function({
+                        loaded,
+                        total,
+                        percent
+                    }) {
+                        if (total) {
+                            progressBar.css('width', percent + '%');
+                            progressText.text(Math.round(percent) + '%');
+                        }
+                    },
+                    onSuccess: function(response) {
+                        progressText.text('Upload complete!');
+                        setTimeout(() => taskContainer.remove(), 2000);
+                        showNotification('success', 'File uploaded successfully!');
+                        updatePath(response.result.split('/storage/root')[1].replace(/\/[^/]+$/, '/'));
+                    },
+                    onError: function(error) {
+                        progressText.text('Upload failed');
+                        setTimeout(() => taskContainer.remove(), 2000);
+                        showNotification('error', `Upload failed: ${error.message}`);
+                    },
+                });
             }
-        }
+
+            $('#close-error-popup').on('click', function() {
+                $('#upload-error-popup').addClass('hidden');
+            });
+        });
     </script>
 </x-app-layout>

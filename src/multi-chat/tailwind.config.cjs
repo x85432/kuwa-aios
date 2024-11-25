@@ -5,13 +5,27 @@ module.exports = {
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php'
+        './resources/views/**/*.blade.php',
     ],
 
     theme: {
         extend: {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+            },
+            animation: {
+                'slide-in-right': 'slideInRight 0.5s ease-out forwards',
+                'slide-out-right': 'slideOutRight 0.5s ease-out forwards',
+            },
+            keyframes: {
+                slideInRight: {
+                    '0%': { transform: 'translateX(100%)' },
+                    '100%': { transform: 'translateX(0)' },
+                },
+                slideOutRight: {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(100%)' },
+                },
             },
         },
     },
