@@ -70,6 +70,8 @@
             const title = obj.prop('title');
             const isdir = obj.data('isdir');
             const publicUrl = `{{ Storage::url('root') }}${url}`;
+            height = '';
+            width = '';
 
             if (isdir) {
                 client.listCloud(url)
@@ -118,6 +120,7 @@
                         text: title
                     }));
                 $contentWrapper.append($audioContainer);
+                height = 'auto';
             } else if (fileTypes.video.includes(extension)) {
                 $contentWrapper.append($('<video>', {
                         controls: true,
@@ -129,11 +132,18 @@
                         type: `video/${extension}`
                     })));
             } else if (fileTypes.document.includes(extension)) {
-                $contentWrapper.append($('<iframe>', {
+                const $iframe = $('<iframe>', {
                     src: publicUrl,
-                    class: 'w-full h-full',
                     frameborder: 0
-                }));
+                }).addClass('w-full h-full').css({
+                    width: '100%', // Ensures the iframe fills the container width
+                    height: '100%', // Ensures the iframe fills the container height
+                    border: 'none',
+                    overflow: 'auto', // Allows scrolling if content overflows
+                    "will-change": 'transform'
+                });
+
+                $contentWrapper.append($iframe);
             } else if (fileTypes.text.includes(extension)) {
                 fetch(publicUrl)
                     .then(response => response.text())
@@ -158,9 +168,8 @@
                 return;
             }
 
-            createWindow(title, $contentWrapper.html());
+            createWindow(title, $contentWrapper.html(), width, height);
         }
-
 
         function populateFileList(data) {
             const fileList = $('#file-list');
@@ -169,7 +178,7 @@
             data.result.explorer.forEach(item => {
                 const div = $('<div></div>').addClass(
                         'hover:bg-gray-300 m-1 dark:hover:bg-gray-700 text-center overflow-hidden flex flex-col justify-center rounded-lg cursor-pointer p-2'
-                        )
+                    )
                     .attr({
                         title: item.name,
                         'data-isdir': item.is_directory,
@@ -189,8 +198,6 @@
                 div.append(icon, filenameSpan);
                 fileList.append(div);
             });
-
-
 
             const contextMenu = $('#context-menu');
             let selectedFile = null;
@@ -300,16 +307,26 @@
             generatePathHtml($('nav .cloud-path'), data.result.query_path);
         }
 
+        function createWindow(windowName, contentTag, width, height) {
+            const viewportWidth = $(window).width(),
+                viewportHeight = $(window).height();
+            const windowWidth = width === 'auto' ? 'auto' : width || viewportWidth * 0.75;
+            const windowHeight = height === 'auto' ? 'auto' : height || viewportHeight * 0.75;
 
-        function createWindow(windowName, contentTag) {
-            const $window = $('<div>').addClass(
-                'window bg-white border flex flex-col border-gray-400 shadow-lg w-96 h-72 absolute top-24 left-24');
+            const $window = $('<div>').addClass('window bg-white border flex flex-col border-gray-400 shadow-lg').css({
+                width: windowWidth === 'auto' ? 'auto' : windowWidth + 'px',
+                height: windowHeight === 'auto' ? 'auto' : windowHeight + 'px',
+                position: 'absolute',
+                top: windowHeight === 'auto' ? '10%' : (viewportHeight - windowHeight) / 2 +
+                    'px', // Adjust top if height is auto
+                left: (viewportWidth - windowWidth) / 2 + 'px'
+            });
+
             const $titleBar = $('<div>').addClass(
                 'title-bar bg-blue-600 text-white p-2 cursor-move flex justify-between items-center');
             const $title = $('<span>').addClass('text-xs line-clamp-1 max-w-full flex-1').css('word-wrap', 'break-word')
                 .text(windowName);
             const $controls = $('<div>').addClass('controls space-x-2');
-
             const $minimizeBtn = $('<button>').addClass('minimize px-2').attr('title', 'Minimize').html(
                 '<i class="fas fa-window-minimize"></i>');
             const $maximizeBtn = $('<button>').addClass('maximize px-2').attr('title', 'Maximize').html(
@@ -324,25 +341,55 @@
             $window.append($titleBar, $contentArea);
             $('body').append($window);
 
-            let isMinimized = false;
-            let isMaximized = false;
             let originalSize = {
-                width: $window.width(),
-                height: $window.height()
-            };
-            let originalPosition = {
-                top: $window.position().top,
-                left: $window.position().left
-            };
+                    width: $window.width(),
+                    height: $window.height()
+                },
+                originalPosition = {
+                    top: $window.position().top,
+                    left: $window.position().left
+                };
             $window.resizable({
                 handles: "n, e, s, w, ne, se, sw, nw",
-                minWidth: 300,
-                minHeight: 150
+                minWidth: 100,
+                minHeight: 100,
+                resize: function() {
+                    var $iframe = $window.find('iframe');
+                    if ($iframe.length > 0) {
+                        $iframe.css('pointer-events', 'none');
+                    }
+                },
+                stop: function() {
+                    var $iframe = $window.find('iframe');
+                    if ($iframe.length > 0) {
+                        $iframe.css('pointer-events', 'auto');
+
+                        var iframeDoc = $iframe[0].contentDocument || $iframe[0].contentWindow.document;
+                        if (iframeDoc) {
+                            iframeDoc.body.focus();
+                        }
+                    }
+
+                    if ($iframe.length > 0) {
+                        $iframe[0].style.display = 'none';
+                        $iframe[0].style.display = 'block';
+
+                        var iframeDoc = $iframe[0].contentDocument || $iframe[0].contentWindow.document;
+                        if (iframeDoc) {
+                            iframeDoc.body.style.overflow = 'auto';
+                        }
+                    }
+                }
             });
+
             $window.draggable({
                 handle: ".title-bar",
                 containment: "body"
             });
+
+            let isMinimized = false,
+                isMaximized = false;
+
             $minimizeBtn.on("click", function() {
                 if (isMinimized) {
                     $window.css({
@@ -359,6 +406,7 @@
                     isMinimized = true;
                 }
             });
+
             $maximizeBtn.on("click", function() {
                 if (isMaximized) {
                     $window.css({
@@ -386,11 +434,11 @@
                     isMaximized = true;
                 }
             });
+
             $closeBtn.on("click", function() {
                 $window.remove();
             });
         }
-
         updatePath('/homes/' + {{ Auth::user()->id }});
     </script>
     <div class="h-full">
