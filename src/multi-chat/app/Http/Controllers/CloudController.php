@@ -21,6 +21,7 @@ class CloudController extends Controller
             'audio' => ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'wma'],
             'video' => ['mp4', 'webm', 'ogv', 'mkv', 'mov', 'avi', '3gp', 'flv', 'wmv'],
             'document' => ['doc', 'docx', 'odt', 'rtf', 'pages', 'numbers', 'key', 'epub', 'mobi'],
+            'folder' => ['/'],
             'pdf' => ['pdf'],
             'html' => ['html', 'htm', 'xhtml'],
             'text' => ['txt', 'json', 'log', 'sql', 'csv', 'xml', 'ini', 'md', 'conf', 'config', 'yml', 'yaml', 'sh', 'bash', 'bat', 'c', 'cpp', 'h', 'hpp', 'java', 'py', 'js', 'ts', 'jsx', 'tsx', 'php', 'rb', 'go', 'cs', 'swift', 'rs', 'kt', 'scala', 'rst', 'adoc', 'env', 'properties', 'manifest', 'plist', 'tex', 'lua', 'perl', 'pl', 'r', 'm', 'matlab', 'sas'],

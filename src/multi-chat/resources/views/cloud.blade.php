@@ -169,37 +169,28 @@
             data.result.explorer.forEach(item => {
                 const div = $('<div></div>').addClass(
                         'hover:bg-gray-300 m-1 dark:hover:bg-gray-700 text-center overflow-hidden flex flex-col justify-center rounded-lg cursor-pointer p-2'
-                    )
-                    .attr('title', item.name)
-                    .attr('data-isdir', item.is_directory)
-                    .attr('data-url', data.result.query_path + item.name);
+                        )
+                    .attr({
+                        title: item.name,
+                        'data-isdir': item.is_directory,
+                        'data-url': data.result.query_path + item.name
+                    });
 
-                // Create the icon element
-                const icon = $('<i></i>').addClass(categoryToIcon[item.icon] + ' text-4xl mb-1');
-
-                // Create the filename span without extension
+                const icon = $('<i></i>').addClass(`${categoryToIcon[item.icon]} text-4xl mb-1`);
                 const filenameSpan = $('<span></span>').addClass(
-                        'text-gray-500 dark:text-gray-300 text-xs line-clamp-3 max-w-full flex-1'
-                    ).css('word-wrap', 'break-word')
-                    .text(item.name.split('.').slice(0, -1).join('.')); // Remove extension from filename
+                    'text-gray-500 dark:text-gray-300 text-xs line-clamp-3 max-w-full flex-1').css('word-wrap',
+                    'break-word').text(item.name);
 
-                // Create the extension span and add it above the icon
-                let extensionSpan = null;
-                if (item.name.includes('.')) {
-                    const fileExtension = item.name.split('.').pop();
+                const extensionSpan = item.name.startsWith('.') || !item.name.includes('.') ?
+                    $('<span></span>').addClass('text-transparent').text('extension') :
+                    $('<span></span>').addClass('text-black dark:text-white').text(item.name.split('.').pop());
 
-                    extensionSpan = $('<span></span>')
-                        .addClass('text-black dark:text-white')
-                        .text(fileExtension); // Display the file extension above the icon
-                }
-
-                // Append elements to the container div
-                if (extensionSpan) div.append(extensionSpan); // Add the extension span if it exists
-                div.append(icon); // Add the icon below the extension (or above filename if no extension)
-                div.append(filenameSpan); // Add the filename span without extension
-
+                if (extensionSpan) div.append(extensionSpan);
+                div.append(icon, filenameSpan);
                 fileList.append(div);
             });
+
+
 
             const contextMenu = $('#context-menu');
             let selectedFile = null;
