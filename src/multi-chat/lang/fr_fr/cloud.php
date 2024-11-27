@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'route' => 'Fichiers Cloud',
+    'route' => 'Fichier',
     'header.interface' => 'Gestion des fichiers Cloud',
     'header.confirm_delete' => 'Confirmer la suppression du fichier',
     'header.cannot_preview' => 'Impossible de prévisualiser le document',

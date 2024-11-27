@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'route' => '云端文件',
+    'route' => '文件',
     'header.interface' => '云端文件管理',
     'header.confirm_delete' => '确认删除文件',
     'header.cannot_preview' => '无法预览文件',

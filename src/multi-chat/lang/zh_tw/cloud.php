@@ -2,7 +2,7 @@
 
 return [
     'header.interface' => '雲端檔案管理',
-    'route' => '雲端檔案',
+    'route' => '檔案',
 
     'header.confirm_delete' => '確認刪除檔案',
     'header.cannot_preview' => '無法預覽文件',

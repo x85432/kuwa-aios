@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'route' => 'Cloudové soubory',
+    'route' => 'Soubor',
     'header.interface' => 'Správa cloudových souborů',
     'header.confirm_delete' => 'Potvrdit smazání souboru',
     'header.cannot_preview' => 'Soubor nelze zobrazit náhledem',

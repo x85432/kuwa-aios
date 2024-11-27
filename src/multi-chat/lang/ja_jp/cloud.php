@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'route' => 'クラウドファイル',
+    'route' => 'ファイル',
     'header.interface' => 'クラウドファイル管理',
     'header.confirm_delete' => 'ファイル削除の確認',
     'header.cannot_preview' => 'ファイルのプレビューはできません',

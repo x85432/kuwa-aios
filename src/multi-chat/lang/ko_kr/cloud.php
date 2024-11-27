@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'route' => '클라우드 파일',
+    'route' => '파일',
     'header.interface' => '클라우드 파일 관리',
     'header.confirm_delete' => '파일 삭제 확인',
     'header.cannot_preview' => '파일 미리보기 불가',

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'route' => 'Cloud Files',
+    'route' => 'File',
     'header.interface' => 'Cloud File Management',
     'header.confirm_delete' => 'Confirm Delete File',
     'header.cannot_preview' => 'Cannot preview file',
