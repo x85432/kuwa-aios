@@ -192,7 +192,7 @@
 
                 const extensionSpan = item.name.startsWith('.') || !item.name.includes('.') ?
                     $('<span></span>').addClass('text-transparent').text('extension') :
-                    $('<span></span>').addClass('text-black dark:text-white').text(item.name.split('.').pop());
+                    $('<span></span>').addClass('text-black dark:text-white').text(item.icon);
 
                 if (extensionSpan) div.append(extensionSpan);
                 div.append(icon, filenameSpan);
