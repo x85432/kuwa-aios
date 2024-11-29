@@ -99,7 +99,10 @@ class AppGatewayController extends Controller
      * @return array An associative array of Kuwa headers.
      */
     private function createKuwaReqHeaders(string $app_name = NULL) : array{
+        $locale = App::getLocale();
+        $rfc5646_locale = str_replace('_', '-', $locale);
         $kuwa_headers = [
+            'Accept-Language' => $rfc5646_locale,
             'X-Kuwa-App-Name' => $app_name,
             'X-Kuwa-User-Id' => Auth::user()->id,
             'X-Kuwa-Api-Token' => Auth::user()->tokens()->where('name', 'API_Token')->first()->token,
