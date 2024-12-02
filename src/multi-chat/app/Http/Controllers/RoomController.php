@@ -358,23 +358,23 @@ class RoomController extends Controller
 
         Log::channel('analyze')->Debug('max_file_size_kb:' . $max_file_size_kb);
         Log::channel('analyze')->Debug('allowed_file_exts:' . $allowed_file_exts);
-        
+
         // Check if a file is uploaded
         if ($request->hasFile('file')) {
             // Get the MIME type of the uploaded file
             $mimeType = $request->file('file')->getMimeType();
             Log::channel('analyze')->Debug('uploaded_file_mime_type:' . $mimeType);
         }
-        
+
         $file_validation_rule = ['file', 'max:' . $max_file_size_kb];
         if ($allowed_file_exts !== '*') {
             array_push($file_validation_rule, 'mimes:' . $allowed_file_exts);
         }
-        
+
         $validator = Validator::make($request->all(), [
             'file' => $file_validation_rule,
         ]);
-        
+
         if ($validator->fails()) {
             $errorString = implode(',', $validator->messages()->all());
             Log::channel('analyze')->Debug("validation failed:\n" . $errorString);
@@ -384,7 +384,7 @@ class RoomController extends Controller
                 'msg' => $errorString,
             ];
         }
-        
+
         $directory = 'root/homes/' . $request->user()->id; // Directory relative to 'public/storage/'
         $storagePath = public_path('storage/' . $directory); // Adjusted path
         $filePathParts = pathinfo($request->file->getClientOriginalName());
@@ -452,22 +452,7 @@ class RoomController extends Controller
         if ($result) {
             $user = $result;
             if (User::find($user->id)->hasPerm('tab_Room')) {
-                $DCs = ChatRoom::leftJoin('chats', 'chatrooms.id', '=', 'chats.roomID')
-                    ->where('chats.user_id', $user->id)
-                    ->select('chatrooms.*', DB::raw('count(chats.id) as counts'))
-                    ->groupBy('chatrooms.id');
-
-                // Fetch the ordered identifiers based on `llm_id` for each database
-                $DCs->select('chatrooms.id', 'name', 'chatrooms.created_at', 'chatrooms.updated_at')->selectSub(function ($query) {
-                    if (config('database.default') == 'sqlite') {
-                        $query->from('chats')->selectRaw("group_concat(bot_id, ',') as identifier")->whereColumn('roomID', 'chatrooms.id')->orderBy('bot_id');
-                    } elseif (config('database.default') == 'mysql') {
-                        $query->from('chats')->selectRaw('group_concat(bot_id order by bot_id separator \',\') as identifier')->whereColumn('roomID', 'chatrooms.id');
-                    } elseif (config('database.default') == 'pgsql') {
-                        $query->from('chats')->selectRaw('string_agg(bot_id::text, \',\' order by bot_id) as identifier')->whereColumn('roomID', 'chatrooms.id');
-                    }
-                }, 'identifier');
-                return response()->json(['status' => 'success', 'result' => $DCs->get()->groupby('identifier')->toarray()], 200, [], JSON_UNESCAPED_UNICODE);
+                return response()->json(['status' => 'success', 'result' => Chatroom::getRawChatRoomData($user->id)], 200, [], JSON_UNESCAPED_UNICODE);
             } else {
                 $errorResponse = [
                     'status' => 'error',
@@ -670,29 +655,46 @@ class RoomController extends Controller
             ->select('tokenable_id', 'users.id', 'users.name')
             ->where('token', str_replace('Bearer ', '', $request->header('Authorization')))
             ->first();
+
         if ($result) {
             $user = $result;
             if (User::find($user->id)->hasPerm('Room_delete_chatroom')) {
                 Auth::setUser(User::find($user->id));
-                $this->delete($request);
-                return response()->json(['status' => session('success') ? 'success' : 'failed'], 200, [], JSON_UNESCAPED_UNICODE);
-            } else {
-                $errorResponse = [
-                    'status' => 'error',
-                    'message' => 'You have no permission to use Chat API',
-                ];
+                $ids = $this->delete($request);
 
-                return response()->json($errorResponse, 401, [], JSON_UNESCAPED_UNICODE);
+                return response()->json(
+                    [
+                        'status' => session('success') ? 'success' : 'failed',
+                        'llms' => $ids,
+                    ],
+                    200,
+                    [],
+                    JSON_UNESCAPED_UNICODE,
+                );
+            } else {
+                return response()->json(
+                    [
+                        'status' => 'error',
+                        'message' => 'You have no permission to use Chat API',
+                    ],
+                    401,
+                    [],
+                    JSON_UNESCAPED_UNICODE,
+                );
             }
         } else {
-            $errorResponse = [
-                'status' => 'error',
-                'message' => 'Authentication failed',
-            ];
-
-            return response()->json($errorResponse, 401, [], JSON_UNESCAPED_UNICODE);
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'Authentication failed',
+                ],
+                401,
+                [],
+                JSON_UNESCAPED_UNICODE,
+            );
         }
     }
+
     public function delete(Request $request)
     {
         $ids = [];
