@@ -52,8 +52,9 @@
                 <ul class="mt-2 space-y-1 overflow-auto scrollbar flex-1">
                     @foreach ($result as $LLM)
                         <x-sorted-list.item html_tag="li" :$sorting_methods :record="$LLM">
-                            <input type="checkbox" name="llm[]" id="llm_create_check_{{ $LLM->id }}" onchange="sortLists('bots', sorting_method)"
-                                value="{{ $LLM->id }}" class="hidden peer">
+                            <input type="checkbox" name="llm[]" id="llm_create_check_{{ $LLM->id }}"
+                                onchange="sortLists('bots', sorting_method)" value="{{ $LLM->id }}"
+                                class="hidden peer">
                             <label for="llm_create_check_{{ $LLM->id }}"
                                 class="inline-flex items-center justify-between overflow-hidden w-full p-2 text-gray-400 bg-white border-2 border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 peer-checked:border-blue-600 hover:text-gray-600 dark:peer-checked:text-gray-300 peer-checked:text-gray-600 hover:bg-gray-50 dark:text-white dark:bg-gray-600 dark:hover:bg-gray-500">
                                 <div class="flex items-center overflow-hidden">
@@ -99,8 +100,10 @@
         }
     }
     @if ($llms)
-        @foreach ($llms->pluck('id') as $bot_id)
-            $('#llm_create_check_{{ $bot_id }}').click()
-        @endforeach
+        $(window).on('load', function() {
+            @foreach ($llms->pluck('id') as $bot_id)
+                $('#llm_create_check_{{ $bot_id }}').click()
+            @endforeach
+        });
     @endif
 </script>
