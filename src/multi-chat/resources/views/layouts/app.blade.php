@@ -552,46 +552,48 @@ xmlns="http://www.w3.org/2000/svg">
             });
         }
 
-        @if (\App\Models\SystemSetting::where('key', 'announcement')->first()->value != '')
-            $modal1 = new Modal(document.getElementById('system_announcement_modal'), {
-                backdrop: 'static',
-                closable: true,
-                onHide: () => {
-                    $.get("{{ route('announcement') }}")
-                    $modal1 = new Modal(document.getElementById('system_announcement_modal'), {
-                        backdrop: 'static',
-                        closable: true,
-                        onHide: () => {}
-                    });
-                }
-            });
-        @endif
-        @if (\App\Models\SystemSetting::where('key', 'tos')->first()->value != '')
-            $modal2 = new Modal(document.getElementById('tos_modal'), {
-                backdrop: 'static',
-                closable: true,
-                onHide: () => {
-                    $.get("{{ route('tos') }}")
-                    @if (\App\Models\SystemSetting::where('key', 'announcement')->first()->value != '' && !Auth::user()->announced)
-                        $modal1.show();
-                    @endif
-                    $modal2 = new Modal(document.getElementById('tos_modal'), {
-                        backdrop: 'static',
-                        closable: true,
-                        onHide: () => {}
-                    });
-                }
-            });
-        @endif
-        @if (\App\Models\SystemSetting::where('key', 'tos')->first()->value != '' && !Auth::user()->term_accepted)
-            $modal2.show();
-        @endif
-        @if (\App\Models\SystemSetting::where('key', 'announcement')->first()->value != '' && !Auth::user()->announced)
-            $modal1.show();
-        @endif
+        $(document).ready(function() {
+            @if (\App\Models\SystemSetting::where('key', 'announcement')->first()->value != '')
+                $modal1 = new Modal(document.getElementById('system_announcement_modal'), {
+                    backdrop: 'static',
+                    closable: true,
+                    onHide: () => {
+                        $.get("{{ route('announcement') }}")
+                        $modal1 = new Modal(document.getElementById('system_announcement_modal'), {
+                            backdrop: 'static',
+                            closable: true,
+                            onHide: () => {}
+                        });
+                    }
+                });
+            @endif
+            @if (\App\Models\SystemSetting::where('key', 'tos')->first()->value != '')
+                $modal2 = new Modal(document.getElementById('tos_modal'), {
+                    backdrop: 'static',
+                    closable: true,
+                    onHide: () => {
+                        $.get("{{ route('tos') }}")
+                        @if (\App\Models\SystemSetting::where('key', 'announcement')->first()->value != '' && !Auth::user()->announced)
+                            $modal1.show();
+                        @endif
+                        $modal2 = new Modal(document.getElementById('tos_modal'), {
+                            backdrop: 'static',
+                            closable: true,
+                            onHide: () => {}
+                        });
+                    }
+                });
+            @endif
+            @if (\App\Models\SystemSetting::where('key', 'tos')->first()->value != '' && !Auth::user()->term_accepted)
+                $modal2.show();
+            @endif
+            @if (\App\Models\SystemSetting::where('key', 'announcement')->first()->value != '' && !Auth::user()->announced)
+                $modal1.show();
+            @endif
 
-        markdown($("#system_announcement_modal .content"))
-        markdown($("#tos_modal .content"))
+            markdown($("#system_announcement_modal .content"))
+            markdown($("#tos_modal .content"))
+        });
     </script>
 </body>
 
