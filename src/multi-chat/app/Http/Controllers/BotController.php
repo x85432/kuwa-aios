@@ -284,37 +284,15 @@ class BotController extends Controller
         if ($result) {
             $user = $result;
             if (User::find($user->id)->hasPerm(['tab_Room', 'tab_Store'])) {
-                $result = Bots::Join('llms', function ($join) {
-                    $join->on('llms.id', '=', 'bots.model_id');
-                })
-                    ->leftjoin('users', 'users.id', '=', 'bots.owner_id')
-                    ->where('llms.enabled', '=', true)
-                    ->wherein(
-                        'model_id',
-                        DB::table('group_permissions')
-                            ->join('permissions', 'group_permissions.perm_id', '=', 'permissions.id')
-                            ->select(DB::raw('substring(permissions.name, 7) as model_id'), 'perm_id')
-                            ->where('group_permissions.group_id', $user->group_id)
-                            ->where('permissions.name', 'like', 'model_%')
-                            ->get()
-                            ->pluck('model_id'),
-                    )
-                    ->where(function ($query) use ($user) {
-                        $query
-                            ->where('bots.visibility', '=', 0)
-                            ->orwhere('bots.visibility', '=', 1)
-                            ->orWhere(function ($query) use ($user) {
-                                $query->where('bots.visibility', '=', 3)->where('bots.owner_id', '=', $user->id);
-                            })
-                            ->orWhere(function ($query) use ($user) {
-                                $query->where('bots.visibility', '=', 2)->where('users.group_id', '=', $user->group_id);
-                            });
-                    })
-                    ->select('llms.*', 'bots.*', DB::raw('COALESCE(bots.description, llms.description) as description'), DB::raw('COALESCE(bots.config, llms.config) as config'), DB::raw('COALESCE(bots.image, llms.image) as image'), 'llms.name as llm_name')
-                    ->orderby('llms.order')
-                    ->orderby('bots.created_at')
-                    ->get()
-                    ->toarray();
+                $result = Bots::getBots($request->user()->group_id)->toarray();
+                foreach ($result as &$item) {
+                    if (!empty($item['image'])) {
+                        $item['image'] = Storage::url($item['image']);
+                    }
+                    if (!empty($item['base_image'])) {
+                        $item['base_image'] = Storage::url($item['base_image']);
+                    }
+                }
                 return response()->json(
                     [
                         'status' => 'success',
