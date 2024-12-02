@@ -8,6 +8,8 @@ return [
     'button.share_link' => '分享連結',
     'button.sort_by' => '排序方式',
     'button.create' => '建立',
+    'button.group_by_time'=> '時間分類',
+    'button.group_by_bot' => 'Bot分類',
 
     'header.new_room' => '新聊天室',
     'header.create_room' => '新增聊天室',
