@@ -12,7 +12,6 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
-    <link href="{{ asset('css/flowbite.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('css/fontBunny.css') }}" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('css/font_awesome..all.min.css') }}" />
     <link href="{{ asset('css/highlight_default.min.css') }}" rel="stylesheet" />
@@ -22,7 +21,6 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="{{ asset('js/kuwa_api.js') }}"></script>
-    <script src="{{ asset('js/flowbite.min.js') }}"></script>
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('js/marked.min.js') }}"></script>
     <script src="{{ asset('js/highlight.min.js') }}"></script>
