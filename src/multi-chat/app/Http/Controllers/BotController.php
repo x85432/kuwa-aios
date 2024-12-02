@@ -284,7 +284,7 @@ class BotController extends Controller
         if ($result) {
             $user = $result;
             if (User::find($user->id)->hasPerm(['tab_Room', 'tab_Store'])) {
-                $result = Bots::getBots($request->user()->group_id)->toarray();
+                $result = Bots::getBots($user->group_id)->toarray();
                 foreach ($result as &$item) {
                     if (!empty($item['image'])) {
                         $item['image'] = Storage::url($item['image']);
