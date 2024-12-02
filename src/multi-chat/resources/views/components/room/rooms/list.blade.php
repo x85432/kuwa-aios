@@ -1,4 +1,4 @@
-@props(['llms' => null, 'DC' => null, 'result' => null, 'channel' => 0, 'extra' => ''])
+@props(['result' => null, 'extra' => ''])
 
 <div class="mb-2 border border-black dark:border-white border-1 rounded-lg overflow-hidden">
     <div class="flex">

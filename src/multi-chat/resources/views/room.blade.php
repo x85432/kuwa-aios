@@ -27,7 +27,6 @@
         @endif
         @php
             $DC = App\Models\ChatRoom::getChatRoomsWithIdentifiers(Auth::user()->id);
-            $groupedChatRooms = App\Models\ChatRoom::getChatRoomGroup(Auth::user()->id);
 
             try {
                 if (!session('llms')) {
@@ -45,7 +44,7 @@
                 $DC = null;
             }
         @endphp
-        <x-room.rooms.drawer :llms="$llms" :DC="$groupedChatRooms" />
+        <x-room.rooms.drawer/>
     @endif
     @if (request()->user()->hasPerm('Room_update_new_chat'))
         <x-room.modal.group-chat :result="$bots" :$sorting_methods :$llms />
@@ -85,7 +84,7 @@
                             @endif
                         </div>
                     </div>
-                    <x-room.rooms.list :llms="$llms" :DC="$DC" />
+                    <x-room.rooms.list/>
                 @endif
             </div>
         </div>

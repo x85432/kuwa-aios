@@ -1,5 +1,5 @@
 {{-- This component will only appear in the mobile view --}}
-@props(['llms' => null, 'DC' => null, 'result' => null])
+@props(['result' => null])
 
 <div id="chatlist_drawer"
     class="fixed sm:hidden top-0 left-0 z-40 h-screen p-4 overflow-hidden transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800 overflow-y-auto scrollbar"
@@ -29,6 +29,6 @@
                 @endif
             </div>
         </div>
-        <x-room.rooms.list :llms="$llms" :DC="$DC" :result="$result" :channel="1" :extra="'drawer-'" />
+        <x-room.rooms.list :result="$result" :extra="'drawer-'" />
     </div>
 </div>
