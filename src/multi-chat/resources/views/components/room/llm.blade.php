@@ -54,7 +54,7 @@
                                     'data-tooltip-target': `llm_${id}_dropdown`,
                                     'data-tooltip-placement': 'top',
                                     class: 'rounded-full bg-black w-full h-full',
-                                    src: item.image || item.base_image
+                                    src: item.image || item.base_image || '/{{config('app.LLM_DEFAULT_IMG')}}'
                                 })
                             ),
                             $('<div>', {
