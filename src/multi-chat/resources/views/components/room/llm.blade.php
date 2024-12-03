@@ -1,5 +1,5 @@
 @props(['result', 'extra' => ''])
-<div id='groupingSelector' class="flex items-center justify-center">
+<div id='groupingSelector' class="flex items-center justify-center mb-2">
     <!-- Group by Model Radio -->
     <div class="relative w-full">
         <input onchange='refreshRoom($(this).val());' value='groupByIdentifier' type="radio"
@@ -205,7 +205,7 @@
                     type: 'hidden'
                 }),
                 $('<button>', {
-                    class: 'flex items-center px-2 mt-2 scrollbar rounded-t-lg w-full hover:bg-gray-300 dark:hover:bg-gray-700 py-3 border-b border-black dark:border-white'
+                    class: 'flex items-center px-2 scrollbar rounded-t-lg w-full hover:bg-gray-300 dark:hover:bg-gray-700 py-3 border-b border-black dark:border-white'
                 }).append(
                     $ids.map(id => createRoomClone(roomIdx, id))
                 )
