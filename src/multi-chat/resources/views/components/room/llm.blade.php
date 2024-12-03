@@ -179,7 +179,7 @@
                                 clonedElement.each(function() {
                                     $(this).attr('class',
                                         'mx-1 flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 dark:border-gray-900 bg-black flex items-center justify-center overflow-hidden'
-                                    );
+                                    ).show();
                                     const base = clonedElement.find(`#llm_${id}_dropdown`);
                                     base.attr('id', `llm_${id}`);
                                     const trigger = base.prev().children(0);
