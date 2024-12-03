@@ -25,6 +25,7 @@ use Dompdf\Options;
 use Illuminate\Support\Arr;
 use DB;
 use Session;
+use Carbon\Carbon;
 
 use function Laravel\Prompts\error;
 
@@ -757,6 +758,7 @@ class RoomController extends Controller
                     return Redirect::route('room.home');
                 }
             }
+            ChatRoom::find($roomId)->update(['updated_at' => Carbon::now()]);
             #Model permission checked
             $start = date('Y-m-d H:i:s');
             $deltaStart = date('Y-m-d H:i:s', strtotime($start . ' +1 second'));

@@ -13,7 +13,7 @@ class ChatRoom extends Model
     use HasFactory;
     use SoftDeletes;
     protected $table = 'chatrooms';
-    protected $fillable = ['name', 'user_id'];
+    protected $fillable = ['name', 'user_id', 'updated_at'];
     public static function getChatRoomsWithIdentifiers(int $userId)
     {
         $query = self::leftJoin('chats', 'chatrooms.id', '=', 'chats.roomID')->where('chats.user_id', $userId)->select('chatrooms.*', DB::raw('count(chats.id) as counts'))->groupBy('chatrooms.id')->selectSub(self::buildIdentifierSubquery(), 'identifier');
