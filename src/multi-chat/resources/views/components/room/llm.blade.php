@@ -21,7 +21,13 @@
     </div>
 </div>
 
-<div class="flex flex-col overflow-y-auto scrollbar pr-2 flex-1"></div>
+<div class="relative flex flex-col overflow-y-auto scrollbar pr-2 flex-1">
+</div>
+<div class="absolute inset-0 flex items-center justify-center" style='display:none;'>
+    <button class='bg-gray-500 dark:bg-gray-700 px-2 py-1 rounded-lg hover:dark:bg-gray-600 hover:bg-gray-600'
+        onclick='refreshRoom(selectedGroup);'>Reload</button>
+</div>
+
 @once
     <script>
         function generateDropdown(data) {
@@ -168,12 +174,12 @@
                             $ids.map(id => {
                                 const clonedElement = $(
                                         `#chatroom_info_dropdown >ul >li:first >div >div >img[data-tooltip-target="llm_${id}_dropdown"]`
-                                        )
+                                    )
                                     .parent().parent().clone();
                                 clonedElement.each(function() {
                                     $(this).attr('class',
                                         'mx-1 flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 dark:border-gray-900 bg-black flex items-center justify-center overflow-hidden'
-                                        );
+                                    );
                                     const base = clonedElement.find(`#llm_${id}_dropdown`);
                                     base.attr('id', `llm_${id}`);
                                     const trigger = base.prev().children(0);
@@ -198,17 +204,17 @@
                         $("<div>").addClass("max-h-[182px] overflow-y-auto scrollbar").append(
                             $("<div>").addClass(
                                 `overflow-hidden rounded mb-1 flex dark:hover:bg-gray-700 hover:bg-gray-200 ${isActive ? "bg-gray-200 dark:bg-gray-700" : ""}`
-                                ).append(
+                            ).append(
                                 $("<a>").addClass(
                                     "menu-btn flex-1 text-gray-700 px-2 dark:text-white w-full flex justify-start items-center overflow-hidden transition duration-300"
-                                    )
+                                )
                                 .attr("href", chatUrl)
                                 .append($("<p>").addClass(
                                         "my-auto leading-none truncate-text overflow-ellipsis max-h-4")
                                     .text(dc.name)),
                                 $("<button>").addClass(
                                     `p-1 m-auto h-[32px] text-black hover:text-black dark:text-white dark:hover:text-gray-300 ${isActive ? "bg-gray-200 dark:bg-gray-700" : ""}`
-                                    )
+                                )
                                 .attr({
                                     shareUrl: `/room/share/${dc.id}`,
                                     identifier: dc.identifier,
@@ -226,6 +232,14 @@
             });
         }
 
+        function validateIdentifiers(arr) {
+            const botKeys = Object.keys(botData).map(Number);
+
+            return arr.filter(item => {
+                const digits = item.identifier.split(",").map(Number);
+                return digits.every(id => botKeys.includes(id));
+            });;
+        }
 
         function groupByIdentifier(arr) {
             return arr.reduce(function(acc, item) {
@@ -329,12 +343,15 @@
             $(".flex.flex-col.overflow-y-auto.scrollbar.pr-2.flex-1").append($outerDiv);
         }
 
+        let botData = {};
+
         function refreshRoom(method) {
             localStorage.setItem('kuwa-room_group_selector', method);
             $('#groupingSelector input').attr('readonly', true).attr('disabled', true)
-            $(".flex.flex-col.overflow-y-auto.scrollbar.pr-2.flex-1").empty()
+            base = $(".flex.flex-col.overflow-y-auto.scrollbar.pr-2.flex-1")
+            base.empty()
+            base.next().hide()
             addLoadingIndicator();
-            let botData = {};
             client.listBots()
                 .then(bots => {
                     botData = bots.result.reduce((acc, bot) => {
@@ -345,12 +362,13 @@
                         acc[id] = rest;
                         return acc;
                     }, {});
+
                     client.listRooms()
                         .then(rooms => {
                             generateDropdown(botData)
                             if (method == 'groupByIdentifier') method = groupByIdentifier
                             else if (method == 'groupByTime') method = groupByTime
-                            refreshChatRoomList(method(rooms.result),
+                            refreshChatRoomList(method(validateIdentifiers(rooms.result)),
                                 {{ request()->user()->hasPerm('Room_delete_chatroom') }}, botData, method ==
                                 groupByTime);
                             $('#groupingSelector input').attr('readonly', false).attr('disabled', false)
@@ -358,15 +376,18 @@
                         .catch(error => {
                             console.error('Error:', error)
                             $('#groupingSelector input').attr('readonly', false).attr('disabled', false)
+                            base.next().show()
                         })
                 })
                 .catch(error => {
                     console.error('Error:', error)
                     $('#groupingSelector input').attr('readonly', false).attr('disabled', false)
+                    base.next().show()
                 });
         }
+        let selectedGroup = null
         $(document).ready(function() {
-            var selectedGroup = localStorage.getItem('kuwa-room_group_selector') || 'groupByTime';
+            selectedGroup = localStorage.getItem('kuwa-room_group_selector') || 'groupByTime';
 
             $('input[name="room_group_selector"][value="' + selectedGroup + '"]').prop('checked', true);
             refreshRoom(selectedGroup)
