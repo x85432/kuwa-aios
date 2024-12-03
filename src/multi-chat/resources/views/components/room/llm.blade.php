@@ -149,8 +149,8 @@
         function refreshChatRoomList(groupedChatRooms, canDelete, botData, byTime) {
             const container = $(".flex.flex-col.overflow-y-auto.scrollbar.pr-2.flex-1").empty();
             const currentPath = window.location.pathname;
-
             const sortedGroups = sortGroupsByRecentUpdate(groupedChatRooms);
+            var roomIdx = 0
 
             sortedGroups.forEach(group => {
                 const chatRooms = groupedChatRooms[group];
@@ -159,7 +159,8 @@
                 if (byTime) {
                     container.append(createGroupHeader(group));
                 } else {
-                    container.append(createNewRoomForm(group));
+                    container.append(createNewRoomForm(roomIdx, group));
+                    roomIdx+=1;
                 }
 
                 const sortedRooms = sortRoomsByUpdateTime(chatRooms);
@@ -192,7 +193,7 @@
                 .text(group);
         }
 
-        function createNewRoomForm(group) {
+        function createNewRoomForm(roomIdx, group) {
             const $ids = group.match(/\d+/g).map(Number);
             result = $('<form>', {
                 method: 'post',
@@ -206,7 +207,7 @@
                 $('<button>', {
                     class: 'flex items-center px-2 mt-2 scrollbar rounded-t-lg w-full hover:bg-gray-300 dark:hover:bg-gray-700 py-3 border-b border-black dark:border-white'
                 }).append(
-                    $ids.map(id => createRoomClone(id))
+                    $ids.map(id => createRoomClone(roomIdx, id))
                 )
             );
             if (result.find('>button >div').length == 1){
@@ -215,7 +216,7 @@
             return result
         }
 
-        function createRoomClone(id) {
+        function createRoomClone(roomIdx, id) {
             const clonedElement = $(
                     `#chatroom_info_dropdown >ul >li:first >div >div >img[data-tooltip-target="llm_${id}_dropdown"]`)
                 .parent().parent().clone();
@@ -224,9 +225,9 @@
                     'mx-1 flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 dark:border-gray-900 bg-black flex items-center justify-center overflow-hidden'
                     ).show();
                 const base = clonedElement.find(`#llm_${id}_dropdown`);
-                base.attr('id', `llm_${id}`);
+                base.attr('id', `${roomIdx}-llm_${id}`);
                 const trigger = base.prev().children(0);
-                trigger.attr('data-tooltip-target', `llm_${id}`);
+                trigger.attr('data-tooltip-target', `${roomIdx}-llm_${id}`);
                 new Tooltip(base[0], trigger[0]).init();
             });
             return clonedElement.append($('<input>', {
