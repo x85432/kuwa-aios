@@ -149,88 +149,122 @@
         function refreshChatRoomList(groupedChatRooms, canDelete, botData, byTime) {
             const container = $(".flex.flex-col.overflow-y-auto.scrollbar.pr-2.flex-1").empty();
             const currentPath = window.location.pathname;
-            const defaultImage = "{{ config('app.LLM_DEFAULT_IMG') }}";
 
-            $.each(groupedChatRooms, (group, chatRooms) => {
-                if (!Array.isArray(chatRooms) || chatRooms.length === 0) return;
+            const sortedGroups = sortGroupsByRecentUpdate(groupedChatRooms);
+
+            sortedGroups.forEach(group => {
+                const chatRooms = groupedChatRooms[group];
+                if (!chatRooms.length) return;
 
                 if (byTime) {
-                    container.append($("<h3>").addClass(
-                        "my-1 font-bold text-xs text-gray-800 dark:text-gray-300 text-center").text(group));
+                    container.append(createGroupHeader(group));
                 } else {
-                    const $ids = group.match(/\d+/g).map(Number);
-                    const form = $('<form>', {
-                        method: 'post',
-                        action: '{{ route('room.new') }}'
-                    }).append(
-                        $('<input>', {
-                            name: '_token',
-                            value: "{{ csrf_token() }}",
-                            type: 'hidden'
-                        }),
-                        $('<button>', {
-                            class: 'flex items-center px-2 mt-2 scrollbar rounded-t-lg w-full hover:bg-gray-300 dark:hover:bg-gray-700 py-3 border-b border-black dark:border-white'
-                        }).append(
-                            $ids.map(id => {
-                                const clonedElement = $(
-                                        `#chatroom_info_dropdown >ul >li:first >div >div >img[data-tooltip-target="llm_${id}_dropdown"]`
-                                    )
-                                    .parent().parent().clone();
-                                clonedElement.each(function() {
-                                    $(this).attr('class',
-                                        'mx-1 flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 dark:border-gray-900 bg-black flex items-center justify-center overflow-hidden'
-                                    ).show();
-                                    const base = clonedElement.find(`#llm_${id}_dropdown`);
-                                    base.attr('id', `llm_${id}`);
-                                    const trigger = base.prev().children(0);
-                                    trigger.attr('data-tooltip-target', `llm_${id}`);
-                                    new Tooltip(base[0], trigger[0]).init();
-                                });
-                                return clonedElement.append($('<input>', {
-                                    name: 'llm[]',
-                                    value: id,
-                                    type: 'hidden'
-                                }));
-                            })
-                        )
-                    );
-                    container.append(form);
+                    container.append(createNewRoomForm(group));
                 }
 
-                chatRooms.forEach(dc => {
-                    const chatUrl = `/room/${dc.id}`;
-                    const isActive = currentPath === chatUrl;
-                    const chatRoomDiv = $("<div>").addClass("rounded-lg").append(
-                        $("<div>").addClass("max-h-[182px] overflow-y-auto scrollbar").append(
-                            $("<div>").addClass(
-                                `overflow-hidden rounded mb-1 flex dark:hover:bg-gray-700 hover:bg-gray-200 ${isActive ? "bg-gray-200 dark:bg-gray-700" : ""}`
-                            ).append(
-                                $("<a>").addClass(
-                                    "menu-btn flex-1 text-gray-700 px-2 dark:text-white w-full flex justify-start items-center overflow-hidden transition duration-300"
-                                )
-                                .attr("href", chatUrl)
-                                .append($("<p>").addClass(
-                                        "my-auto leading-none truncate-text overflow-ellipsis max-h-4")
-                                    .text(dc.name)),
-                                $("<button>").addClass(
-                                    `p-1 m-auto h-[32px] text-black hover:text-black dark:text-white dark:hover:text-gray-300 ${isActive ? "bg-gray-200 dark:bg-gray-700" : ""}`
-                                )
-                                .attr({
-                                    shareUrl: `/room/share/${dc.id}`,
-                                    identifier: dc.identifier,
-                                    id: dc.id,
-                                    name: dc.name
-                                })
-                                .on('click', toggleDropdown)
-                                .append($("<div>").addClass('text-[4px] tracking-[3px] m-auto').text(
-                                    '●●●'))
-                            )
-                        )
-                    );
-                    container.append(chatRoomDiv);
+                const sortedRooms = sortRoomsByUpdateTime(chatRooms);
+
+                sortedRooms.forEach(dc => {
+                    container.append(createRoomElement(dc, currentPath));
                 });
             });
         }
+
+        function sortGroupsByRecentUpdate(groupedChatRooms) {
+            return Object.keys(groupedChatRooms).sort((a, b) => {
+                const getLatestUpdatedAt = (group) => {
+                    const latestRoom = groupedChatRooms[group].reduce((latest, room) =>
+                        new Date(room.updated_at) > new Date(latest.updated_at) ? room : latest
+                    );
+                    return latestRoom.updated_at;
+                };
+                return new Date(getLatestUpdatedAt(b)) - new Date(getLatestUpdatedAt(a));
+            });
+        }
+
+        function sortRoomsByUpdateTime(chatRooms) {
+            return chatRooms.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        }
+
+        function createGroupHeader(group) {
+            return $("<h3>")
+                .addClass("my-1 font-bold text-xs text-gray-800 dark:text-gray-300 text-center")
+                .text(group);
+        }
+
+        function createNewRoomForm(group) {
+            const $ids = group.match(/\d+/g).map(Number);
+            result = $('<form>', {
+                method: 'post',
+                action: '{{ route('room.new') }}'
+            }).append(
+                $('<input>', {
+                    name: '_token',
+                    value: "{{ csrf_token() }}",
+                    type: 'hidden'
+                }),
+                $('<button>', {
+                    class: 'flex items-center px-2 mt-2 scrollbar rounded-t-lg w-full hover:bg-gray-300 dark:hover:bg-gray-700 py-3 border-b border-black dark:border-white'
+                }).append(
+                    $ids.map(id => createRoomClone(id))
+                )
+            );
+            return result
+        }
+
+        function createRoomClone(id) {
+            const clonedElement = $(
+                    `#chatroom_info_dropdown >ul >li:first >div >div >img[data-tooltip-target="llm_${id}_dropdown"]`)
+                .parent().parent().clone();
+            clonedElement.each(function() {
+                $(this).attr('class',
+                    'mx-1 flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 dark:border-gray-900 bg-black flex items-center justify-center overflow-hidden'
+                    ).show();
+                const base = clonedElement.find(`#llm_${id}_dropdown`);
+                base.attr('id', `llm_${id}`);
+                const trigger = base.prev().children(0);
+                trigger.attr('data-tooltip-target', `llm_${id}`);
+                new Tooltip(base[0], trigger[0]).init();
+            });
+            return clonedElement.append($('<input>', {
+                name: 'llm[]',
+                value: id,
+                type: 'hidden'
+            }));
+        }
+
+        function createRoomElement(dc, currentPath) {
+            const chatUrl = `/room/${dc.id}`;
+            const isActive = currentPath === chatUrl;
+
+            return $("<div>").addClass("rounded-lg").append(
+                $("<div>").addClass("max-h-[182px] overflow-y-auto scrollbar").append(
+                    $("<div>").addClass(
+                        `overflow-hidden rounded mb-1 flex dark:hover:bg-gray-700 hover:bg-gray-200 ${isActive ? "bg-gray-200 dark:bg-gray-700" : ""}`
+                        )
+                    .append(
+                        $("<a>").addClass(
+                            "menu-btn flex-1 text-gray-700 px-2 dark:text-white w-full flex justify-start items-center overflow-hidden transition duration-300"
+                            )
+                        .attr("href", chatUrl)
+                        .append($("<p>").addClass("my-auto leading-none truncate-text overflow-ellipsis max-h-4").text(
+                            dc.name)),
+                        $("<button>").addClass(
+                            `p-1 m-auto h-[32px] text-black hover:text-black dark:text-white dark:hover:text-gray-300 ${isActive ? "bg-gray-200 dark:bg-gray-700" : ""}`
+                            )
+                        .attr({
+                            shareUrl: `/room/share/${dc.id}`,
+                            identifier: dc.identifier,
+                            id: dc.id,
+                            name: dc.name
+                        })
+                        .on('click', toggleDropdown)
+                        .append($("<div>").addClass('text-[4px] tracking-[3px] m-auto').text('●●●'))
+                    )
+                )
+            );
+        }
+
 
         function validateIdentifiers(arr) {
             const botKeys = Object.keys(botData).map(Number);
