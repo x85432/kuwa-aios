@@ -209,6 +209,9 @@
                     $ids.map(id => createRoomClone(id))
                 )
             );
+            if (result.find('>button >div').length == 1){
+                result.children().append($('<span>', {class:'text-center w-full line-clamp-1 text-black dark:text-white'}).text(result.find('>button [role=tooltip]').text()))
+            }
             return result
         }
 
