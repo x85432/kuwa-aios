@@ -28,4 +28,5 @@ return [
     'button.create' => 'Erstellen',
     'button.group_by_time' => 'Zeitbasierte Gruppierung',
     'button.group_by_bot' => 'Botbasierte Gruppierung',
+    'button.reload' => 'Neu laden',
 ];

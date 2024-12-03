@@ -28,4 +28,5 @@ return [
     'button.create' => '建立',
     'button.group_by_time' => '按时间分类',
     'button.group_by_bot' => '按Bot分类',
+    'button.reload' => '重新加载',
 ];

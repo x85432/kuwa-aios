@@ -28,4 +28,5 @@ return [
     'button.create' => '만들기',
     'button.group_by_time' => '시간별 분류',
     'button.group_by_bot' => '봇별 분류',
+    'button.reload' => '새로 고침',
 ];

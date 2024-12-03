@@ -10,6 +10,7 @@ return [
     'button.create' => '建立',
     'button.group_by_time'=> '時間分類',
     'button.group_by_bot' => 'Bot分類',
+    'button.reload' => '重新載入',
 
     'header.new_room' => '新聊天室',
     'header.create_room' => '新增聊天室',

@@ -28,4 +28,5 @@ return [
     'button.create' => 'Créer',
     'button.group_by_time' => 'Classement par heure',
     'button.group_by_bot' => 'Classement par bot',
+    'button.reload' => 'Recharger',
 ];

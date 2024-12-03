@@ -28,4 +28,5 @@ return [
     'button.create' => 'Vytvořit',
     'button.group_by_time' => 'Třídit podle času',
     'button.group_by_bot' => 'Třídit podle botu',
+    'button.reload' => 'Načíst znovu',
 ];

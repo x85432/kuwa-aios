@@ -28,4 +28,5 @@ return [
     'button.create' => '作成',
     'button.group_by_time' => '時間別分類',
     'button.group_by_bot' => 'Bot別分類',
+    'button.reload' => '再読み込み',
 ];

@@ -28,4 +28,5 @@ return [
     'button.create' => 'Create',
     'button.group_by_time' => 'Time Group',
     'button.group_by_bot' => 'Bot Group',
+    'button.reload' => 'Reload',
 ];
