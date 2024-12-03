@@ -2,8 +2,7 @@
     <div class="flex items-center justify-center min-h-screen">
         <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg max-w-md w-full">
             <button type="button"
-                class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-               >
+                class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
                 <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 14 14">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -42,7 +41,7 @@
                 if (window.location.pathname.includes(`/room/${id}`)) {
                     window.location.href = '/room';
                 } else {
-                    var selectedGroup = localStorage.getItem('kuwa-room_group_selector') || 'groupByTime';
+                    selectedGroup = localStorage.getItem('kuwa-room_group_selector') || 'groupByTime';
                     $('input[name="room_group_selector"][value="' + selectedGroup + '"]').prop('checked', true);
                     refreshRoom(selectedGroup)
                 }
