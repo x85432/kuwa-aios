@@ -466,7 +466,7 @@
         let selectedGroup = null
         $(document).ready(function() {
             selectedGroup = localStorage.getItem('kuwa-room_group_selector') || 'groupByTime';
-            selected = $('input[name="chatsTo[]"]').map((_, el) => el.value).get().sort().join(',');
+            selected = $('input[name="chatsTo[]"]').map((_, el) => el.value).get().sort((a, b) => a - b).join(',');
             if (selected == '') {
                 $('div[id=groupingSelector]').show()
             }
