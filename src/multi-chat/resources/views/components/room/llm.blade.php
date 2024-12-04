@@ -151,13 +151,15 @@
             const container = $(".flex.flex-col.overflow-y-auto.scrollbar.roomlist.flex-1").empty();
             if (selected) container.addClass('border border-black dark:border-white border-1 rounded-lg overflow-hidden')
             const currentPath = window.location.pathname;
-            const sortedGroups = sortGroupsByRecentUpdate(groupedChatRooms);
+            let sortedGroups = sortGroupsByRecentUpdate(groupedChatRooms);
             var roomIdx = 0
-
+            if (selected && Object.keys(groupedChatRooms).length == 0) {
+                groupedChatRooms = {
+                    selected: []
+                }
+                sortedGroups = [selected]
+            }
             sortedGroups.forEach(group => {
-                const chatRooms = groupedChatRooms[group];
-                if (!chatRooms.length) return;
-
                 if (byTime) {
                     container.append(createGroupHeader(group));
                 } else {
@@ -185,6 +187,8 @@
                     }))))))
                     roomIdx += 1;
                 }
+                const chatRooms = groupedChatRooms[group];
+                if (!chatRooms || chatRooms.length == 0) return;
 
                 const sortedRooms = sortRoomsByUpdateTime(chatRooms);
 
@@ -236,7 +240,8 @@
                 )
             );
             if (result.find(selected ? ">div" : '>button >div').length == 1) {
-                (selected ?result : result.children()).append($('<span>', {
+                (selected ? result : result.children())
+                .append($('<span>', {
                     class: 'text-center w-full line-clamp-1 text-black dark:text-white'
                 }).text(result.find('[role=tooltip]').text()))
             }
