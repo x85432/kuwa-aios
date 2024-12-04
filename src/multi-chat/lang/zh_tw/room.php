@@ -12,7 +12,7 @@ return [
     'button.group_by_bot' => 'Bot分類',
     'button.reload' => '重新載入',
 
-    'header.new_room' => '新聊天室',
+    'header.new_room' => '新對話',
     'header.create_room' => '新增聊天室',
 
     'placeholder.model' => '請選取您想要同時使用的模型',
