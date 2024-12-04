@@ -251,7 +251,7 @@
                             "menu-btn flex-1 text-gray-700 px-2 dark:text-white w-full flex justify-start items-center overflow-hidden transition duration-300"
                             )
                         .attr("href", chatUrl)
-                        .append($("<p>").addClass("my-auto leading-none truncate-text overflow-ellipsis max-h-4").text(
+                        .append($("<p>").addClass("px-4 m-auto text-center leading-none truncate-text overflow-ellipsis overflow-hidden max-h-4").text(
                             dc.name)),
                         $("<button>").addClass(
                             `p-1 m-auto h-[32px] text-black hover:text-black dark:text-white dark:hover:text-gray-300 ${isActive ? "bg-gray-200 dark:bg-gray-700" : ""}`
