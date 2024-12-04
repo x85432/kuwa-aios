@@ -25,7 +25,7 @@
 </div>
 <div class="absolute inset-0 flex items-center justify-center" style='display:none;'>
     <button class='bg-gray-500 dark:bg-gray-700 px-2 py-1 rounded-lg hover:dark:bg-gray-600 hover:bg-gray-600'
-        onclick='refreshRoom(selectedGroup);'>Reload</button>
+        onclick='refreshRoom(selectedGroup);'>{{__('room.button.reload')}}</button>
 </div>
 
 @once
