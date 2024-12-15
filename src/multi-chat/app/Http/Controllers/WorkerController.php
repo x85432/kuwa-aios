@@ -194,7 +194,7 @@ class WorkerController extends Controller
             }
         } else {
             // For non-Windows systems
-            $cmd = "ps aux | grep 'php' | grep '$artisanFile' | grep '$command' | grep -v grep";
+            $cmd = "ps aux | grep 'php' | grep 'artisan' | grep '$command' | grep -v grep";
             $processes = shell_exec($cmd);
             $lines = array_filter(explode("\n", trim($processes)));
 
