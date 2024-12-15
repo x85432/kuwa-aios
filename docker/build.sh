@@ -84,8 +84,8 @@ install_cuda_toolkit() {
 }
 
 install_nvidia_container_toolkit() {
-  if ! command -v which nvidia-container-toolkit &>/dev/null; then
-    echo "Installing Nvidia continaer toolkit"
+  if ! command -v nvidia-ctk &>/dev/null; then
+    echo "Installing NVIDIA continaer toolkit"
 
     # Setup GPG key
     curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
