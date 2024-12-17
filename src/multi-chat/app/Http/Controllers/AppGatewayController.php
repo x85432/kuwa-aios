@@ -123,15 +123,7 @@ class AppGatewayController extends Controller
      * @throws \Illuminate\Support\Facades\abort 404 if the app_name is not found.
      */
     private function alterTargetUri(ServerRequestInterface $request, string $app_name) : ServerRequestInterface {
-        # This is a temporal KV database for POC.
-        # [TODO] Read app_root from database
-        $app_root_db = [
-            "com.kuwa.debug" => "http://host.docker.internal:7860",
-            "com.github.jhj0517.whisper-webui" => "http://host.docker.internal:7861",
-            "com.github.automatic1111.stable-diffusion-webui" => "http://host.docker.internal:7862",
-            "com.kuwa.cad-webui" => "http://host.docker.internal:7863",
-            "com.github.cinnamon.kotaemon" => "http://host.docker.internal:7864",
-        ];
+        $app_root_db = config("app-gateway.app_root") ?? [];
         abort_if(!array_key_exists($app_name, $app_root_db), 404);
         $request_uri = $request->getUri();
         $target_uri = new Uri($app_root_db[$app_name]);
