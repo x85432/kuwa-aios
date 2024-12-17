@@ -61,7 +61,8 @@
 
     $('#start-workers-button').click(() => $('#start-workers-modal').removeClass('hidden'));
     $('#stop-workers-button').click(() => $('#stop-workers-modal').removeClass('hidden'));
-
+    $('#cancel-stop-workers').click(() => $('#stop-workers-modal').addClass('hidden'));
+    
     $('#confirm-stop-workers').click(function() {
         if (!canSubmit) return;
         $.ajax({
