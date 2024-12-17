@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       TRUST_DOWNSTREAM_PROXY: true
+      DEFAULT_HOST: ${DOMAIN_NAME}
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - multi-chat-storage:/app/storage:ro
@@ -53,6 +54,7 @@ services:
       ADMIN_NAME: ${ADMIN_NAME}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD_FILE: /run/secrets/admin-password
+      NVIDIA_VISIBLE_DEVICES: all
     secrets:
       - admin-password
     volumes: [
