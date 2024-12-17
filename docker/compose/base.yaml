@@ -60,8 +60,7 @@ services:
     volumes: [
       "multi-chat-storage:/app/storage:rw",
       "../root/custom:/app/resources/views/components/custom:ro",
-      "../root/bootstrap/bot:/var/kuwa/docker/root/bootstrap/bot:ro",
-      "../root/database:/var/kuwa/docker/root/database:ro",
+      "../root:/var/kuwa/docker/root:rw",
     ]
     healthcheck:
       test: ["CMD-SHELL", "php-fpm-healthcheck"]
