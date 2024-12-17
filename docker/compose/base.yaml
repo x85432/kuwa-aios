@@ -59,8 +59,9 @@ services:
       - admin-password
     volumes: [
       "multi-chat-storage:/app/storage:rw",
-      "../root/custom:/app/resources/views/components/custom:ro",
+      "../root:/app/storage/app/public/root:rw",
       "../root:/var/kuwa/docker/root:rw",
+      "../root/custom:/app/resources/views/components/custom:ro",
     ]
     healthcheck:
       test: ["CMD-SHELL", "php-fpm-healthcheck"]
