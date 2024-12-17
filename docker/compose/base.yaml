@@ -12,6 +12,7 @@ services:
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - multi-chat-storage:/app/storage:ro
+      - ../root:/app/storage/app/public/root:ro
     ports: ["80:80", "443:443"]
     depends_on: ["multi-chat"]
     networks: ["frontend"]
@@ -57,12 +58,11 @@ services:
       NVIDIA_VISIBLE_DEVICES: all
     secrets:
       - admin-password
-    volumes: [
-      "multi-chat-storage:/app/storage:rw",
-      "../root:/app/storage/app/public/root:rw",
-      "../root:/var/kuwa/docker/root:rw",
-      "../root/custom:/app/resources/views/components/custom:ro",
-    ]
+    volumes: 
+      - multi-chat-storage:/app/storage:rw
+      - ../root:/app/storage/app/public/root:rw
+      - ../root:/var/kuwa/docker/root:rw
+      - ../root/custom:/app/resources/views/components/custom:ro
     healthcheck:
       test: ["CMD-SHELL", "php-fpm-healthcheck"]
       timeout: 10s
