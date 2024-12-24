@@ -23,7 +23,7 @@ class SystemController extends Controller
 
     public static function checkUpdate(Request $request)
     {
-        if ($request && $request->input('forced')) {
+        if ($request && $request->input('forced') == 'true') {
             CheckUpdate::dispatch(true);
         }
 
