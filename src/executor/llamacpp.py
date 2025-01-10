@@ -176,7 +176,7 @@ class LlamaCppExecutor(LLMExecutor):
         regex = r"hf://([^?]+)\?(.*)"
         match = re.match(regex, model_path)
         if not match:
-            raise Exception("Invalid model_path format.")
+            raise Exception(f"Invalid model_path format: {model_path}")
 
         repo_id = match.group(1)
         filename = match.group(2)
