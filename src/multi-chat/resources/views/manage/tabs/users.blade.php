@@ -12,8 +12,9 @@
 </form>
 @php
     if (session('fuzzy_search')) {
-        $fuzzy_result = App\Models\User::where('name', 'ilike', '%' . session('fuzzy_search') . '%')
-            ->orWhere('email', 'ilike', '%' . session('fuzzy_search') . '%')
+        $case_insensitive_like = config('database.default') === "pgsql" ? 'ilike' : 'like';
+        $fuzzy_result = App\Models\User::where('name', $case_insensitive_like, '%' . session('fuzzy_search') . '%')
+            ->orWhere('email', $case_insensitive_like, '%' . session('fuzzy_search') . '%')
             ->orderby('name')
             ->get();
     } else {
