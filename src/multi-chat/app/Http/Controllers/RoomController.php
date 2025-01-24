@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Jobs\RequestChat;
 use App\Models\Histories;
@@ -623,7 +624,7 @@ class RoomController extends Controller
         return $Room->id;
     }
 
-    public function new(Request $request): RedirectResponse
+    public function new(Request $request)
     {
         $llms = $request->input('llm');
         if (!request()->user()->hasPerm('Room_update_new_chat') || count($llms) == 0) {
@@ -647,6 +648,23 @@ class RoomController extends Controller
                 return Redirect::route('room.home');
             }
         }
+
+        foreach ($llms as $i){
+            $prompts = ($p = array_values(array_filter(json_decode(Bots::find($i)->config, true)['modelfile'] ?? [], fn($v) => $v['name'] === 'prompts'))[0]['args'] ?? null) && is_string($p) && str_starts_with($p, '"""') && str_ends_with($p, '"""') ? substr($p, 3, -3) : $p;
+
+            if ($prompts != null) {
+                $req = new Request([
+                    '_token' => csrf_token(),
+                    'history' => $prompts,
+                    'llm_ids' => [$i],
+                ]);
+    
+                $req->setUserResolver(fn() => Auth::user());
+    
+                return $this->import($req);
+            }
+        }
+
         return redirect()->route('room.home')->with('llms', $llms);
     }
     public function api_delete_room(Request $request)
@@ -745,7 +763,7 @@ class RoomController extends Controller
 
         $chained = (Session::get('chained') ?? true) == true;
         if (count($selectedLLMs) > 0 && $roomId && $input) {
-            $chats = Chats::where('roomID', $request->input('room_id'))->get();
+            $chats = Chats::where('roomID', $roomId)->get();
             $result = Bots::pluck('id')->toarray();
 
             foreach ($chats->pluck('bot_id')->toarray() as $i) {
@@ -764,27 +782,43 @@ class RoomController extends Controller
             $deltaStart = date('Y-m-d H:i:s', strtotime($start . ' +1 second'));
             foreach ($chats as $chat) {
                 if (in_array($chat->bot_id, $selectedLLMs)) {
-                    $history = new Histories();
-                    $history->fill(['msg' => $input, 'chat_id' => $chat->id, 'isbot' => false, 'created_at' => $start, 'updated_at' => $start]);
-                    $history->save();
-                    $access_code = LLMs::findOrFail(Bots::findOrFail($chat->bot_id)->model_id)->access_code;
-                    if ($chained) {
-                        $tmp = Histories::where('chat_id', '=', $chat->id)
-                            ->select('msg', 'isbot')
-                            ->orderby('created_at')
-                            ->orderby('id', 'desc')
-                            ->get()
-                            ->toJson();
-                    } else {
-                        $tmp = json_encode([['msg' => $input, 'isbot' => false]]);
+                    $bot = Bots::findOrFail($chat->bot_id);
+                    $prompts = ($p = array_values(array_filter(json_decode($bot->config, true)['modelfile'] ?? [], fn($v) => $v['name'] === 'prompts'))[0]['args'] ?? null) && is_string($p) && str_starts_with($p, '"""') && str_ends_with($p, '"""') ? substr($p, 3, -3) : $p;
+    
+                    if($prompts){
+                        $prompts = $input = str_replace("\r\n", '\n', $input) . "\n" . $prompts;
+                        $req = new Request([
+                            '_token' => csrf_token(),
+                            'history' => $prompts,
+                            'llm_ids' => [$chat->bot_id],
+                            'room_id' => $roomId,
+                        ]);
+            
+                        $req->setUserResolver(fn() => Auth::user());
+            
+                        $this->import($req);
+                    }else{
+                        $history = new Histories();
+                        $history->fill(['msg' => $input, 'chat_id' => $chat->id, 'isbot' => false, 'created_at' => $start, 'updated_at' => $start]);
+                        $history->save();
+                        $access_code = LLMs::findOrFail($bot->model_id)->access_code;
+                        if ($chained) {
+                            $tmp = Histories::where('chat_id', '=', $chat->id)
+                                ->select('msg', 'isbot')
+                                ->orderby('created_at')
+                                ->orderby('id', 'desc')
+                                ->get()
+                                ->toJson();
+                        } else {
+                            $tmp = json_encode([['msg' => $input, 'isbot' => false]]);
+                        }
+                        $history = new Histories();
+                        $history->fill(['msg' => '* ...thinking... *', 'chained' => $chained, 'chat_id' => $chat->id, 'isbot' => true, 'created_at' => $deltaStart, 'updated_at' => $deltaStart]);
+                        $history->save();
+                        RequestChat::dispatch($tmp, $access_code, Auth::user()->id, $history->id, App::getLocale(), null, json_decode($bot->config ?? '')->modelfile ?? null);
+                        Redis::rpush('usertask_' . Auth::user()->id, $history->id);
+                        Redis::expire('usertask_' . Auth::user()->id, 1200);
                     }
-
-                    $history = new Histories();
-                    $history->fill(['msg' => '* ...thinking... *', 'chained' => $chained, 'chat_id' => $chat->id, 'isbot' => true, 'created_at' => $deltaStart, 'updated_at' => $deltaStart]);
-                    $history->save();
-                    RequestChat::dispatch($tmp, $access_code, Auth::user()->id, $history->id, App::getLocale(), null, json_decode(Bots::find($chat->bot_id)->config ?? '')->modelfile ?? null);
-                    Redis::rpush('usertask_' . Auth::user()->id, $history->id);
-                    Redis::expire('usertask_' . Auth::user()->id, 1200);
                 }
             }
         }

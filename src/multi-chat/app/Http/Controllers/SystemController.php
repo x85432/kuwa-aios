@@ -82,7 +82,7 @@ class SystemController extends Controller
 
     public function ResetRedis(Request $request)
     {
-        foreach (['usertask_', 'api_'] as $prefix) {
+        foreach (['usertask_', 'api_', 'queues:'] as $prefix) {
             foreach (Redis::keys("{$prefix}*") as $key) {
                 $cleanKey = WorkerController::cleanRedisKey($key, $prefix);
                 Redis::del($cleanKey);

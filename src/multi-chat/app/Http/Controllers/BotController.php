@@ -48,7 +48,7 @@ class BotController extends Controller
             $line = trim($line);
 
             // Array of command keywords
-            $commandKeywords = ['FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE', 'BEFORE-PROMPT', 'AFTER-PROMPT'];
+            $commandKeywords = ['FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE', 'BEFORE-PROMPT', 'AFTER-PROMPT', 'PROMPTS'];
 
             // Check if the line starts with a command keyword
             if (strpos($line, '#') === 0) {

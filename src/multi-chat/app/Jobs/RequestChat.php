@@ -28,6 +28,17 @@ class RequestChat implements ShouldQueue
     /**
      * Create a new job instance.
      */
+
+     public function processModelfile($modelfile) {
+        return $modelfile ? json_encode(array_values(array_map(function($entry) {
+            if ($entry->name !== 'prompts' && !empty($entry->name) && $entry->name[0] !== '#') {
+                $entry->args = str_starts_with($entry->args, '"') ? trim($entry->args, '"') : $entry->args;
+                return $entry;
+            }
+        }, $modelfile))) : null;
+    }
+    
+    
     public function __construct($input, $access_code, $user_id, $history_id, $lang, $channel = null, $modelfile = null)
     {
         $this->input = json_encode(json_decode($input), JSON_UNESCAPED_UNICODE);
@@ -40,19 +51,7 @@ class RequestChat implements ShouldQueue
             $channel = '';
         }
         $this->channel = $channel;
-        $this->modelfile = $modelfile;
-        if ($this->modelfile) {
-            $this->modelfile = array_filter($this->modelfile, function($entry) {
-                return !empty($entry->name) && $entry->name[0] !== '#';
-            });
-            $this->modelfile = array_map(function($entry) {
-                if (str_starts_with($entry->args, '"')){
-                    $entry->args = trim($entry->args, '"');
-                }
-                return $entry;
-            }, $this->modelfile);
-            $this->modelfile = json_encode(array_values($this->modelfile));
-        }
+        $this->modelfile = $this->processModelfile($modelfile);
         $user = User::find($user_id);
         $this->openai_token = $user->openai_token;
         $this->google_token = $user->google_token;
