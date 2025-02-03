@@ -28,25 +28,17 @@ class RequestChat implements ShouldQueue
      * Create a new job instance.
      */
 
-    public function processModelfile($modelfile)
-    {
+     public function processModelfile($modelfile) {
         $excludedNames = ['prompts', 'start-prompts', 'auto-prompts', 'welcome'];
-
-        return $modelfile
-            ? json_encode(
-                array_values(
-                    array_filter(
-                        array_map(function ($entry) use ($excludedNames) {
-                            if (!in_array($entry->name, $excludedNames, true) && !empty($entry->name) && $entry->name[0] !== '#') {
-                                $entry->args = str_starts_with($entry->args, '"') ? trim($entry->args, '"') : $entry->args;
-                                return $entry;
-                            }
-                        }, $modelfile),
-                    ),
-                ),
-            )
-            : null;
+    
+        return $modelfile ? json_encode(array_values(array_filter(array_map(function($entry) use ($excludedNames) {
+            if (!in_array($entry->name, $excludedNames, true) && !empty($entry->name) && $entry->name[0] !== '#') {
+                $entry->args = str_starts_with($entry->args, '"') ? trim($entry->args, '"') : $entry->args;
+                return $entry;
+            }
+        }, $modelfile)))) : null;
     }
+    
 
     public function __construct($input, $access_code, $user_id, $history_id, $lang, $channel = null, $modelfile = null, $preserved_output = '', $exit_when_finish = true)
     {

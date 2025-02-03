@@ -115,7 +115,7 @@ class RoomController extends Controller
         if ($historys) {
             $result = Bots::pluck('id')->toarray();
             $historys = json_decode($historys);
-            if ($historys) {
+            if (is_object($historys) || is_array($historys)) {
                 //JSON format
                 $historys = $historys->messages;
             } else {
@@ -291,7 +291,13 @@ class RoomController extends Controller
                         $appended = [];
                         $ids = [];
                         $deltaTime = count($historys);
-                        $t = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' -' . $deltaTime . ' second'));
+                        $lastCreateAt = Histories::whereIn('chat_id', $chatIds)->latest('created_at')->value('created_at');
+
+                        if ($lastCreateAt) {
+                            $t = date('Y-m-d H:i:s', strtotime($lastCreateAt . ' +' . $deltaTime . ' second'));
+                        } else {
+                            $t = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' -' . $deltaTime . ' second'));
+                        }
                         if (count($chatIds) > 0) {
                             $chatIds = Chats::join('bots', 'bots.id', '=', 'chats.bot_id')->join('llms', 'bots.model_id', '=', 'llms.id')->whereIn('chats.id', $chatIds)->select('chats.id', 'llms.access_code')->get();
                             foreach ($historys as $history) {
@@ -625,6 +631,40 @@ class RoomController extends Controller
         return $Room->id;
     }
 
+    function processBotConfig($i, $promptType = 'auto', $roomId = null, $prependMessage = '') {
+        $startPrompt = $promptType . '-prompts';
+    
+        $config = json_decode(Bots::find($i)->config, true)['modelfile'] ?? [];
+        $exec_name = array_values(array_filter($config, fn($v) => $v['name'] === $startPrompt))[0]['args'] ?? '';
+        $modelfile = array_values(array_filter($config, fn($v) => $v['name'] === 'prompts'));
+    
+        if ($exec_name) {
+            $args = str_starts_with($exec_name, '@') 
+                ? ($filtered = array_values(array_filter($modelfile, fn($v) => str_starts_with($v['name'] . ' @' . $v['args'], 'prompts ' . $exec_name . ' '))))[0]['args'] ?? null
+                : '@ ' . $exec_name;
+    
+            if ($args) {
+                $prompts = implode(' ', array_slice(explode(' ', $args), 1));
+                $prompts = str_starts_with($prompts, '"""') && str_ends_with($prompts, '"""') ? substr($prompts, 3, -3) : $prompts;
+    
+                if ($prompts) {
+                    $requestData = [
+                        '_token' => csrf_token(),
+                        'history' => $prependMessage . $prompts,
+                        'llm_ids' => [$i],
+                        'room_id' => $roomId ?? null,
+                    ];
+    
+                    $req = new Request(array_filter($requestData));
+                    $req->setUserResolver(fn() => Auth::user());
+                    return $this->import($req);
+                }
+            }
+        }
+    
+        return null;
+    }
+
     function processBotConfig($i, $promptType = 'auto', $roomId = null, $prependMessage = '')
     {
         $startPrompt = $promptType . '-prompts';
@@ -700,20 +740,9 @@ class RoomController extends Controller
             }
         }
 
-        foreach ($llms as $i){
-            $prompts = ($p = array_values(array_filter(json_decode(Bots::find($i)->config, true)['modelfile'] ?? [], fn($v) => $v['name'] === 'prompts'))[0]['args'] ?? null) && is_string($p) && str_starts_with($p, '"""') && str_ends_with($p, '"""') ? substr($p, 3, -3) : $p;
-
-            if ($prompts != null) {
-                $req = new Request([
-                    '_token' => csrf_token(),
-                    'history' => $prompts,
-                    'llm_ids' => [$i],
-                ]);
-    
-                $req->setUserResolver(fn() => Auth::user());
-    
-                return $this->import($req);
-            }
+        foreach ($llms as $i) {
+            $result = $this->processBotConfig($i, 'start');
+            if ($result != null) return $result;
         }
 
         return redirect()->route('room.home')->with('llms', $llms);
@@ -834,21 +863,8 @@ class RoomController extends Controller
             foreach ($chats as $chat) {
                 if (in_array($chat->bot_id, $selectedLLMs)) {
                     $bot = Bots::findOrFail($chat->bot_id);
-                    $prompts = ($p = array_values(array_filter(json_decode($bot->config, true)['modelfile'] ?? [], fn($v) => $v['name'] === 'prompts'))[0]['args'] ?? null) && is_string($p) && str_starts_with($p, '"""') && str_ends_with($p, '"""') ? substr($p, 3, -3) : $p;
-    
-                    if($prompts){
-                        $prompts = $input = str_replace("\r\n", '\n', $input) . "\n" . $prompts;
-                        $req = new Request([
-                            '_token' => csrf_token(),
-                            'history' => $prompts,
-                            'llm_ids' => [$chat->bot_id],
-                            'room_id' => $roomId,
-                        ]);
-            
-                        $req->setUserResolver(fn() => Auth::user());
-            
-                        $this->import($req);
-                    }else{
+                    $result = $this->processBotConfig($chat->bot_id, 'auto', $roomId, str_replace("\r\n", '\n', $input) . "\n");
+                    if ($result == null){
                         $history = new Histories();
                         $history->fill(['msg' => $input, 'chat_id' => $chat->id, 'isbot' => false, 'created_at' => $start, 'updated_at' => $start]);
                         $history->save();
