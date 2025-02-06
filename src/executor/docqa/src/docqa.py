@@ -97,7 +97,7 @@ class DocQa: #DatabaseQA actually
       
       src = ref.source
       link = src if str(src).startswith("http") else pathlib.Path(src).as_uri()
-      if link in shown_links:
+      if not self.display_ref_content and link in shown_links:
         continue
       else:
         shown_links.append(link)
