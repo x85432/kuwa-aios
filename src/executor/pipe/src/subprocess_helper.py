@@ -35,22 +35,37 @@ class SubProcessHelper:
                 await queue.put((name, None)) # None indicates end-of-stream
                 break
 
-    async def create_subprocess(self, cmd, input_data:str|None = None, **kwargs):
+    async def create_subprocess(self, cmd, input_data:str|None = None, shell=True, **kwargs):
         """
         Create a subprocess with optional input data.
         """
 
-        cmd = ' '.join([f'"{i}"' for i in cmd])
+        if shell:
+            cmd = ' '.join([f'"{i}"' for i in cmd])
 
-        logger.debug(f'Cmd to shell: {cmd}')
+            logger.debug(f'Cmd to shell: {cmd}')
+            if kwargs:
+                logger.debug(f'Kwargs for asyncio.create_subprocess_shell: {kwargs}')
 
-        process = await asyncio.create_subprocess_shell(
-            cmd,
-            stdin=asyncio.subprocess.PIPE,  # Providing input from a stream
-            stdout=asyncio.subprocess.PIPE, # Capturing stdout
-            stderr=asyncio.subprocess.PIPE,  # Capturing stderr
-            **kwargs
-        )
+            process = await asyncio.create_subprocess_shell(
+                cmd,
+                stdin=asyncio.subprocess.PIPE,  # Providing input from a stream
+                stdout=asyncio.subprocess.PIPE, # Capturing stdout
+                stderr=asyncio.subprocess.PIPE,  # Capturing stderr
+                **kwargs
+            )
+        else:
+            logger.debug(f'Cmd to exec: {cmd}')
+            if kwargs:
+                logger.debug(f'Kwargs for asyncio.create_subprocess_shell: {kwargs}')
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdin=asyncio.subprocess.PIPE,  # Providing input from a stream
+                stdout=asyncio.subprocess.PIPE, # Capturing stdout
+                stderr=asyncio.subprocess.PIPE,  # Capturing stderr
+                **kwargs
+            )
+
         if input_data != None and not process.stdin.is_closing():
             process.stdin.write(input_data.encode(encoding=self.encoding))
             process.stdin.close()
@@ -71,6 +86,9 @@ class SubProcessHelper:
     
     @staticmethod
     async def terminate_subprocess(process):
-        if process.returncode is None:
-            process.terminate()
-            await process.wait()
+        if process is None or process.returncode is not None:
+            return
+        process.terminate()
+        process.kill()
+        logger.debug(f"Waiting sub-process {process.pid} terminating...")
+        await process.wait()

@@ -110,8 +110,6 @@ class PipeExecutor(LLMExecutor):
             sub_proc_input = codeblocks[-1]['code']+'\n' if len(codeblocks) > 0 else last_user_prompt
         argv = argv.replace("{{user-args}}", user_argv)
         argv = shlex.split(argv)
-        output_queue = asyncio.Queue()
-        helper = SubProcessHelper(encoding=encoding)
         
         # Check whether the program is under the specified path 
         path = os.path.abspath(self.args.path)
@@ -136,9 +134,29 @@ class PipeExecutor(LLMExecutor):
         env["KUWA_VERSION"] = version('kuwa-executor')
         logger.info(f"Cmd: {cmd}")
         logger.debug(f"Env: {env}")
-        self.sub_process = await helper.create_subprocess(cmd, sub_proc_input, env=env)
+        generator = self.run_cmd(cmd, env, sub_proc_input, encoding)
+        async for stream_name, chunk in generator:
+            match stream_name:
+                case StreamName.STDOUT: yield chunk
+                case StreamName.STDERR:
+                    if not hide_stderr: yield chunk
+                case _: pass
+
+    async def run_cmd(
+            self,
+            cmd:list[str],
+            env=os.environ.copy(),
+            sub_proc_input='',
+            encoding='utf-8',
+            **kwargs
+        ):
+        output_queue = asyncio.Queue()
+        helper = SubProcessHelper(encoding=encoding)
+
+        self.sub_process = await helper.create_subprocess(cmd, sub_proc_input, env=env, **kwargs)
         logger.debug(f"Created sub-process with PID: {self.sub_process.pid}")
-        logger.debug(f"Wrote {sub_proc_input} to stdin.")
+        if sub_proc_input:
+            logger.debug(f"Wrote {sub_proc_input} to stdin.")
 
         # Read the stdout and stderr stream from the queue.
         producer = asyncio.create_task(helper.stream_subprocess(self.sub_process, output_queue), name='producer')
@@ -154,20 +172,23 @@ class PipeExecutor(LLMExecutor):
             logger.debug(f"Received chunk: ({stream_name}, {chunk})")
             if chunk is None: continue
             match stream_name:
-                case StreamName.STDOUT: yield chunk
                 case StreamName.STDERR:
                     logger.info(f"STDERR ({self.sub_process.pid}): {chunk}")
-                    if not hide_stderr: yield chunk
                 case _: pass
+            yield (stream_name, chunk)
         
         await SubProcessHelper.terminate_subprocess(self.sub_process)
-        logger.debug(f"Sub-process {self.sub_process.pid} exited with return code {self.sub_process.returncode}")
-        self.sub_process = None
+        if self.sub_process is not None:
+            logger.debug(f"Sub-process {self.sub_process.pid} exited with return code {self.sub_process.returncode}")
+            self.sub_process = None
 
     async def abort(self):
-        if self.sub_process is None: return "No job to abort."
+        if self.sub_process is None:
+            return "No job to abort."
         await SubProcessHelper.terminate_subprocess(self.sub_process)
-        self.sub_process = None
+        if self.sub_process is not None:
+            logger.debug(f"Sub-process {self.sub_process.pid} exited with return code {self.sub_process.returncode}")
+            self.sub_process = None
         logger.debug("aborted")
         return "Aborted"
 
