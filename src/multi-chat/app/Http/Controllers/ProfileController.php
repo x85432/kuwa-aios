@@ -24,6 +24,7 @@ use App\Models\Groups;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\BotController;
+use App\Models\Bots;
 use DB;
 use Crypt;
 use Net_IPv4;
@@ -450,7 +451,7 @@ class ProfileController extends Controller
         $llm = LLMs::where('access_code', '=', $jsonData['model']);
         $bot = Bots::where('bots.name', '=', $is_calling_bot ? substr($jsonData['model'], strlen(self::BOT_PREFIX)) : '');
 
-        if (!$llm->exists()) {
+        if (!((!$is_calling_bot && $llm->exists()) || ($is_calling_bot && $bot->exists()))) {
             // Handle the case where the specified model doesn't exist
             $errorResponse = [
                 'status' => 'error',
@@ -459,8 +460,8 @@ class ProfileController extends Controller
             return response()->json($errorResponse, 404, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $llm = $llm->first();
-        $botFile = null;
+        $llm = $llm->exists() ? $llm->first() : LLMs::findOrFail($bot->first()->model_id);
+        $botFile = $bot->exists() ? (json_decode($bot->first()->config ?? '')->modelfile ?? null) : null;
         if(isset($jsonData['botfile'])){
             $botController = new BotController();
             $botFile = $botController->modelfile_parse($jsonData['botfile']);
