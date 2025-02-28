@@ -1,0 +1,28 @@
+services:
+  nemotron-4-340b-nim-executor:
+    image: kuwaai/model-executor
+    environment:
+      EXECUTOR_TYPE: chatgpt
+      EXECUTOR_ACCESS_CODE: nemotron-4-340b
+      EXECUTOR_NAME: Nemotron 340B (NIM API)
+      EXECUTOR_IMAGE: llama3_1.jpeg # Refer to src/multi-chat/public/images
+    depends_on:
+      - executor-builder
+      - kernel
+    command: [
+      "--log", "debug",
+      "--base_url", "https://integrate.api.nvidia.com/v1/",
+      "--model", "nvidia/nemotron-4-340b-instruct",
+      "--context_window", "131072",
+
+      # Method 1: System-wise API key
+      # "--no_override_api_key", # Disable override the system API key with user API key.
+      # "--api_key", "YOUR_API_KEY", # Input the API key that you have applied for
+
+      # Method 2: Per-user API key
+      "--use_third_party_api_key", # Use the "Third-Party API Keys" from from user setting in Multi-Chat.
+    ]
+    restart: unless-stopped
+    extra_hosts:
+      - "localhost:host-gateway"
+    networks: ["backend"]
