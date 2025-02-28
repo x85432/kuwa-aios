@@ -112,7 +112,8 @@
                 // Array of command keywords
                 const commandKeywords = [
                     'FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE',
-                    'BEFORE-PROMPT', 'AFTER-PROMPT', 'KUWABOT', 'KUWAPARAM', 'WELCOME', 'PROMPTS', 'WELCOME', 'AUTO-PROMPTS', 'START-PROMPTS'
+                    'BEFORE-PROMPT', 'AFTER-PROMPT', 'KUWABOT', 'KUWAPARAM', 'WELCOME', 'PROMPTS', 'WELCOME', 'AUTO-PROMPTS', 'START-PROMPTS',
+                    'NEXT', 'BEFORE-RESPONSE', 'AFTER-RESPONSE'
                 ];
 
                 // Check if the line starts with a command keyword
@@ -196,7 +197,8 @@
         function modelfile_to_string(array) {
             const singleArgCmdKeywords = [
                 'FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM',
-                'BEFORE-PROMPT', 'AFTER-PROMPT'
+                'BEFORE-PROMPT', 'AFTER-PROMPT',
+                'NEXT', 'BEFORE-RESPONSE', 'AFTER-RESPONSE'
             ];
 
             return array.map(item => {

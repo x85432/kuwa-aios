@@ -70,11 +70,15 @@ class Modelfile:
     template:str=None
     before_prompt:str=None
     after_prompt:str=None
+    from_bot:str=None
+    next_bot:str=None
+    before_response:str=''
+    after_response:str=''
     parameters:ParameterDict=field(default_factory=ParameterDict)
 
     @staticmethod
     def append_command(name, args, modelfile:Modelfile):
-        single_arg_cmd = ("system", "template", "before-prompt", "after-prompt")
+        single_arg_cmd = ("system", "template", "before-prompt", "after-prompt", "before-response", "after-response", "from", "next")
         if name in single_arg_cmd:
             args = extract_text_from_quotes(args)
 
@@ -83,6 +87,8 @@ class Modelfile:
             case "system": modelfile.override_system_prompt += args
             case "before-prompt": modelfile.before_prompt += args
             case "after-prompt": modelfile.after_prompt += args
+            case "before-response": modelfile.before_response += args
+            case "after-response": modelfile.after_response += args
 
             case "message":
                 role, content = [extract_text_from_quotes(x) for x in args.split(' ', 1)]
@@ -96,7 +102,10 @@ class Modelfile:
             case "parameter" | "kuwaparam":
                 key, value = [extract_text_from_quotes(x) for x in args.split(' ', 1)]
                 modelfile.parameters[key] = convert_value(value)
-
+            
+            case "from": modelfile.from_bot = args
+            case "next": modelfile.next_bot = args
+            
             case _:
                 raise ValueError(f'Unknown command "{name}"')
 
