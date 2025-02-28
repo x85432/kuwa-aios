@@ -298,6 +298,15 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'google-token-updated');
     }
     
+    public function nim_update(Request $request)
+    {
+        $request
+            ->user()
+            ->fill(['nim_token' => $request->input('nim_token')])
+            ->save();
+        return Redirect::route('profile.edit')->with('status', 'nim-token-updated');
+    }
+    
     public function third_party_update(Request $request)
     {
         $request

@@ -34,7 +34,7 @@ class User extends Authenticatable implements MustVerifyEmail, LdapAuthenticatab
         'require_change_password',
         'google_token',
         'third_party_token'
-    ];
+    , 'nim_token'];
 
     /**
      * The attributes that should be hidden for serialization.
