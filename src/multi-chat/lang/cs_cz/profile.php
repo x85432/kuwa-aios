@@ -32,4 +32,5 @@ return [
     'label.third_party_api' => 'Vlastní klíč třetí strany API (např. Groq, Cerebras)',
     'label.stay_secure' => 'Buďte opatrní při používání svých externích klíčů!',
     'label.delete_account' => 'Po smazání vašeho účtu budou všechny související data vymazána, buďte prosím opatrní',
+    'label.nim_api' => 'Klíč Nvidia NIM',
 ];

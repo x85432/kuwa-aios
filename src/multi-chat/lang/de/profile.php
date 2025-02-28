@@ -32,4 +32,5 @@ return [
     'label.third_party_api' => 'Benutzerdefinierter Drittanbieter-API-Schlüssel (z. B. Groq, Cerebras)',
     'label.stay_secure' => 'Achte auf die Verwendung deiner externen Schlüssel!',
     'label.delete_account' => 'Wenn du dein Konto löschst, werden alle zugehörigen Daten entfernt. Bitte handle mit Vorsicht',
+    'label.nim_api' => 'Nvidia NIM-Schlüssel',
 ];

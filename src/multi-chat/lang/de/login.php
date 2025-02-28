@@ -8,6 +8,7 @@ return [
     'label.name' => 'Benutzername',
     'label.email' => 'E-Mail-Adresse',
     'label.password' => 'Passwort',
+    'label.sso' => 'Schnellanmeldung',
     'button.send_reset_password_link' => 'Passwort-Reset-Link senden',
     'button.already_registered' => 'Bereits registriert? Anmelden',
     'button.resend_auth_email' => 'Authentifizierungs-E-Mail erneut senden',
@@ -18,4 +19,5 @@ return [
     'button.sign_up' => 'Registrieren',
     'button.return' => 'Zurück',
     'button.register' => 'Registrieren',
+    'button.sso_saml' => 'SAML',
 ];

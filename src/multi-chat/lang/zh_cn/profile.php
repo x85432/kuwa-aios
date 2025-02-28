@@ -32,4 +32,5 @@ return [
     'label.third_party_api' => '自訂第三方 API 金鑰（例如：Groq、Cerebras）',
     'label.stay_secure' => '請多留意您的外部金鑰用量！',
     'label.delete_account' => '當您的帳號刪除了，所有相關的資料都將被清除，請謹慎操作',
+    'label.nim_api' => '英伟达 NIM 密钥',
 ];

@@ -33,6 +33,7 @@ return [
     'label.kuwa_api' => 'Kuwa 金鑰',
     'label.openai_api' => 'OpenAI API 金鑰',
     'label.google_api' => 'Google API 金鑰',
+    'label.nim_api' => 'Nvidia NIM 金鑰',
     'label.third_party_api' => '自訂第三方 API 金鑰（例如：Groq、Cerebras）',
     'label.stay_secure' => '請多留意您的外部金鑰用量！',
     'label.delete_account' => '當您的帳號刪除了，所有相關的資料都將被清除，請謹慎操作',

@@ -32,4 +32,5 @@ return [
     'label.third_party_api' => 'Custom Third-Party API Keys (e.g., Groq, Cerebras)',
     'label.stay_secure' => 'Please be aware of your external key usage!',
     'label.delete_account' => 'When you delete your account, all related data will be cleared, please proceed with caution.',
+    'label.nim_api' => 'Nvidia NIM Key',
 ];

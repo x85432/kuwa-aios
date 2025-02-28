@@ -32,4 +32,5 @@ return [
     'label.third_party_api' => 'Clé API tierce personnalisée (par exemple : Groq, Cerebras)',
     'label.stay_secure' => 'Faites attention à lutilisation de vos clés externes !',
     'label.delete_account' => 'Lorsque vous supprimez votre compte, toutes les données associées sont supprimées. Veuillez agir avec prudence.',
+    'label.nim_api' => 'Clé Nvidia NIM',
 ];

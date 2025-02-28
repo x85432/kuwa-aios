@@ -32,4 +32,5 @@ return [
     'label.third_party_api' => 'カスタムサードパーティAPIキー（例：Groq、Cerebras）',
     'label.stay_secure' => '外部キーの使用に注意してください！',
     'label.delete_account' => 'アカウントを削除すると、関連するすべてのデータが消去されます。ご注意ください。',
+    'label.nim_api' => 'Nvidia NIMキー',
 ];
