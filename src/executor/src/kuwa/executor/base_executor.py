@@ -119,6 +119,7 @@ class BaseExecutor:
             if not content:
                 logger.debug("Received empty request!")
                 return JSONResponse({"msg": "Received empty request!"}, status_code=400)
+            logger.debug(f"HTTP headers: {header}")
             resp = StreamingResponse(
                 self._serve(header=header, content=content),
                 media_type='text/event-stream',

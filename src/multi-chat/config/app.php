@@ -29,6 +29,7 @@ return [
     ],
     'DEFAULT_GROUP' => env("DEFAULT_GROUP", null),
 
+    'KUWA_API_BASE_URLS' => env('KUWA_API_BASE_URLS', 'http://localhost/v1.0/'),
     /*
     |--------------------------------------------------------------------------
     | Application Name

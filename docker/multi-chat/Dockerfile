@@ -91,6 +91,7 @@ ENV KUWA_KERNEL_URL="http://kernel:9000"
 ENV APP_URL="http://localhost/"
 ENV APP_ENV="production"
 ENV APP_DEBUG="false"
+ENV KUWA_API_BASE_URLS="http://web/v1.0/;http://localhost/"
 
 ENV DB_CONNECTION="pgsql"
 ENV DB_HOST="db"

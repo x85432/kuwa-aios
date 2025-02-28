@@ -18,6 +18,10 @@ class LLMExecutor(BaseExecutor):
         history = rectify_chat_history(history)
         modelfile = Modelfile.from_json(param.pop("modelfile", "[]"))
         modelfile.parameters["_lang"] = header.get("Accept-Language")
+        kuwa_api_base_url = header.get("X-Kuwa-Api-Base-Urls")
+        if kuwa_api_base_url is not None:
+            kuwa_api_base_url = kuwa_api_base_url.split(";")
+        modelfile.parameters["_kuwa_api_base_urls"] = kuwa_api_base_url
         for k, v in param.items():
             modelfile.parameters[f"_{k}"] = v
         

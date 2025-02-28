@@ -106,7 +106,7 @@ class AppGatewayController extends Controller
             'X-Kuwa-App-Name' => $app_name,
             'X-Kuwa-User-Id' => Auth::user()->id,
             'X-Kuwa-Api-Token' => Auth::user()->tokens()->where('name', 'API_Token')->first()->token,
-            'X-Kuwa-Api-Base-Url' => URL::to('/'),
+            'X-Kuwa-Api-Base-Urls' => config("app.KUWA_API_BASE_URLS"),
         ];
 
         return $kuwa_headers;
