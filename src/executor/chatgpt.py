@@ -62,6 +62,8 @@ class ChatGptDescParser(DescriptionParser):
 class ChatGptExecutor(LLMExecutor):
 
     model_name: str = "gpt-4o"
+    api_token_name: str = "openai_token"
+    token_display_name: str = "OpenAI API"
     no_system_prompt: bool = False
     openai_base_url: str = "https://api.openai.com/v1"
     use_third_party_api_key: bool = False
@@ -203,7 +205,7 @@ class ChatGptExecutor(LLMExecutor):
         try:
             openai_token = self.api_key
             if not self.no_override_api_key:
-                token_name = "openai_token" if not self.use_third_party_api_key else "third_party_token"
+                token_name = self.api_token_name if not self.use_third_party_api_key else "third_party_token"
                 openai_token = modelfile.parameters["_"].get(token_name) or self.api_key
             enable_multimodal = modelfile.parameters["llm_"].get("enable_multimodal", self.args.multimodal)
             model_name = modelfile.parameters["llm_"].get("model", self.model_name)
@@ -231,7 +233,7 @@ class ChatGptExecutor(LLMExecutor):
                 if self.args.use_third_party_api_key:
                     yield "[Please enter your Custom Third-Party API Token in the user settings on the website in order to use the model.]"
                 else:
-                    yield "[Please enter your OpenAI API Token in the user settings on the website in order to use the model.]"
+                    yield "[Please enter your " + self.token_display_name + " Token in the user settings on the website in order to use the model.]"
                 return
 
             # Trim the history to fit into the context window

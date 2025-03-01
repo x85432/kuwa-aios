@@ -40,6 +40,11 @@ EXECUTORS = [
         "description": "[On-premises model] Run a proxy that connected to the Ollama API server.",
         "class": "ollama_proxy.OllamaExecutor"
     },
+    {
+        "name": "nvidia",
+        "description": "[Cloud model] Nvidia NIM. Need API key.",
+        "class": "nvidia_nim.NimExecutor"
+    },
 ]
 
 def import_class(name: str):
