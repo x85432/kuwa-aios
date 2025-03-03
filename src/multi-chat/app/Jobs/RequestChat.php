@@ -215,7 +215,6 @@ class RequestChat implements ShouldQueue
                     $cache = false;
                     $cached = '';
                     while (!$stream->eof()) {
-                        // $chunk = $this->read_stream($stream);
                         $chunk = \GuzzleHttp\Psr7\Utils::readLine($stream);
                         // Extract text response from SSE data
                         if (str_starts_with($chunk, "data: ")){
@@ -229,36 +228,25 @@ class RequestChat implements ShouldQueue
                                 $chunk .= $resp_chunk["text"]["value"] ?? '';
                             }
                         }
-                        $buffer .= $chunk;
-                        $bufferLength = mb_strlen($buffer, '8bit');
-                        $messageLength = null;
-                        for ($i = $bufferLength; $i > 0 ; $i--) {
-                            $message = mb_substr($buffer, 0, $i, '8bit');
-                            if (mb_check_encoding($message, 'UTF-8')) {
-                                $messageLength = $i;
-                                break;
+                        $buffer->addChunk($chunk);
+                        $message = $buffer->processBuffer();
+                        if ($message === "") continue;
+                        if ($this->channel != $this->history_id) {
+                            $tmp .= $message;
+                            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
+                        } else {
+                            if (str_starts_with($message, '<') && !$cache) {
+                                $cache = true;
                             }
-                        }
-                        if ($messageLength !== null) {
-                            $message = mb_substr($buffer, 0, $messageLength, '8bit');
-                            if (mb_check_encoding($message, 'UTF-8')) {
-                                if ($this->channel != $this->history_id) {
-                                    $tmp .= $message;
-                                    Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
-                                    $buffer = mb_substr($buffer, $messageLength, null, '8bit');
-                                } else {
-                                    if (str_starts_with($message, '<') && !$cache) {
-                                        $cache = true;
-                                    }
-                                    if (!$cache) {
-                                        $tmp .= $message;
-                                        $outputTmp = $tmp . '...';
-                                        if ($kuwa_flag) {
-                                            $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
-                                        }
-                                        if ($warningMessages) {
-                                            $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
-                                        }
+                            if (!$cache) {
+                                $tmp .= $message;
+                                $outputTmp = $tmp . '...';
+                                if ($kuwa_flag) {
+                                    $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
+                                }
+                                if ($warningMessages) {
+                                    $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
+                                }
 
                                 Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
                             } else {
@@ -450,6 +438,50 @@ class Utf8Buffer
      */
     public function getRemainingBuffer(): string
     {
+        return $this->buffer;
+    }
+}
+
+class Utf8Buffer {
+    private $buffer = '';
+
+    /**
+     * Adds a chunk of data to the buffer.
+     *
+     * @param string $chunk The data chunk to add.
+     */
+    public function addChunk(string $chunk): void {
+        $this->buffer .= $chunk;
+    }
+
+    /**
+     * Processes the buffer to extract and return complete UTF-8 messages.
+     *  Returns null if no complete message is found.
+     *
+     * @return string|null The UTF-8 message, or null if none is found.
+     */
+    public function processBuffer(): ?string {
+        $bufferLength = mb_strlen($this->buffer, '8bit');
+
+        for ($i = $bufferLength; $i > 0; $i--) {
+            $message = mb_substr($this->buffer, 0, $i, '8bit');
+
+            // UTF-8 encoding check.
+            if (mb_check_encoding($message, 'UTF-8')) {
+                $this->buffer = mb_substr($this->buffer, $i, $bufferLength - $i, '8bit'); // remove the processed message from the buffer
+                return $message;
+            }
+        }
+
+        return ""; // No complete UTF-8 message found
+    }
+
+
+    /**
+     * Gets the remaining unprocessed buffer.
+     * @return string
+     */
+    public function getRemainingBuffer(): string {
         return $this->buffer;
     }
 }
