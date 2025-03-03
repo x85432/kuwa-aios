@@ -8,8 +8,11 @@ import logging
 import atexit
 import signal
 import asyncio
+import json
 from urllib.parse import urljoin
 from typing import Optional
+from functools import reduce
+from itertools import compress
 
 import uvicorn
 import prometheus_client
@@ -19,8 +22,18 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from .metrics import ExecutorMetrics
 from .logger import ExecutorLoggerFactory
+from .message import BaseChunk, TextChunk
 
 logger = logging.getLogger(__name__)
+
+class AdvancedJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, '__jsonencode__'):
+            return obj.__jsonencode__()
+
+        if isinstance(obj, set):
+            return list(obj)
+        return super().default(obj)
 
 def find_free_port():
     port = None
@@ -235,9 +248,23 @@ class BaseExecutor:
             start_time = time.time()
             total_output_length = 0
             
-            async for chunk in self.serve(header=header, content=content):
-                total_output_length += len(chunk)
-                yield chunk
+            async for chunks in self.serve(header=header, content=content):
+                if isinstance(chunks, str):
+                    chunks = TextChunk(chunks)
+                if not isinstance(chunks, list):
+                    chunks = [chunks]
+                unsupported_chunk = [not isinstance(x, BaseChunk) for x in chunks]
+                if any(unsupported_chunk):
+                    raise RuntimeError(f"Unsupported chunk type: {[type(x) for x in compress(chunks, unsupported_chunk)]}")
+                total_output_length += reduce(lambda x, y: x+len(y), chunks, 0)
+                json_data = json.dumps(
+                    {
+                        "finish_reason": None,
+                        "delta": chunks
+                    },
+                    cls=AdvancedJSONEncoder
+                )
+                yield f"data: {json_data}\n"
 
                 # Yield control to the event loop.
                 # So that other coroutine, like aborting, can run.
@@ -245,6 +272,16 @@ class BaseExecutor:
 
             duration_sec = time.time() - start_time
             self._update_statistics(duration_sec, total_output_length)
+
+            json_data = json.dumps({
+                "finish_reason": "stop",
+                "usage": {
+                    "prompt_tokens": 0, #[TODO]
+                    "completion_tokens": total_output_length,
+                    "total_tokens": total_output_length,
+                }
+            })
+            yield f"data: {json_data}\n"
 
         except Exception as e:
             logger.exception("Error occurs during generation.")

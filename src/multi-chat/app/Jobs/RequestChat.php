@@ -215,53 +215,50 @@ class RequestChat implements ShouldQueue
                     $cache = false;
                     $cached = '';
                     while (!$stream->eof()) {
+                        // $chunk = $this->read_stream($stream);
                         $chunk = \GuzzleHttp\Psr7\Utils::readLine($stream);
                         // Extract text response from SSE data
-                        if (str_starts_with($chunk, 'data: ')) {
-                            $json = substr($chunk, strlen('data: '));
+                        if (str_starts_with($chunk, "data: ")){
+                            $json = substr($chunk, strlen("data: "));
                             $resp = json_decode($json, true);
-                            $resp_chunks = $resp['delta'] ?? [];
-                            $chunk = '';
-                            foreach ($resp_chunks as $resp_chunk) {
-                                $type = $resp_chunk['type'] ?? null;
-                                switch ($type) {
-                                    case 'text':
-                                        $chunk .= $resp_chunk['text']['value'] ?? '';
-                                        break;
-                                    case 'log':
-                                        $chunk .= "\n[" . ($resp_chunk['log']['level'] ?? '') . '] ' . ($resp_chunk['log']['text'] ?? '');
-                                        break;
-                                    default:
-                                        break;
-                                }
+                            $resp_chunks = $resp['delta'] ?? array();
+                            $chunk = "";
+                            foreach($resp_chunks as $resp_chunk){
+                                $type = $resp_chunk["type"] ?? null;
+                                if ($type !== 'text') continue;
+                                $chunk .= $resp_chunk["text"]["value"] ?? '';
                             }
                         }
-                        $buffer->addChunk($chunk);
-                        $message = $buffer->processBuffer();
-
-                        if ($this->preserved_output != '') {
-                            $message = $this->preserved_output . $message;
-                            $this->preserved_output = '';
-                        }
-                        if ($message === '') {
-                            continue;
-                        }
-                        if ($this->channel != $this->history_id) {
-                            $tmp .= $message;
-                            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
-                        } else {
-                            if (str_starts_with($message, '<') && !$cache) {
-                                $cache = true;
+                        $buffer .= $chunk;
+                        $bufferLength = mb_strlen($buffer, '8bit');
+                        $messageLength = null;
+                        for ($i = $bufferLength; $i > 0 ; $i--) {
+                            $message = mb_substr($buffer, 0, $i, '8bit');
+                            if (mb_check_encoding($message, 'UTF-8')) {
+                                $messageLength = $i;
+                                break;
                             }
-                            if (!$cache) {
-                                $tmp .= $message;
-                                $outputTmp = $tmp . '...';
-                                if ($kuwa_flag) {
-                                    $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
-                                }
-                                if ($warningMessages) {
-                                    $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
-                                }
+                        }
+                        if ($messageLength !== null) {
+                            $message = mb_substr($buffer, 0, $messageLength, '8bit');
+                            if (mb_check_encoding($message, 'UTF-8')) {
+                                if ($this->channel != $this->history_id) {
+                                    $tmp .= $message;
+                                    Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
+                                    $buffer = mb_substr($buffer, $messageLength, null, '8bit');
+                                } else {
+                                    if (str_starts_with($message, '<') && !$cache) {
+                                        $cache = true;
+                                    }
+                                    if (!$cache) {
+                                        $tmp .= $message;
+                                        $outputTmp = $tmp . '...';
+                                        if ($kuwa_flag) {
+                                            $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
+                                        }
+                                        if ($warningMessages) {
+                                            $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
+                                        }
 
                                 Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
                             } else {
