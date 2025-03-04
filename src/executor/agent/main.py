@@ -106,12 +106,13 @@ class AgentExecutor(LLMExecutor):
         if next_full_history:
             history[-1]["content"] = intermediate_result
         else:
-            history = [{"role": "user", "content": intermediate_result}]
-        history[-1]["content"] = (
-            modelfile.before_response
-            + history[-1]["content"]
-            + modelfile.after_response
-        )
+            history = [
+                {
+                    'role': 'user',
+                    'content': intermediate_result
+                }
+            ]
+        history[-1]['content'] = modelfile.before_response + history[-1]['content'] + modelfile.after_response
 
         generator = self.call_bot(
             api_base_url=api_base_url,
