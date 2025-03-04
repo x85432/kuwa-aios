@@ -89,7 +89,7 @@ class AgentExecutor(LLMExecutor):
             history = [
                 {
                     'role': 'user',
-                    'content': 'intermediate_result'
+                    'content': intermediate_result
                 }
             ]
         history[-1]['content'] = modelfile.before_response + history[-1]['content'] + modelfile.after_response
