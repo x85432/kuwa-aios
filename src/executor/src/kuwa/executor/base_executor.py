@@ -286,15 +286,18 @@ class BaseExecutor:
         except Exception as e:
             logger.exception("Error occurs during generation.")
             self.metrics.failed.inc()
-            json_data = json.dumps({
-                "finish_reason": "exception",
-                "delta": [LogChunk('Error occurred. Please consult support.')],
-                "usage": {
-                    "prompt_tokens": 0, #[TODO]
-                    "completion_tokens": total_output_length,
-                    "total_tokens": total_output_length,
-                }
-            })
+            json_data = json.dumps(
+                {
+                    "finish_reason": "exception",
+                    "delta": [LogChunk('Error occurred. Please consult support.')],
+                    "usage": {
+                        "prompt_tokens": 0, #[TODO]
+                        "completion_tokens": total_output_length,
+                        "total_tokens": total_output_length,
+                    }
+                },
+                cls=AdvancedJSONEncoder
+            )
             yield f"data: {json_data}\n"
 
         finally:
