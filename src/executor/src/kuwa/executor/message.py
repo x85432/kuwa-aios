@@ -51,12 +51,12 @@ class AudioURLChunk(BaseChunk):
         return 0
     
 class LogChunk(BaseChunk):
-    def __init__(self, log: str, cost:int|None=None):
+    def __init__(self, text: str, cost:int|None=None):
         super().__init__(cost)
-        self.log = log
+        self.text = text
 
     def __jsonencode__(self):
-        return {"type": "log", "log": self.log}
+        return {"type": "log", "log": {"text": self.text}}
     
     def calculate_cost(self):
         return 0
@@ -72,5 +72,16 @@ class ProgressChunk(BaseChunk):
     def __jsonencode__(self):
         return {"type": "progress", "progress": {"position": self.position, "total": self.total, "desc": self.desc, "postfix": self.postfix}}
 
+    def calculate_cost(self):
+        return 0
+
+class RefusalChunk(BaseChunk):
+    def __init__(self, text: str, cost:int|None=None):
+        super().__init__(cost)
+        self.text = text
+
+    def __jsonencode__(self):
+        return {"type": "refusal", "refusal": {"text": self.text}}
+    
     def calculate_cost(self):
         return 0

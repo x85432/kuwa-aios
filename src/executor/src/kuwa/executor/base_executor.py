@@ -22,7 +22,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from .metrics import ExecutorMetrics
 from .logger import ExecutorLoggerFactory
-from .message import BaseChunk, TextChunk
+from .message import BaseChunk, TextChunk, LogChunk
 
 logger = logging.getLogger(__name__)
 
@@ -286,7 +286,16 @@ class BaseExecutor:
         except Exception as e:
             logger.exception("Error occurs during generation.")
             self.metrics.failed.inc()
-            yield 'Error occurred. Please consult support.'
+            json_data = json.dumps({
+                "finish_reason": "exception",
+                "delta": [LogChunk('Error occurred. Please consult support.')],
+                "usage": {
+                    "prompt_tokens": 0, #[TODO]
+                    "completion_tokens": total_output_length,
+                    "total_tokens": total_output_length,
+                }
+            })
+            yield f"data: {json_data}\n"
 
         finally:
             self.metrics.state.state('idle')
