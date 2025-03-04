@@ -224,8 +224,15 @@ class RequestChat implements ShouldQueue
                             $chunk = "";
                             foreach($resp_chunks as $resp_chunk){
                                 $type = $resp_chunk["type"] ?? null;
-                                if ($type !== 'text') continue;
-                                $chunk .= $resp_chunk["text"]["value"] ?? '';
+                                switch ($type) {
+                                    case 'text':
+                                        $chunk .= $resp_chunk["text"]["value"] ?? '';
+                                        break;
+                                    case 'log':
+                                        $chunk .= '[log]' . $resp_chunk["log"]["text"] ?? '';
+                                    default:
+                                        break;
+                                }
                             }
                         }
                         $buffer->addChunk($chunk);
