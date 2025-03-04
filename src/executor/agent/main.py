@@ -33,7 +33,7 @@ class AgentExecutor(LLMExecutor):
         client = KuwaClient(
             base_url=api_base_url,
             kernel_base_url=self.kernel_url,
-            model=f"bot-{bot_name}",
+            model=bot_name,
             auth_token=api_key
         )
 
