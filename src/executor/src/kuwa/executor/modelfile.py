@@ -70,15 +70,15 @@ class Modelfile:
     template:str=None
     before_prompt:str=None
     after_prompt:str=None
-    from_bot:str=None
-    next_bot:str=None
+    input_bot:str=None
+    output_bot:str=None
     before_response:str=''
     after_response:str=''
     parameters:ParameterDict=field(default_factory=ParameterDict)
 
     @staticmethod
     def append_command(name, args, modelfile:Modelfile):
-        single_arg_cmd = ("system", "template", "before-prompt", "after-prompt", "before-response", "after-response", "from", "next")
+        single_arg_cmd = ("system", "template", "before-prompt", "after-prompt", "before-response", "after-response", "input-bot", "output-bot")
         if name in single_arg_cmd:
             args = extract_text_from_quotes(args)
 
@@ -103,8 +103,8 @@ class Modelfile:
                 key, value = [extract_text_from_quotes(x) for x in args.split(' ', 1)]
                 modelfile.parameters[key] = convert_value(value)
             
-            case "from": modelfile.from_bot = args
-            case "next": modelfile.next_bot = args
+            case "input-bot": modelfile.input_bot = args
+            case "output-bot": modelfile.output_bot = args
             
             case _:
                 raise ValueError(f'Unknown command "{name}"')
