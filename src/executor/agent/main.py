@@ -22,9 +22,10 @@ class AgentExecutor(LLMExecutor):
         parser.add_argument('--api_base_url', default="http://127.0.0.1/", help='The API base URL of Kuwa multi-chat WebUI')
         parser.add_argument('--api_key', default=None, help='The API authentication token of Kuwa multi-chat WebUI')
 
+    def setup(self):
+        i18n.load_path.append('lang/')
+
     def setup_i18n(self, lang):
-        lang = lang if lang in os.listdir("lang/") else "en"
-        i18n.load_path.append(f'lang/{lang}/')
         i18n.config.set("error_on_missing_translation", True)
         i18n.config.set("fallback", "en")
         i18n.config.set("locale", lang)
@@ -48,15 +49,16 @@ class AgentExecutor(LLMExecutor):
         api_key = modelfile.parameters.get("_user_token", self.args.api_key)
         show_step_log = modelfile.parameters['agent_'].get("show_step_log", False)
         next_full_history = modelfile.parameters['agent_'].get("next_full_history", False)
+        
+        self.setup_i18n(modelfile.parameters["_lang"])
+
+        logger.info(i18n.config.settings)
 
         if api_key is None:
-            yield i18n.t("agent.no_kuwa_api_key" )
+            yield i18n.t("agent.no_kuwa_api_key" )        
 
-        self.setup_i18n(modelfile.parameters["_lang"])
-        
-
-        if modelfile.from_bot is None:
-            yield i18n.t("agent.no_from")
+        if modelfile.input_bot is None:
+            yield i18n.t("agent.no_input_bot")
             return
 
         # =======================
@@ -65,17 +67,17 @@ class AgentExecutor(LLMExecutor):
         generator = self.call_bot(
             api_base_url=api_base_url,
             api_key=api_key,
-            bot_name=modelfile.from_bot,
+            bot_name=modelfile.input_bot,
             history=history
         )
         intermediate_result = ""
         async for chunk in generator:
             intermediate_result += chunk
-            if show_step_log or modelfile.next_bot is None:
+            if show_step_log or modelfile.output_bot is None:
                 yield chunk
         
-        if modelfile.next_bot is None:
-            logger.info("No \"NEXT\" instruction found in the Botfile.")
+        if modelfile.output_bot is None:
+            logger.info("No \"OUTPUT-BOT\" instruction found in the Botfile.")
             return
 
         if show_step_log:
@@ -97,7 +99,7 @@ class AgentExecutor(LLMExecutor):
         generator = self.call_bot(
             api_base_url=api_base_url,
             api_key=api_key,
-            bot_name=modelfile.next_bot,
+            bot_name=modelfile.output_bot,
             history=history
         )
         intermediate_result = ""

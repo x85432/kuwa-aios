@@ -113,7 +113,7 @@
                 const commandKeywords = [
                     'FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE',
                     'BEFORE-PROMPT', 'AFTER-PROMPT', 'KUWABOT', 'KUWAPARAM', 'WELCOME', 'PROMPTS', 'WELCOME', 'AUTO-PROMPTS', 'START-PROMPTS',
-                    'NEXT', 'BEFORE-RESPONSE', 'AFTER-RESPONSE'
+                    'INPUT-BOT', 'OUTPUT-BOT', 'BEFORE-RESPONSE', 'AFTER-RESPONSE'
                 ];
 
                 // Check if the line starts with a command keyword
@@ -198,7 +198,7 @@
             const singleArgCmdKeywords = [
                 'FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM',
                 'BEFORE-PROMPT', 'AFTER-PROMPT',
-                'NEXT', 'BEFORE-RESPONSE', 'AFTER-RESPONSE'
+                'INPUT-BOT', 'OUTPUT-BOT', 'BEFORE-RESPONSE', 'AFTER-RESPONSE'
             ];
 
             return array.map(item => {
