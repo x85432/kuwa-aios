@@ -9,6 +9,7 @@ import atexit
 import signal
 import asyncio
 import json
+import traceback
 from urllib.parse import urljoin
 from typing import Optional
 from functools import reduce
@@ -286,10 +287,13 @@ class BaseExecutor:
         except Exception as e:
             logger.exception("Error occurs during generation.")
             self.metrics.failed.inc()
+            display_messages = [LogChunk('Error occurred. Please consult support.')]
+            if self.in_debug():
+                display_messages.append(LogChunk('\n' + traceback.format_exc()))
             json_data = json.dumps(
                 {
                     "finish_reason": "exception",
-                    "delta": [LogChunk('Error occurred. Please consult support.')],
+                    "delta": display_messages,
                     "usage": {
                         "prompt_tokens": 0, #[TODO]
                         "completion_tokens": total_output_length,

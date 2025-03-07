@@ -229,7 +229,7 @@ class RequestChat implements ShouldQueue
                                         $chunk .= $resp_chunk["text"]["value"] ?? '';
                                         break;
                                     case 'log':
-                                        $chunk .= '[log] ' . ($resp_chunk["log"]["text"] ?? '');
+                                        $chunk .= "\n[log] " . ($resp_chunk["log"]["text"] ?? '');
                                         break;
                                     default:
                                         break;
