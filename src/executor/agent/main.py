@@ -4,6 +4,7 @@ import asyncio
 import logging
 import json
 import i18n
+from httpx import HTTPStatusError
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from kuwa.executor import LLMExecutor, Modelfile
@@ -38,11 +39,18 @@ class AgentExecutor(LLMExecutor):
             auth_token=api_key
         )
 
-        generator = client.chat_complete(
-            messages=history
-        )
-        async for chunk in generator:
-            yield chunk
+        try:
+            generator = client.chat_complete(
+                messages=history
+            )
+            async for chunk in generator:
+                yield chunk
+        except HTTPStatusError as e:
+            if e.response.status_code == 404:
+                yield i18n.t("agent.bot_not_found") + bot_name
+                return
+            else:
+                raise
 
     async def llm_compute(self, history: list[dict], modelfile:Modelfile):
         api_base_url = modelfile.parameters.get("_kuwa_api_base_urls", [self.args.api_base_url])[0]
@@ -51,8 +59,6 @@ class AgentExecutor(LLMExecutor):
         next_full_history = modelfile.parameters['agent_'].get("next_full_history", False)
         
         self.setup_i18n(modelfile.parameters["_lang"])
-
-        logger.info(i18n.config.settings)
 
         if api_key is None:
             yield i18n.t("agent.no_kuwa_api_key" )        

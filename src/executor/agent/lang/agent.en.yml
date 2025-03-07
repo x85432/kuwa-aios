@@ -1,3 +1,4 @@
 en:
   no_kuwa_api_key: "No Kuwa API key supplied."
   no_input_bot: "No \"INPUT-BOT\" instruction found in the Botfile."
+  bot_not_found: "Bot not found: "

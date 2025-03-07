@@ -105,11 +105,10 @@ class KuwaClient:
         if botfile is not None:
             request_body["botfile"] = botfile
 
-        client = httpx.AsyncClient()
+        client = httpx.AsyncClient(timeout=None)
         async with client.stream('POST', url, headers=headers, json=request_body, timeout=timeout) as response:
 
-            if not response.is_success:
-                raise RuntimeError(f'Request failed with status {response.status_code}')
+            response.raise_for_status()
 
             async for line in response.aiter_lines():
                 logger.debug(line)
