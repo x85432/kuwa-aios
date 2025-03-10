@@ -136,7 +136,7 @@
                                     class="server-bot hidden cursor-not-allowed text-gray-400 bg-gray-300 rounded-r-lg font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:text-gray-400">{{ __('store.bot.react_buttons') }}
                                 </button>
                                 <button id="react_button" data-dropdown-toggle="react_button_list"
-                                    class="prompt-bot text-white rounded-r-lg bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700"
+                                    class="prompt-bot agent-bot text-white rounded-r-lg bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700"
                                     type="button">{{ __('store.bot.react_buttons') }}
                                 </button>
                                 <div id="react_button_list"
@@ -177,6 +177,7 @@
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                                     <option value="prompt" selected>{{ __('store.bot.type.desc.prompt') }}</option>
                                     <option value="server">{{ __('store.bot.type.desc.server') }}</option>
+                                    <option value="agent">{{ __('store.bot.type.desc.agent') }}</option>
                                 </select>
                             </div>
                             <div class="w-full mt-2 server-bot hidden">
@@ -230,6 +231,32 @@
                                 placeholder="{{ __('store.bot.description.label') }}">
                         </div>
                     </div>
+                    <div class="agent-bot hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="input-bot">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-input-bot">{{ __('store.bot.input_bot') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="llm-list" autocomplete="off" id="bot-input_bot"
+                                    oninput="alterBotfile('input-bot', $(this).val());"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.input_bot.label') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-bot hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="output-bot">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-output-bot">{{ __('store.bot.output_bot') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="llm-list" autocomplete="off" id="bot-output_bot"
+                                    oninput="alterBotfile('output-bot', $(this).val());"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.output_bot.label') }}">
+                            </div>
+                        </div>
+                    </div>
                     <div
                         class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle">
                         <div class="w-full">
@@ -243,7 +270,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot agent-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
                         id="before_prompt">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -256,7 +283,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot agent-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
                         id="after_prompt">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -269,7 +296,35 @@
                             </div>
                         </div>
                     </div>
-                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    
+                    <div class="agent-bot hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="before_response">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-before_response">{{ __('store.bot.before_response') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-before_response" type="text"
+                                    oninput="alterBotfile('before-response', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.before_response.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-bot hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="after_response">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-after_response">{{ __('store.bot.after_response') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-after_response" type="text"
+                                    oninput="alterBotfile('after-response', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.after_response.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
                         id="knowledge">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -281,20 +336,7 @@
                                     placeholder="{{ __('store.bot.knowledge.label') }}">
                             </div>
                         </div>
-                    </div>
-                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
-                        id="next-bot">
-                        <div class="w-full">
-                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                for="bot-next-bot">{{ __('store.bot.next_bot') }}</label>
-                            <div class="flex items-center">
-                                <input type="text" list="llm-list" autocomplete="off" id="bot-next_bot"
-                                    oninput="alterBotfile('parameter', ['next_bot', $(this).val()]);"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="{{ __('store.bot.next_bot.label') }}">
-                            </div>
-                        </div>
-                    </div>
+                    </div> --> 
                     <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
                         <div class="w-full">
                             <label
@@ -338,7 +380,7 @@
     }
 
     function showBotConfigLayout() {
-        const types = ['prompt', 'server'];
+        const types = ['prompt', 'server', 'agent'];
         let bot_type = $('#bot_type').val();
         if (!types.includes(bot_type)) {
             console.error(`Unsupported bot type "${bot_type}"`);
@@ -350,6 +392,10 @@
         if (bot_type === "server") {
             $("#llm_name").val("Redirector");
             change_bot_image('#llm_img', '#create-bot_image', "Redirector");
+        }
+        if (bot_type === "agent") {
+            $("#llm_name").val("Agent");
+            change_bot_image('#llm_img', '#create-bot_image', "Agent");
         }
     }
 
@@ -396,7 +442,8 @@
         }
 
         parsed_modelfile = modelfile_parse(ace.edit('bot-modelfile-editor').getValue());
-        new_modelfile = parsed_modelfile.filter((item) => item.name !== inst);
+        console.log(parsed_modelfile);
+        new_modelfile = parsed_modelfile.filter((item) => item.name.toLowerCase() !== inst.toLowerCase());
         let argsString = args.join(' ').trim(); 
         if (argsString) { 
             new_modelfile.push({
