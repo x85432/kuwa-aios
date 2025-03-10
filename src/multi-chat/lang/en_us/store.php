@@ -3,6 +3,7 @@
 return [
     'route' => 'Store',
     'hint.must_enter_server_url' => 'You must enter the external application location',
+    'hint.must_enter_input_bot' => 'You must specify an Input Bot.',
     'placeholder.must_select_base_model' => 'You must select a base model',
     'placeholder.button.system' => 'Will be marked as a system bot, and everyone can access it',
     'placeholder.button.community' => 'Any group can access',

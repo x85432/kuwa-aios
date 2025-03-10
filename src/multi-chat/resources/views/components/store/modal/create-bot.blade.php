@@ -417,6 +417,11 @@
             $("#llm_name").val("Redirector");
             error_messages["bot_server_url"] = "{{ __('store.hint.must_enter_server_url') }}";
         }
+        
+        if ($("#bot_type").val() === "agent") {
+            $("#llm_name").val("Agent");
+            error_messages["bot-input_bot"] = "{{ __('store.hint.must_enter_input_bot') }}";
+        }
 
         for (let field_id in error_messages) {
             if (!$(`#${field_id}`).val()) {
