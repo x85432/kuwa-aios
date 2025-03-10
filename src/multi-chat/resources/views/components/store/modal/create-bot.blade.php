@@ -231,7 +231,7 @@
                                 placeholder="{{ __('store.bot.description.label') }}">
                         </div>
                     </div>
-                    <div class="agent-bot hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="input-bot">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -244,7 +244,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="agent-bot hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="output-bot">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -258,7 +258,7 @@
                         </div>
                     </div>
                     <div
-                        class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle">
+                        class="prompt-bot modelfile-toggle w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                 for="bot-system_prompt">{{ __('store.bot.system_prompt') }}</label>
@@ -270,7 +270,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="prompt-bot agent-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot agent-bot modelfile-toggle w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="before_prompt">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -283,7 +283,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="prompt-bot agent-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot agent-bot modelfile-toggle w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="after_prompt">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -297,7 +297,7 @@
                         </div>
                     </div>
                     
-                    <div class="agent-bot hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="before_response">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -310,7 +310,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="agent-bot hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="after_response">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -342,7 +342,7 @@
                             <label
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white cursor-pointer bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-800 p-2 rounded-lg"
                                 onclick="toggleModelfile()" for="modelfile">{{ __('store.bot.modelfile') }}</label>
-                            <div class="flex items-center modelfile-toggle" style="display:none">
+                            <div class="botfile prompt-bot server-bot agent-bot flex items-center modelfile-toggle" style="display:none">
                                 <textarea name="modelfile" hidden></textarea>
                                 <div id="bot-modelfile-editor" class="w-full h-64"></div>
                             </div>
@@ -370,25 +370,34 @@
 </datalist>
 
 <script>
-    function toggleModelfile() {
-        $('.modelfile-toggle').toggle();
+    const BOT_TYPES = ['prompt', 'server', 'agent'];
 
-        let bot_type = $('#bot_type').val();
-        if (bot_type === "server") {
-            $(".prompt-bot").hide()
+    function getCurrentBotType(){
+        return $('#bot_type').val();
+    }
+
+    function getBotElements(bot_type){
+        bot_type = typeof bot_type !== "undefined" ? bot_type : getCurrentBotType();
+        if (!BOT_TYPES.includes(bot_type)) {
+            console.error(`Unsupported bot type "${bot_type}"`);
+            return [];
         }
+        return $(`.${bot_type}-bot`);
+    }
+
+    function toggleModelfile() {
+        // To trigger botfile conversion.
+        getBotElements().each((i, e) => $(e).find('textarea, input').trigger("input"));
+
+        // Toggle visibility.
+        getBotElements().filter('.modelfile-toggle').toggle();
     }
 
     function showBotConfigLayout() {
-        const types = ['prompt', 'server', 'agent'];
-        let bot_type = $('#bot_type').val();
-        if (!types.includes(bot_type)) {
-            console.error(`Unsupported bot type "${bot_type}"`);
-            return;
-        }
-        types.forEach(x => $(`.${x}-bot`).hide());
-        $(`.${bot_type}-bot`).show();
+        BOT_TYPES.forEach(x => getBotElements(x).hide());
+        getBotElements().filter(':not(.botfile)').show();
 
+        let bot_type = getCurrentBotType();
         if (bot_type === "server") {
             $("#llm_name").val("Redirector");
             change_bot_image('#llm_img', '#create-bot_image', "Redirector");
@@ -442,7 +451,6 @@
         }
 
         parsed_modelfile = modelfile_parse(ace.edit('bot-modelfile-editor').getValue());
-        console.log(parsed_modelfile);
         new_modelfile = parsed_modelfile.filter((item) => item.name.toLowerCase() !== inst.toLowerCase());
         let argsString = args.join(' ').trim(); 
         if (argsString) { 
