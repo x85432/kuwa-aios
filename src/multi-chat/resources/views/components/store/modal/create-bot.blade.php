@@ -237,7 +237,7 @@
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                 for="bot-input-bot">{{ __('store.bot.input_bot') }}</label>
                             <div class="flex items-center">
-                                <input type="text" list="llm-list" autocomplete="off" id="bot-input_bot"
+                                <input type="text" list="bots-list" autocomplete="off" id="bot-input_bot"
                                     oninput="alterBotfile('input-bot', $(this).val());"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     placeholder="{{ __('store.bot.input_bot.label') }}">
@@ -250,7 +250,7 @@
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                 for="bot-output-bot">{{ __('store.bot.output_bot') }}</label>
                             <div class="flex items-center">
-                                <input type="text" list="llm-list" autocomplete="off" id="bot-output_bot"
+                                <input type="text" list="bots-list" autocomplete="off" id="bot-output_bot"
                                     oninput="alterBotfile('output-bot', $(this).val());"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     placeholder="{{ __('store.bot.output_bot.label') }}">
@@ -366,8 +366,8 @@
     </div>
 </div>
 
-<datalist id="knowledge-list">
-</datalist>
+<datalist id="knowledge-list"></datalist>
+<datalist id="bots-list"></datalist>
 
 <script>
     const BOT_TYPES = ['prompt', 'server', 'agent'];
@@ -575,7 +575,7 @@
                 const listItem = document.createElement('option');
                 listItem.textContent = item.name ||
                     item; // Assuming 'name' property or default to the entire item
-                listItem.value = item.name || item;
+                listItem.value = item.value || item.name || item;
                 dataListElement.appendChild(listItem);
             });
 
@@ -586,7 +586,8 @@
             // Handle error, display message to the user, etc.
         }
     }
-    updateDataListFromAPI("store/knowledge", "knowledge-list");
+    updateDataListFromAPI("store/bots", "bots-list");
+    //updateDataListFromAPI("store/knowledge", "knowledge-list");
 
     var editor = ace.edit($('#bot-modelfile-editor')[0], {
         mode: "ace/mode/dockerfile",

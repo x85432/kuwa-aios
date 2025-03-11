@@ -22,7 +22,7 @@ class BotCreateRequest extends FormRequest
             'modelfile' => ['string', 'nullable'],
             'react_btn' => ['nullable'],
             'bot_name' => ['string'],
-            'bot_type' => ['string', 'in:prompt,server'],
+            'bot_type' => ['string', 'in:prompt,server,agent'],
             'bot_describe' => ['string', 'nullable'],
             'visibility' => ['integer','digits_between:0,3']
         ];

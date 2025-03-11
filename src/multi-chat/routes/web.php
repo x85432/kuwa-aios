@@ -222,6 +222,7 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
                             ->name('store.delete');
                         Route::get('/knowledge', [BotController::class, 'listKnowledge'])
                             ->name('store.list_knowledge');
+                        Route::get('/bots', [BotController::class, 'listBots'])->name('store.bots');
                     })
                     ->name('store');
                 #---Cloud
