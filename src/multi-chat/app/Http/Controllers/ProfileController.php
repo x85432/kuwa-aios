@@ -716,6 +716,9 @@ class ProfileController extends Controller
          * This function will block until all message is received.
          */
         
+        // Prevent PHP socket timeout
+        ini_set('default_socket_timeout', -1);
+        
         if (!$history_id || !$user_id) {
             $callback("Error", "Missing history_id or user_id.");
             return;
