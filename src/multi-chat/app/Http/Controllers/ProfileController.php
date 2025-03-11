@@ -30,6 +30,10 @@ use Net_IPv6;
 
 class ProfileController extends Controller
 {
+
+    public const CHAT_COMPLETION_PREFIX = 'chatcmpl-';
+    public const BOT_PREFIX = ".bot/";
+
     /**
      * Display the user's profile form.
      */
@@ -344,7 +348,9 @@ class ProfileController extends Controller
             return response()->json($errorResponse, 400, [], JSON_UNESCAPED_UNICODE);
         }
 
+        $is_calling_bot = str_starts_with($jsonData['model'], self::BOT_PREFIX);
         $llm = LLMs::where('access_code', '=', $jsonData['model']);
+        $bot = Bots::where('bots.name', '=', $is_calling_bot ? substr($jsonData['model'], strlen(self::BOT_PREFIX)) : '');
 
         if (!$llm->exists()) {
             // Handle the case where the specified model doesn't exist
@@ -423,7 +429,7 @@ class ProfileController extends Controller
                 ]
             ],
             'created' => time(),
-            'id' => 'chatcmpl-' . $history->id,
+            'id' => self::CHAT_COMPLETION_PREFIX . $history->id,
             'model' => $llm->access_code,
             'object' => 'chat.completion',
             'usage' => (object)[],
@@ -460,7 +466,7 @@ class ProfileController extends Controller
                         ],
                     ],
                     'created' => time(),
-                    'id' => 'chatcmpl-' . $history->id,
+                    'id' => self::CHAT_COMPLETION_PREFIX . $history->id,
                     'model' => $llm->access_code,
                     'object' => 'chat.completion.chunk',
                 ];
@@ -496,7 +502,6 @@ class ProfileController extends Controller
 
     public function api_abort(Request $request)
     {
-        $jsonData = $request->json()->all();
         $result = DB::table('personal_access_tokens')
             ->join('users', 'tokenable_id', '=', 'users.id')
             ->select('tokenable_id', 'users.id', 'users.name', 'openai_token')
@@ -520,19 +525,33 @@ class ProfileController extends Controller
             return response()->json($errorResponse, 403, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $list = Redis::lrange('api_' . $user->tokenable_id, 0, -1);
-        $integers = array_map(function ($element) {
-            return is_string($element) ? -((int) $element) : null;
-        }, $list);
-        $integers = array_filter($integers, function ($element) {
-            return $element !== null;
+        $user_active_history_ids = Redis::lrange('api_' . $user->tokenable_id, 0, -1);
+        $user_active_history_ids = array_map(function ($el) {
+            return is_string($el) ? -((int) $el) : null;
+        }, $user_active_history_ids);
+        $user_active_history_ids = array_filter($user_active_history_ids, function ($el) {
+            return $el !== null;
         });
-        $client = new Client(['timeout' => 300]);
+
+        $request_param = $request->json()->all();
+        $requested_history_ids = [];
+        if (!isset($request_param['ids'])) {
+            $requested_history_ids = $user_active_history_ids;
+        } else {
+            $requested_history_ids = $request_param['ids'];
+            $requested_history_ids = array_map(function ($el) {
+                return -((int) str_replace(self::CHAT_COMPLETION_PREFIX, '', $el));
+            }, $requested_history_ids);
+        }
+
+        $history_ids_to_abort = array_intersect($user_active_history_ids, $requested_history_ids);
+
         $kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
-        $msg = $client->post($kernel_location . '/' . RequestChat::$agent_version . '/chat/abort', [
+        $client = new Client(['timeout' => 300]);
+        $msg = $client->post($kernel_location . '/' . RequestChat::$kernel_api_version . '/chat/abort', [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'form_params' => [
-                'history_id' => json_encode($integers),
+                'history_id' => json_encode($history_ids_to_abort),
                 'user_id' => $user->tokenable_id,
             ],
         ]);

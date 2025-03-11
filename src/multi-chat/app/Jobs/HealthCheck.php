@@ -31,7 +31,7 @@ class HealthCheck implements ShouldQueue
 
         if ($systemSetting && $systemSetting->value) {
             // Send GET request to the endpoint
-            $response = Http::get($systemSetting->value . '/' . RequestChat::$agent_version . '/worker/debug');
+            $response = Http::get($systemSetting->value . '/' . RequestChat::$kernel_api_version . '/worker/debug');
 
             if ($response->ok()) {
                 // Get the response body and all LLMs

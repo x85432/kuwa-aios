@@ -26,7 +26,7 @@ class ImportChat implements ShouldQueue
     private $ids, $access_code, $user_id;
     public $tries = 1; # Believe if it fails, it always failed
     public $timeout = 6000; # Shouldn't takes longer than 100 mins
-    public $agent_version = 'v1.0';
+    public $kernel_api_version = 'v1.0';
     /**
      * Create a new job instance.
      */
