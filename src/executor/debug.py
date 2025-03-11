@@ -25,6 +25,8 @@ class DebugExecutor(LLMExecutor):
     async def llm_compute(self, history: list[dict], modelfile:Modelfile):
         try:
             self.stop = False
+            if history[-1]['content'] == "/crash":
+                raise RuntimeError("oiiaioiiiiai")
             for i in "".join([i['content'] for i in history]).strip():
                 yield i
                 if self.stop:
@@ -33,7 +35,7 @@ class DebugExecutor(LLMExecutor):
                 await asyncio.sleep(modelfile.parameters.get("llm_delay", self.args.delay))
         except Exception as e:
             logger.exception("Error occurs during generation.")
-            yield str(e)
+            raise
         finally:
             logger.debug("finished")
 

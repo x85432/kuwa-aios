@@ -1,4 +1,10 @@
 from typing import List, Optional
+from enum import Enum
+from .util import is_rfc3339
+import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BaseChunk:
     def __init__(self, cost:int|None=None):
@@ -50,13 +56,37 @@ class AudioURLChunk(BaseChunk):
     def calculate_cost(self):
         return 0
     
+class LogLevel(Enum):
+    EMERGENCY = 0
+    ALERT = 1
+    CRITICAL = 2
+    ERROR = 3
+    WARNING = 4
+    NOTICE = 5
+    INFO = 6
+    DEBUG = 7
+
+    def __str__(self):
+        return self.name.upper()
+
 class LogChunk(BaseChunk):
-    def __init__(self, text: str, cost:int|None=None):
+    def __init__(self, text:str, level:LogLevel=LogLevel.INFO, timestamp:str|None=None, cost:int|None=None):
         super().__init__(cost)
         self.text = text
+        self.level = level
+
+        if timestamp is not None and not is_rfc3339(timestamp):
+            logger.warn(f"\"{timestamp}\" is not in RFC3339 format. Will use the current timestamp.")
+            timestamp = None
+
+        # Use the current timestamp
+        if timestamp is None:
+            timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+        self.timestamp = timestamp
 
     def __jsonencode__(self):
-        return {"type": "log", "log": {"text": self.text}}
+        return {"type": "log", "log": {"text": self.text, "level": str(self.level), "timestamp": self.timestamp}}
     
     def calculate_cost(self):
         return 0

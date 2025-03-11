@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from .metrics import ExecutorMetrics
 from .logger import ExecutorLoggerFactory
-from .message import BaseChunk, TextChunk, LogChunk
+from .message import BaseChunk, TextChunk, LogChunk, LogLevel
 
 logger = logging.getLogger(__name__)
 
@@ -236,6 +236,10 @@ class BaseExecutor:
             self.metrics.process_time_seconds.observe(duration_sec)
             self.metrics.output_length_charters.observe(total_output_length)
             self.metrics.output_throughput_charters_per_second.observe(throughput)
+
+    def _format_sse(self, data:dict):
+        json_data = json.dumps(data, cls=AdvancedJSONEncoder)
+        return f"data: {json_data}\n"
     
     async def _serve(self, header, content):
         """
@@ -258,14 +262,10 @@ class BaseExecutor:
                 if any(unsupported_chunk):
                     raise RuntimeError(f"Unsupported chunk type: {[type(x) for x in compress(chunks, unsupported_chunk)]}")
                 total_output_length += reduce(lambda x, y: x+len(y), chunks, 0)
-                json_data = json.dumps(
-                    {
-                        "finish_reason": None,
-                        "delta": chunks
-                    },
-                    cls=AdvancedJSONEncoder
-                )
-                yield f"data: {json_data}\n"
+                yield self._format_sse({
+                    "finish_reason": None,
+                    "delta": chunks
+                })
 
                 # Yield control to the event loop.
                 # So that other coroutine, like aborting, can run.
@@ -274,7 +274,7 @@ class BaseExecutor:
             duration_sec = time.time() - start_time
             self._update_statistics(duration_sec, total_output_length)
 
-            json_data = json.dumps({
+            yield self._format_sse({
                 "finish_reason": "stop",
                 "usage": {
                     "prompt_tokens": 0, #[TODO]
@@ -282,27 +282,22 @@ class BaseExecutor:
                     "total_tokens": total_output_length,
                 }
             })
-            yield f"data: {json_data}\n"
 
         except Exception as e:
             logger.exception("Error occurs during generation.")
             self.metrics.failed.inc()
-            display_messages = [LogChunk('Error occurred. Please consult support.')]
+            display_messages = [LogChunk('Error occurred. Please consult support.', level=LogLevel.ERROR)]
             if self.in_debug():
-                display_messages.append(LogChunk('\n' + traceback.format_exc()))
-            json_data = json.dumps(
-                {
-                    "finish_reason": "exception",
-                    "delta": display_messages,
-                    "usage": {
-                        "prompt_tokens": 0, #[TODO]
-                        "completion_tokens": total_output_length,
-                        "total_tokens": total_output_length,
-                    }
-                },
-                cls=AdvancedJSONEncoder
-            )
-            yield f"data: {json_data}\n"
+                display_messages.append(LogChunk('\n' + traceback.format_exc(), level=LogLevel.ERROR))
+            yield self._format_sse({
+                "finish_reason": "exception",
+                "delta": display_messages,
+                "usage": {
+                    "prompt_tokens": 0, #[TODO]
+                    "completion_tokens": total_output_length,
+                    "total_tokens": total_output_length,
+                }
+            })
 
         finally:
             self.metrics.state.state('idle')
