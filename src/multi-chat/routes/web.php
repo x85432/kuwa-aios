@@ -12,6 +12,7 @@ use App\Http\Controllers\KernelController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\LanguageMiddleware;
+use App\Http\Middleware\AutoLogin;
 use App\Http\Middleware\AuthCheck;
 use BeyondCode\LaravelSSE\Facades\SSE;
 use Illuminate\Support\Facades\Route;

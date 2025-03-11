@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Facade;
 return [
     'Version' => "0.4.0",
     'API_Key' => env('API_Key', null),
+    'APP_AUTO_EMAIL' => env('APP_AUTO_EMAIL', null),
     'MAIL_MAILER' => env('MAIL_MAILER', null),
     'MAIL_HOST' => env('MAIL_HOST', null),
     'MAIL_PORT' => env('MAIL_PORT', null),
