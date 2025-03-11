@@ -1,7 +1,6 @@
 import requests
 import sys
 import argparse
-import os
 import socket
 import time
 import logging
@@ -27,20 +26,23 @@ from .message import BaseChunk, TextChunk, LogChunk, LogLevel
 
 logger = logging.getLogger(__name__)
 
+
 class AdvancedJSONEncoder(json.JSONEncoder):
     def default(self, obj):
-        if hasattr(obj, '__jsonencode__'):
+        if hasattr(obj, "__jsonencode__"):
             return obj.__jsonencode__()
 
         if isinstance(obj, set):
             return list(obj)
         return super().default(obj)
 
+
 def find_free_port():
     port = None
     with socket.socket() as s:
-        port = s.bind(('', 0)) or s.getsockname()[1]
+        port = s.bind(("", 0)) or s.getsockname()[1]
     return port
+
 
 class BaseExecutor:
     """
@@ -71,22 +73,53 @@ class BaseExecutor:
 
     def _create_parser(self):
         parser = argparse.ArgumentParser(
-            description='Base executor, Please make sure your kernel is working before use.',
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter
+            description="Base executor, Please make sure your kernel is working before use.",
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
-        group = parser.add_argument_group('General Options')
-        group.add_argument('--access_code', nargs='+', help='Access code')
-        group.add_argument('--ignore_kernel', action='store_true', help='Ignore kernel')
-        group.add_argument('--https', action='store_true', help='Register the executor endpoint with https scheme')
-        group.add_argument('--host', default=None, help='The hostname or IP address that will be stored in Kernel, Make sure the location are accessible by Kernel')
-        group.add_argument('--port', type=int, default=None, help='The port to serve. By choosing None, it\'ll assign an unused port')
-        group.add_argument('--executor_path', default=self.executor_path, help='The path this model executor is going to use')
-        group.add_argument('--kernel_url', default=self.kernel_url, help='Base URL of Kernel\'s executor management API')
-        group.add_argument('--concurrent_req_limit', default=self.concurrent_req_limit, help='The number of allowed concurrent requests.')
-        group.add_argument("--log", type=str.upper, default=self.log_level, help="The logging level.", choices=["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
-        
+        group = parser.add_argument_group("General Options")
+        group.add_argument("--access_code", nargs="+", help="Access code")
+        group.add_argument("--ignore_kernel", action="store_true", help="Ignore kernel")
+        group.add_argument(
+            "--https",
+            action="store_true",
+            help="Register the executor endpoint with https scheme",
+        )
+        group.add_argument(
+            "--host",
+            default=None,
+            help="The hostname or IP address that will be stored in Kernel, Make sure the location are accessible by Kernel",
+        )
+        group.add_argument(
+            "--port",
+            type=int,
+            default=None,
+            help="The port to serve. By choosing None, it'll assign an unused port",
+        )
+        group.add_argument(
+            "--executor_path",
+            default=self.executor_path,
+            help="The path this model executor is going to use",
+        )
+        group.add_argument(
+            "--kernel_url",
+            default=self.kernel_url,
+            help="Base URL of Kernel's executor management API",
+        )
+        group.add_argument(
+            "--concurrent_req_limit",
+            default=self.concurrent_req_limit,
+            help="The number of allowed concurrent requests.",
+        )
+        group.add_argument(
+            "--log",
+            type=str.upper,
+            default=self.log_level,
+            help="The logging level.",
+            choices=["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        )
+
         return parser
-    
+
     def extend_arguments(self, parser: argparse.ArgumentParser):
         """
         Append command-line arguments.
@@ -96,8 +129,10 @@ class BaseExecutor:
     def _setup(self):
         # Setup logger
         self.log_level = self.args.log.upper()
-        logging.config.dictConfig(ExecutorLoggerFactory(level=self.log_level).get_config())
-        
+        logging.config.dictConfig(
+            ExecutorLoggerFactory(level=self.log_level).get_config()
+        )
+
         # Registration information
         self.kernel_url = self.args.kernel_url
         self.ignore_kernel = self.args.ignore_kernel
@@ -113,7 +148,7 @@ class BaseExecutor:
 
         # Metrics
         self.metrics = ExecutorMetrics(self.access_codes[0])
-        self.metrics.state.state('idle')
+        self.metrics.state.state("idle")
 
         self._register_routes()
 
@@ -127,7 +162,9 @@ class BaseExecutor:
         @self.app.post(self.executor_path)
         async def api(request: Request):
             if self.concurrent_requests >= self.concurrent_req_limit:
-                return JSONResponse({"msg": "Processing another request."}, status_code=429)
+                return JSONResponse(
+                    {"msg": "Processing another request."}, status_code=429
+                )
             content = await request.form()
             header = request.headers
             if not content:
@@ -136,10 +173,11 @@ class BaseExecutor:
             logger.debug(f"HTTP headers: {header}")
             resp = StreamingResponse(
                 self._serve(header=header, content=content),
-                media_type='text/event-stream',
-                headers = {'Content-Type': 'text/event-stream; charset=utf-8'}
+                media_type="text/event-stream",
+                headers={"Content-Type": "text/event-stream; charset=utf-8"},
             )
             return resp
+
         @self.app.get("/shutdown")
         async def shutdown(request: Request):
             """
@@ -152,18 +190,17 @@ class BaseExecutor:
         @self.app.get("/health")
         async def health_check():
             return Response(status_code=204)
-        
+
         @self.app.get(urljoin(f"{self.executor_path}/", "./abort"))
         async def abort():
-            if hasattr(self, 'abort') and callable(self.abort):
+            if hasattr(self, "abort") and callable(self.abort):
                 return JSONResponse({"msg": await self.abort()})
             return JSONResponse({"msg": "No abort method configured"}, status_code=404)
 
         @self.app.get("/metrics")
         async def get_metrics():
             return Response(
-                content=prometheus_client.generate_latest(),
-                media_type="text/plain"
+                content=prometheus_client.generate_latest(), media_type="text/plain"
             )
 
     def run(self):
@@ -172,50 +209,55 @@ class BaseExecutor:
         self.setup()
         atexit.register(self._shut_down)
         self._start_server()
-    
+
     def get_reg_endpoint(self) -> str:
-        scheme = 'https' if self.args.https else 'http'
+        scheme = "https" if self.args.https else "http"
         return urljoin(f"{scheme}://{self.host}:{self.port}/", self.executor_path)
 
     def in_debug(self) -> bool:
-        return (self.log_level.upper() == "DEBUG")
+        return self.log_level.upper() == "DEBUG"
 
     def _shut_down(self):
-        if not hasattr(self, 'registered') or not self.registered:
+        if not hasattr(self, "registered") or not self.registered:
             return
         for access_code in self.access_codes:
             try:
                 response = requests.post(
-                    urljoin(self.kernel_url, f"{self.executor_iface_version}/worker/unregister"),
-                    data={"name": access_code,"endpoint": self.get_reg_endpoint()}
+                    urljoin(
+                        self.kernel_url,
+                        f"{self.executor_iface_version}/worker/unregister",
+                    ),
+                    data={"name": access_code, "endpoint": self.get_reg_endpoint()},
                 )
                 if not response.ok or response.text == "Failed":
                     raise RuntimeWarning()
                 else:
                     logger.info(f"Unregistered {access_code} from kernel.")
                     self.registered = False
-            except requests.exceptions.ConnectionError as e:
-                logger.warning(f"Failed to unregister {access_code} from kernel")
+            except requests.exceptions.ConnectionError:
+                logger.exception(f"Failed to unregister {access_code} from kernel")
 
     @retry(tries=5, delay=1, backoff=2, jitter=(0, 1), logger=logger)
     def _try_register(self, access_code):
         resp = requests.post(
-            url=urljoin(self.kernel_url, f"{self.executor_iface_version}/worker/register"),
-            data={"name": access_code, "endpoint": self.get_reg_endpoint()}
+            url=urljoin(
+                self.kernel_url, f"{self.executor_iface_version}/worker/register"
+            ),
+            data={"name": access_code, "endpoint": self.get_reg_endpoint()},
         )
         if not resp.ok or resp.text == "Failed":
             raise RuntimeWarning("The server failed to register to kernel.")
-    
+
     def _start_server(self):
         self.registered = False
         if not self.ignore_kernel:
             try:
                 for access_code in self.access_codes:
                     self._try_register(access_code)
-                    logger.info(f"Registered with the name \"{access_code}\"")
+                    logger.info(f'Registered with the name "{access_code}"')
                 self.registered = True
 
-            except Exception as e:
+            except Exception:
                 logger.exception("Failed to register to kernel.")
 
                 if not self.ignore_kernel:
@@ -223,8 +265,10 @@ class BaseExecutor:
                     sys.exit(0)
         self.concurrent_requests = 0
         uvicorn.run(
-            self.app, host=self.host, port=self.port,
-            log_config=ExecutorLoggerFactory(level=self.log_level).get_config()
+            self.app,
+            host=self.host,
+            port=self.port,
+            log_config=ExecutorLoggerFactory(level=self.log_level).get_config(),
         )
 
     def _update_statistics(self, duration_sec: float, total_output_length: int):
@@ -232,15 +276,15 @@ class BaseExecutor:
         Update the internal statistical metrics.
         """
         if duration_sec > 0:
-            throughput = total_output_length/duration_sec
+            throughput = total_output_length / duration_sec
             self.metrics.process_time_seconds.observe(duration_sec)
             self.metrics.output_length_charters.observe(total_output_length)
             self.metrics.output_throughput_charters_per_second.observe(throughput)
 
-    def _format_sse(self, data:dict):
+    def _format_sse(self, data: dict):
         json_data = json.dumps(data, cls=AdvancedJSONEncoder)
         return f"data: {json_data}\n"
-    
+
     async def _serve(self, header, content):
         """
         The middle layer between the actual executor logic and API server logic.
@@ -248,11 +292,11 @@ class BaseExecutor:
         """
 
         self.concurrent_requests += 1
-        self.metrics.state.state('busy')
+        self.metrics.state.state("busy")
         try:
             start_time = time.time()
             total_output_length = 0
-            
+
             async for chunks in self.serve(header=header, content=content):
                 if isinstance(chunks, str):
                     chunks = TextChunk(chunks)
@@ -260,12 +304,11 @@ class BaseExecutor:
                     chunks = [chunks]
                 unsupported_chunk = [not isinstance(x, BaseChunk) for x in chunks]
                 if any(unsupported_chunk):
-                    raise RuntimeError(f"Unsupported chunk type: {[type(x) for x in compress(chunks, unsupported_chunk)]}")
-                total_output_length += reduce(lambda x, y: x+len(y), chunks, 0)
-                yield self._format_sse({
-                    "finish_reason": None,
-                    "delta": chunks
-                })
+                    raise RuntimeError(
+                        f"Unsupported chunk type: {[type(x) for x in compress(chunks, unsupported_chunk)]}"
+                    )
+                total_output_length += reduce(lambda x, y: x + len(y), chunks, 0)
+                yield self._format_sse({"finish_reason": None, "delta": chunks})
 
                 # Yield control to the event loop.
                 # So that other coroutine, like aborting, can run.
@@ -274,37 +317,48 @@ class BaseExecutor:
             duration_sec = time.time() - start_time
             self._update_statistics(duration_sec, total_output_length)
 
-            yield self._format_sse({
-                "finish_reason": "stop",
-                "usage": {
-                    "prompt_tokens": 0, #[TODO]
-                    "completion_tokens": total_output_length,
-                    "total_tokens": total_output_length,
+            yield self._format_sse(
+                {
+                    "finish_reason": "stop",
+                    "usage": {
+                        "prompt_tokens": 0,  # [TODO]
+                        "completion_tokens": total_output_length,
+                        "total_tokens": total_output_length,
+                    },
                 }
-            })
+            )
 
-        except Exception as e:
+        except Exception:
             logger.exception("Error occurs during generation.")
             self.metrics.failed.inc()
-            display_messages = [LogChunk('Error occurred. Please consult support.', level=LogLevel.ERROR)]
+            display_messages = [
+                LogChunk(
+                    "Error occurred. Please consult support.", level=LogLevel.ERROR
+                )
+            ]
             if self.in_debug():
-                display_messages.append(LogChunk('\n' + traceback.format_exc(), level=LogLevel.ERROR))
-            yield self._format_sse({
-                "finish_reason": "exception",
-                "delta": display_messages,
-                "usage": {
-                    "prompt_tokens": 0, #[TODO]
-                    "completion_tokens": total_output_length,
-                    "total_tokens": total_output_length,
+                display_messages.append(
+                    LogChunk("\n" + traceback.format_exc(), level=LogLevel.ERROR)
+                )
+            yield self._format_sse(
+                {
+                    "finish_reason": "exception",
+                    "delta": display_messages,
+                    "usage": {
+                        "prompt_tokens": 0,  # [TODO]
+                        "completion_tokens": total_output_length,
+                        "total_tokens": total_output_length,
+                    },
                 }
-            })
+            )
 
         finally:
-            self.metrics.state.state('idle')
+            self.metrics.state.state("idle")
             self.concurrent_requests -= 1
 
     async def serve(self, header, content):
-        raise NotImplementedError("Executor should implement the \"serve\" method.")
+        raise NotImplementedError('Executor should implement the "serve" method.')
+
 
 if __name__ == "__main__":
     executor = BaseExecutor()

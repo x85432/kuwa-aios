@@ -2,9 +2,6 @@ import os
 import sys
 import torch
 import logging
-import time
-import re
-import json
 import pprint
 import argparse
 import functools
@@ -15,6 +12,7 @@ import json
 import re
 from typing import Optional
 from threading import Thread
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from transformers import (
     AutoTokenizer,
@@ -35,7 +33,6 @@ from transformers import (
 from kuwa.executor import LLMExecutor, Modelfile
 from kuwa.executor.llm_executor import rectify_chat_history
 from kuwa.executor.util import (
-    expose_function_parameter,
     read_config,
     merge_config,
 )
@@ -89,19 +86,21 @@ class CustomStoppingCriteria(StoppingCriteria):
     def __call__(self, input_ids, score, **kwargs) -> bool:
         return not self.proc
 
+
 class KwargsParser(argparse.Action):
     """Parser action class to parse kwargs of form key=value"""
+
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, dict())
         for val in values:
-            if '=' not in val:
+            if "=" not in val:
                 raise ValueError(
                     (
-                        'Argument parsing error, kwargs are expected in'
-                        ' the form of key=value.'
+                        "Argument parsing error, kwargs are expected in"
+                        " the form of key=value."
                     )
                 )
-            kwarg_k, kwarg_v = val.split('=')
+            kwarg_k, kwarg_v = val.split("=")
             try:
                 converted_v = int(kwarg_v)
             except ValueError:
@@ -224,9 +223,8 @@ def to_multi_modal_history(history: list[dict]) -> list[dict]:
 
 
 class HuggingfaceExecutor(LLMExecutor):
-
     model_path: Optional[str] = None
-    limit: int = 1024*3
+    limit: int = 1024 * 3
     stop_words: list = []
     system_prompt: str = None
     no_system_prompt: bool = False
@@ -234,15 +232,15 @@ class HuggingfaceExecutor(LLMExecutor):
     generation_config: dict = {
         "max_new_tokens": 4096,
         "do_sample": False,
-        "repetition_penalty": 1.0
+        "repetition_penalty": 1.0,
     }
 
     # Internal variable
-    buffer_length: int = 1 # The length of the sliding window buffer
-    
+    buffer_length: int = 1  # The length of the sliding window buffer
+
     def __init__(self):
         super().__init__()
-    
+
     def extend_arguments(self, parser):
         model_group = parser.add_argument_group("Model Options")
         model_group.add_argument(
@@ -319,17 +317,36 @@ class HuggingfaceExecutor(LLMExecutor):
         )
 
         # Generation Options
-        gen_group = parser.add_argument_group('Generation Options', 'GenerationConfig for Transformers. See https://huggingface.co/docs/transformers/en/main_classes/text_generation#transformers.GenerationConfig')
-        gen_group.add_argument('-c', '--generation_config', default=None, help='The generation configuration in YAML or JSON format. This can be overridden by other command-line arguments.')
-        gen_group.add_argument('--generation_kwargs', default={}, type=str, nargs='*', action=KwargsParser, help='Additional kwargs passed to the HF generate function.')
+        gen_group = parser.add_argument_group(
+            "Generation Options",
+            "GenerationConfig for Transformers. See https://huggingface.co/docs/transformers/en/main_classes/text_generation#transformers.GenerationConfig",
+        )
+        gen_group.add_argument(
+            "-c",
+            "--generation_config",
+            default=None,
+            help="The generation configuration in YAML or JSON format. This can be overridden by other command-line arguments.",
+        )
+        gen_group.add_argument(
+            "--generation_kwargs",
+            default={},
+            type=str,
+            nargs="*",
+            action=KwargsParser,
+            help="Additional kwargs passed to the HF generate function.",
+        )
 
     def setup(self):
         if self.args.visible_gpu:
             os.environ["CUDA_VISIBLE_DEVICES"] = self.args.visible_gpu
 
         self.model_path = self.args.model_path
-        self.tokenizer_name = self.args.tokenizer if self.args.tokenizer is not None else self.model_path
-        self.processor_name = self.args.processor if self.args.processor is not None else self.model_path
+        self.tokenizer_name = (
+            self.args.tokenizer if self.args.tokenizer is not None else self.model_path
+        )
+        self.processor_name = (
+            self.args.processor if self.args.processor is not None else self.model_path
+        )
         if not self.model_path:
             raise Exception("You need to configure a local or huggingface model path!")
 
@@ -384,25 +401,45 @@ class HuggingfaceExecutor(LLMExecutor):
         self.system_prompt = self.args.system_prompt
         self.no_system_prompt = self.args.no_system_prompt
         self.timeout = self.args.timeout
-        self.stop_words = [i for i in set([self.tokenizer.eos_token, self.tokenizer.bos_token] + self.args.stop) if i != None]
+        self.stop_words = [
+            i
+            for i in set(
+                [self.tokenizer.eos_token, self.tokenizer.bos_token] + self.args.stop
+            )
+            if i is not None
+        ]
         self.buffer_length = max([len(k) for k in self.stop_words] or [1])
-        self.tokenizer.chat_template = self.args.override_chat_template or \
-                                       self.tokenizer.chat_template or \
-                                       self.tokenizer.default_chat_template
+        self.tokenizer.chat_template = (
+            self.args.override_chat_template
+            or self.tokenizer.chat_template
+            or self.tokenizer.default_chat_template
+        )
         self.CSC = CustomStoppingCriteria()
 
         # Setup generation config
         self.generation_config["pad_token_id"] = self.tokenizer.eos_token_id
         default_gconf = GenerationConfig().to_dict()
-        file_gconf = read_config(self.args.generation_config) if self.args.generation_config else {}
-        self.generation_config = merge_config(base=default_gconf, top=self.generation_config)
-        self.generation_config = merge_config(base=self.generation_config, top=file_gconf)
-        self.generation_config = merge_config(base=self.generation_config, top=self.args.generation_kwargs)
+        file_gconf = (
+            read_config(self.args.generation_config)
+            if self.args.generation_config
+            else {}
+        )
+        self.generation_config = merge_config(
+            base=default_gconf, top=self.generation_config
+        )
+        self.generation_config = merge_config(
+            base=self.generation_config, top=file_gconf
+        )
+        self.generation_config = merge_config(
+            base=self.generation_config, top=self.args.generation_kwargs
+        )
 
         logger.debug(f"Stop words: {self.stop_words}")
         logger.debug(f"Buffer length: {self.buffer_length}")
         logger.debug(f"Chat template: {self.tokenizer.chat_template}")
-        logger.debug(f"Generation config:\n{pprint.pformat(self.generation_config, indent=2)}")
+        logger.debug(
+            f"Generation config:\n{pprint.pformat(self.generation_config, indent=2)}"
+        )
 
     def synthesis_prompt(self, history: list, system_prompt: str, template: str = None):
         """
@@ -429,7 +466,9 @@ class HuggingfaceExecutor(LLMExecutor):
                 return_tensors="pt",
             )
         except Exception as e:
-            logger.exception(f"Error in template `{self.tokenizer.chat_template}` with error: `{e}`")
+            logger.exception(
+                f"Error in template `{self.tokenizer.chat_template}` with error: `{e}`"
+            )
         finally:
             self.tokenizer.chat_template = chat_template_backup
             logger.exception(
@@ -490,7 +529,8 @@ class HuggingfaceExecutor(LLMExecutor):
             )
             prompt_embedding = model_inputs['input_ids']
             logger.debug(f"Length of prompt: {prompt_embedding.shape[1]}")
-            if prompt_embedding.shape[1] <= self.limit: break
+            if prompt_embedding.shape[1] <= self.limit:
+                break
 
             history = rectify_chat_history(history[1:])
             if len(history) == 0:
@@ -532,25 +572,29 @@ class HuggingfaceExecutor(LLMExecutor):
             for chunk in streamer:
                 buffer += chunk
                 for word in self.stop_words:
-                    if word not in buffer: continue
+                    if word not in buffer:
+                        continue
                     logger.debug(f"{word} founded!")
                     buffer = buffer.split(word)[0]
                     self.CSC.proc = None
                     break
 
-                if not self.CSC.proc: break
-                
+                if not self.CSC.proc:
+                    break
+
                 if len(buffer) > self.buffer_length:
                     output_length = len(buffer) - self.buffer_length
-                    if self.in_debug(): print(end=buffer[:output_length], flush=True)
+                    if self.in_debug():
+                        print(end=buffer[:output_length], flush=True)
                     yield buffer[:output_length]
                     buffer = buffer[output_length:]
-            
+
             if len(buffer) > 0:
                 for word in self.stop_words:
                     buffer = buffer.replace(word, "")
-                if self.in_debug(): print(end=buffer, flush=True)
-                yield buffer # Flush buffer
+                if self.in_debug():
+                    print(end=buffer, flush=True)
+                yield buffer  # Flush buffer
 
         except queue.Empty:
             message = 'The model produced no output. Increasing the executor\'s "--timeout" value may resolve this.\nIf the problem persists, a GPU out-of-memory or a model-specific issue is likely.'
@@ -562,9 +606,10 @@ class HuggingfaceExecutor(LLMExecutor):
             self.CSC.proc = None
             torch.cuda.empty_cache()
             logger.debug("finished")
-            
+
     async def abort(self):
-        if not self.CSC.proc: return "No process to abort"
+        if not self.CSC.proc:
+            return "No process to abort"
 
         thread = self.CSC.proc
         self.CSC.proc = None
@@ -573,6 +618,7 @@ class HuggingfaceExecutor(LLMExecutor):
         logger.debug("aborted")
         torch.cuda.empty_cache()
         return "Aborted"
+
 
 if __name__ == "__main__":
     executor = HuggingfaceExecutor()

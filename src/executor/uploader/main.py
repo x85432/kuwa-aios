@@ -1,13 +1,11 @@
 import re
 import os
 import sys
-import asyncio
 import logging
 import json
-import shlex
 import requests
 import oschmod
-from textwrap import dedent
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from kuwa.executor import LLMExecutor, Modelfile
@@ -17,8 +15,8 @@ from kuwa.client import KuwaClient
 
 logger = logging.getLogger(__name__)
 
+
 class UploaderExecutor(LLMExecutor):
-    
     def __init__(self):
         super().__init__()
 
@@ -26,9 +24,20 @@ class UploaderExecutor(LLMExecutor):
         """
         Override this method to add custom command-line arguments.
         """
-        kuwa_root_path = os.environ.get("KUWA_ROOT", os.path.join(os.path.expanduser("~"), "kuwa"))
-        parser.add_argument("--root", default=kuwa_root_path, help="The root path to store the file.", type=str)
-        parser.add_argument('--api_base_url', default="http://127.0.0.1/", help='The API base URL of Kuwa multi-chat WebUI. This value will pass to the subprocess.')
+        kuwa_root_path = os.environ.get(
+            "KUWA_ROOT", os.path.join(os.path.expanduser("~"), "kuwa")
+        )
+        parser.add_argument(
+            "--root",
+            default=kuwa_root_path,
+            help="The root path to store the file.",
+            type=str,
+        )
+        parser.add_argument(
+            "--api_base_url",
+            default="http://127.0.0.1/",
+            help="The API base URL of Kuwa multi-chat WebUI. This value will pass to the subprocess.",
+        )
 
     def setup(self):
         logger.info(f"Root path: {self.args.root}")
@@ -70,42 +79,49 @@ class UploaderExecutor(LLMExecutor):
         Returns:
             A tuple containing the bot name and base model as strings.
         """
-        result = {
-            'metadata': {},
-            'modelfile': ""
-        }
+        result = {"metadata": {}, "modelfile": ""}
         metadata_prefix = "KUWABOT"
 
         for line in botfile_content.splitlines():
             if not line.startswith(metadata_prefix):
                 continue
-            matches = re.match(rf'{metadata_prefix}\s+(?P<key>\S+)\s+(?P<value>.*)', line.strip())
-            result['metadata'][matches.group('key')] = extract_text_from_quotes(matches.group('value'))
-        
-        result['modelfile'] = re.sub(rf'^{metadata_prefix}.*\n?', '', botfile_content, flags=re.MULTILINE)
+            matches = re.match(
+                rf"{metadata_prefix}\s+(?P<key>\S+)\s+(?P<value>.*)", line.strip()
+            )
+            result["metadata"][matches.group("key")] = extract_text_from_quotes(
+                matches.group("value")
+            )
+
+        result["modelfile"] = re.sub(
+            rf"^{metadata_prefix}.*\n?", "", botfile_content, flags=re.MULTILINE
+        )
 
         logger.debug(json.dumps(result, indent=2))
 
         return result
-    
-    def escape_botfile(self, str):
-        return str.replace('\\', '\\\\')
 
-    async def llm_compute(self, history: list[dict], modelfile:Modelfile):
+    def escape_botfile(self, str):
+        return str.replace("\\", "\\\\")
+
+    async def llm_compute(self, history: list[dict], modelfile: Modelfile):
         dst_dir = modelfile.parameters["uploader_"].get("dst_dir", "/database")
         bot_template = modelfile.parameters["uploader_"].get("bot_template")
-        succeed_message = modelfile.parameters["uploader_"].get("succeed_message", "File uploaded successfully.")
+        succeed_message = modelfile.parameters["uploader_"].get(
+            "succeed_message", "File uploaded successfully."
+        )
         chmod = modelfile.parameters["uploader_"].get("chmod", None)
 
         url, history = extract_last_url(history)
-        dst_path = os.path.abspath(os.path.join(self.args.root, "./"+dst_dir))
-        
-        # Check whether the destination path is under the root path 
+        dst_path = os.path.abspath(os.path.join(self.args.root, "./" + dst_dir))
+
+        # Check whether the destination path is under the root path
         if not dst_path.startswith(os.path.abspath(self.args.root)):
-            logger.debug(f"Root path:{os.path.abspath(self.args.root)}\nDst path: {dst_path}")
+            logger.debug(
+                f"Root path:{os.path.abspath(self.args.root)}\nDst path: {dst_path}"
+            )
             yield "Access outside the root directory is forbidden."
             return
-        
+
         file_name, file_path = self.download_file(url, dst_path)
         if chmod is not None:
             oschmod.set_mode(file_path, chmod)
@@ -114,31 +130,36 @@ class UploaderExecutor(LLMExecutor):
         if bot_template is None:
             logger.debug("No bot template specified. Skipped creating bot.")
             return
-        
-        botfile = bot_template.replace("{{file_name}}", self.escape_botfile(file_name))\
-                              .replace("{{file_path}}", self.escape_botfile(file_path))
+
+        botfile = bot_template.replace(
+            "{{file_name}}", self.escape_botfile(file_name)
+        ).replace("{{file_path}}", self.escape_botfile(file_path))
         botfile = bytes(botfile, "utf-8").decode("unicode_escape")
         botfile = self.parse_botfile(botfile)
-        if botfile['metadata'].get('name') is None or botfile['metadata'].get('base') is None:
+        if (
+            botfile["metadata"].get("name") is None
+            or botfile["metadata"].get("base") is None
+        ):
             yield "Missed name or base in botfile. Failed to create bot.\n"
             return
 
         kuwa_api_token = modelfile.parameters["_"]["user_token"]
-        client = KuwaClient(
-            base_url=self.args.api_base_url,
-            auth_token=kuwa_api_token
-        )
+        client = KuwaClient(base_url=self.args.api_base_url, auth_token=kuwa_api_token)
         response = await client.create_bot(
-            bot_name=botfile['metadata'].get('name'),
-            bot_description=botfile['metadata'].get('description'),
-            llm_access_code=botfile['metadata'].get('base'),
-            modelfile=botfile['modelfile']
+            bot_name=botfile["metadata"].get("name"),
+            bot_description=botfile["metadata"].get("description"),
+            llm_access_code=botfile["metadata"].get("base"),
+            modelfile=botfile["modelfile"],
         )
-        yield f"Bot \"{botfile['metadata'].get('name')}\" created successfully."
+        if response.get('status', '') != 'success':
+            yield f'Bot "{botfile["metadata"].get("name")}" created successfully.'
+        else:
+            yield f'Failed to create bot "{botfile["metadata"].get("name")}".\n{response}'
 
     async def abort(self):
         logger.debug("aborted")
         return "Aborted"
+
 
 if __name__ == "__main__":
     executor = UploaderExecutor()

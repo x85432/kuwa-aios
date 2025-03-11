@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 BINARY_FORMAT = {FileExportFormat.GLB}
 
+
 def text_to_cad(
     prompt: str,
-    output_file_name:str = "tmp",
-    output_format:str = "glb",
+    output_file_name: str = "tmp",
+    output_format: str = "glb",
 ):
-
     # Convert a string literal to the enum value.
     try:
         output_format = FileExportFormat(output_format.lower())
@@ -33,13 +33,17 @@ def text_to_cad(
     # Create our client.
     client = ClientFromEnv()
 
-    logger.info(f"New Text-to-CAD job:\nPrompt: {prompt}\nOutput format: {output_format}\nOutput file name: {output_file_name}")
+    logger.info(
+        f"New Text-to-CAD job:\nPrompt: {prompt}\nOutput format: {output_format}\nOutput file name: {output_file_name}"
+    )
 
     # Prompt the API to generate a 3D model from text.
     response = create_text_to_cad.sync(
         client=client,
         output_format=output_format,
-        body=TextToCadCreateBody(prompt=prompt,),
+        body=TextToCadCreateBody(
+            prompt=prompt,
+        ),
     )
 
     if isinstance(response, Error) or response is None:
@@ -79,10 +83,12 @@ def text_to_cad(
         logger.info(f"Text-to-CAD completed and returned {len(result.outputs)} files:")
         for name in result.outputs:
             logger.info(f"  * {name}")
-        
+
         source_file_name = f"source.{output_format}"
         if source_file_name not in result.outputs:
-            logger.error(f"Desired format {output_format} is not in the generated files.")
+            logger.error(
+                f"Desired format {output_format} is not in the generated files."
+            )
             return None
 
         # Save the generated data to desired format

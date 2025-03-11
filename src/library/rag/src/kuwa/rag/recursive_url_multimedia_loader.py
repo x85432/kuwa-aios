@@ -34,30 +34,32 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 async def _extractor(content: str, url: str, content_type: str) -> str:
     mime_extractor = {
-        'text/html': html_extractor,
-        'multipart/related':  html_extractor,
-        'application/xhtml+xml': html_extractor,
+        "text/html": html_extractor,
+        "multipart/related": html_extractor,
+        "application/xhtml+xml": html_extractor,
     }
     fallback_extractor = file_extractor
 
-    mime_type = content_type.split(';', 1)[0]
+    mime_type = content_type.split(";", 1)[0]
     extractor = fallback_extractor
     if mime_type in mime_extractor:
         extractor = mime_extractor[mime_type]
-    
+
     return await extractor(content, url, content_type)
+
 
 async def html_extractor(content: str, url: str, content_type: str) -> str:
     """
     Asynchronous extract main text from web page.
     """
-    text = ''
+    text = ""
     try:
         config = trafilatura.settings.use_config()
         config.set("DEFAULT", "EXTRACTION_TIMEOUT", "0")
-        
+
         loop = asyncio.get_event_loop()
         text = await loop.run_in_executor(
             None,
@@ -66,59 +68,57 @@ async def html_extractor(content: str, url: str, content_type: str) -> str:
                 content,
                 favor_precision=True,
                 config=config,
-            )
+            ),
         )
-    except Exception as e:
-        logger.exception('Failed to extract text.')
-    
+    except Exception:
+        logger.exception("Failed to extract text.")
+
     return text
+
 
 async def file_extractor(content: str, url: str, content_type: str) -> str:
     """
     Extract text contents from the retrieved file.
     """
-    data_dir = Path('web_data')
-    
-    is_text = 'text/' in content_type
-    
+    data_dir = Path("web_data")
+
+    is_text = "text/" in content_type
+
     # Create local path for file storage
     url = urlparse(url)
-    file_path = data_dir / Path('{}/{}'.format(url.netloc.replace('.', '_'), url.path))
-    if url.path == '' or url.path[-1] == '/':
-        file_path = file_path / 'index'
-    
+    file_path = data_dir / Path("{}/{}".format(url.netloc.replace(".", "_"), url.path))
+    if url.path == "" or url.path[-1] == "/":
+        file_path = file_path / "index"
+
     # Correct the suffix
-    guessed_suffixes = mimetypes.guess_all_extensions(content_type.split(';', 1)[0])
+    guessed_suffixes = mimetypes.guess_all_extensions(content_type.split(";", 1)[0])
     if len(guessed_suffixes) > 0:
-        file_path = file_path.with_suffix('').with_suffix(guessed_suffixes[0])
-    
+        file_path = file_path.with_suffix("").with_suffix(guessed_suffixes[0])
+
     # Make directory and write the file
     # Note that in most of OS, file operation is synchronous.
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(file_path, 'wb') as f:
-        f.write(content.encode('utf-8') if is_text else content)
+    with open(file_path, "wb") as f:
+        f.write(content.encode("utf-8") if is_text else content)
         f.flush()
-    
+
     # Asynchronous extract text from fetched files.
-    text = ''
+    text = ""
     try:
         loop = asyncio.get_event_loop()
-        text = await loop.run_in_executor(
-            None,
-            textract.process,
-            str(file_path)
-        )
+        text = await loop.run_in_executor(None, textract.process, str(file_path))
         text = text.decode("utf-8")
-    except Exception as e:
-        logger.exception('Failed to extract text.')
-    
+    except Exception:
+        logger.exception("Failed to extract text.")
+
     return text
+
 
 def _metadata_extractor(raw_html: str, url: str, content_type: str) -> dict:
     """Extract metadata from raw html using BeautifulSoup."""
     metadata = {"source": url, "content-type": content_type}
 
-    if not 'text/' in content_type:
+    if "text/" not in content_type:
         metadata["filename"] = unquote(os.path.basename(url))
     else:
         try:
@@ -137,6 +137,7 @@ def _metadata_extractor(raw_html: str, url: str, content_type: str) -> dict:
         if html := soup.find("html"):
             metadata["language"] = html.get("lang", None)
     return metadata
+
 
 class RecursiveUrlMultimediaLoader(BaseLoader):
     """
@@ -158,7 +159,7 @@ class RecursiveUrlMultimediaLoader(BaseLoader):
         headers: Optional[dict] = None,
         check_response_status: bool = True,
         cache_proxy_url: bool = None,
-        forge_user_agent: str = None
+        forge_user_agent: str = None,
     ) -> None:
         """Initialize with URL to crawl and any subdirectories to exclude.
         Args:
@@ -230,17 +231,24 @@ class RecursiveUrlMultimediaLoader(BaseLoader):
         # Get all links that can be accessed from the current URL
         visited.add(url)
         try:
-            proxies = {
-                'http': self.cache_proxy_url,
-                'https': self.cache_proxy_url
-            } if self.cache_proxy_url != None else None
-            response = requests.get(url, timeout=self.timeout, headers=self.headers, proxies=proxies)
-            content_type = response.headers.get('content-type')
-            if 'text/' in content_type:
+            proxies = (
+                {"http": self.cache_proxy_url, "https": self.cache_proxy_url}
+                if self.cache_proxy_url is not None
+                else None
+            )
+            response = requests.get(
+                url, timeout=self.timeout, headers=self.headers, proxies=proxies
+            )
+            content_type = response.headers.get("content-type")
+            if "text/" in content_type:
                 raw_content = response.text
             else:
                 raw_content = response.content
-            if self.check_response_status and 400 <= response.status_code <= 599 and response.status_code != 403:
+            if (
+                self.check_response_status
+                and 400 <= response.status_code <= 599
+                and response.status_code != 403
+            ):
                 raise HTTPError(url, response.status_code, response.reason, None, None)
         except (HTTPError, Exception) as e:
             logger.warning(
@@ -255,8 +263,8 @@ class RecursiveUrlMultimediaLoader(BaseLoader):
                 page_content=content,
                 metadata=self.metadata_extractor(raw_content, url, content_type),
             )
-        
-        if 'text/' in content_type:
+
+        if "text/" in content_type:
             # Store the visited links and recursively visit the children
             sub_links = extract_sub_links(
                 raw_content,
@@ -316,12 +324,16 @@ class RecursiveUrlMultimediaLoader(BaseLoader):
         raw_content = ""
         try:
             async with session.get(url, proxy=self.cache_proxy_url) as response:
-                content_type = response.headers.get('content-type')
-                if 'text/' in content_type:
-                    raw_content = await response.text(errors='ignore')
+                content_type = response.headers.get("content-type")
+                if "text/" in content_type:
+                    raw_content = await response.text(errors="ignore")
                 else:
                     raw_content = await response.read()
-                if self.check_response_status and 400 <= response.status <= 599 and response.status != 403:
+                if (
+                    self.check_response_status
+                    and 400 <= response.status <= 599
+                    and response.status != 403
+                ):
                     raise HTTPError(url, response.status, response.reason, None, None)
         except (aiohttp.client_exceptions.InvalidURL, HTTPError, Exception) as e:
             logger.warning(
@@ -334,11 +346,12 @@ class RecursiveUrlMultimediaLoader(BaseLoader):
             raise
         results = []
         content = await self.extractor(raw_content, url, content_type)
-        if not content: content=''
-        
+        if not content:
+            content = ""
+
         # Ugly hot patch to fetch the content of Client-Side rendering page
         csr_threshold = 100
-        if 'text/' in content_type and len(content) < csr_threshold:
+        if "text/" in content_type and len(content) < csr_threshold:
             raw_content = await self.fetch_page_by_browser(url)
             content = await self.extractor(raw_content, url, content_type)
 
@@ -349,7 +362,7 @@ class RecursiveUrlMultimediaLoader(BaseLoader):
                     metadata=self.metadata_extractor(raw_content, url, content_type),
                 )
             )
-        if 'text/' in content_type and depth < self.max_depth - 1:
+        if "text/" in content_type and depth < self.max_depth - 1:
             sub_links = extract_sub_links(
                 raw_content,
                 url,
@@ -381,20 +394,18 @@ class RecursiveUrlMultimediaLoader(BaseLoader):
             await session.close()
         return results
 
-    async def fetch_page_by_browser(self, url:str):
-
+    async def fetch_page_by_browser(self, url: str):
         service = Service()
 
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless")  
-        options.add_argument("--disable-gpu") 
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-infobars")
         options.add_argument("--start-maximized")
         options.add_argument("--disable-notifications")
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
 
         loop = asyncio.get_running_loop()
         browser = webdriver.Chrome(service=service, options=options)
@@ -419,7 +430,7 @@ class RecursiveUrlMultimediaLoader(BaseLoader):
     def load(self) -> List[Document]:
         """Load web pages."""
         return list(self.lazy_load())
-    
+
     async def async_load(self) -> List[Document]:
         visited: Set[str] = set()
         results = await self._async_get_child_links_recursive(self.url, visited)

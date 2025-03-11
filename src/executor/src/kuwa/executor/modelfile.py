@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
+
 def convert_value(value):
     precedence = [int, float]
     converted_v = None
@@ -23,14 +24,15 @@ def convert_value(value):
             case "false":
                 converted_v = False
             case "none":
-                convert_v = None
+                converted_v = None
             case _:
                 converted_v = value
     return converted_v
 
+
 def extract_text_from_quotes(text):
     """
-    Extracts text from a string enclosed in single ('), double ("), or triple (''' \""") quotes, 
+    Extracts text from a string enclosed in single ('), double ("), or triple (''' \""") quotes,
     handling escaped quotes and nested quotes of different types.
 
     Args:
@@ -41,87 +43,113 @@ def extract_text_from_quotes(text):
     """
 
     text = text.strip()
-    match = re.search(r"""
+    match = re.search(
+        r"""
         # Match single, double, or triple quotes 
         ^(\"\"\"|\'|\")
         # Capture the text inside the quotes (non-greedy)
         (.*?)
         # Match the same type of quote from the beginning
         \1$
-    """, text, re.DOTALL | re.VERBOSE)
+    """,
+        text,
+        re.DOTALL | re.VERBOSE,
+    )
 
     if match:
         return match.group(2)
     else:
         return text.strip()
 
+
 class ParameterDict(dict):
     def __missing__(self, key):
         """
         Return a sub-dictionary which has common-prefix in key if not exact match.
         """
-        prefix_dict = {k[len(key):]: v for k, v in self.items() if k.startswith(key)}
+        prefix_dict = {k[len(key) :]: v for k, v in self.items() if k.startswith(key)}
         return prefix_dict
+
 
 @dataclass
 class Modelfile:
-    override_system_prompt:str=None
-    messages:list[dict]=field(default_factory=list)
-    template:str=None
-    before_prompt:str=None
-    after_prompt:str=None
-    input_bot:str=None
-    output_bot:str=None
-    before_response:str=''
-    after_response:str=''
-    parameters:ParameterDict=field(default_factory=ParameterDict)
+    override_system_prompt: str = None
+    messages: list[dict] = field(default_factory=list)
+    template: str = None
+    before_prompt: str = None
+    after_prompt: str = None
+    input_bot: str = None
+    output_bot: str = None
+    before_response: str = ""
+    after_response: str = ""
+    parameters: ParameterDict = field(default_factory=ParameterDict)
 
     @staticmethod
-    def append_command(name, args, modelfile:Modelfile):
-        single_arg_cmd = ("system", "template", "before-prompt", "after-prompt", "before-response", "after-response", "input-bot", "output-bot")
+    def append_command(name, args, modelfile: Modelfile):
+        single_arg_cmd = (
+            "system",
+            "template",
+            "before-prompt",
+            "after-prompt",
+            "before-response",
+            "after-response",
+            "input-bot",
+            "output-bot",
+        )
         if name in single_arg_cmd:
             args = extract_text_from_quotes(args)
 
         match name:
-            case "template": modelfile.template = args
-            case "system": modelfile.override_system_prompt += args
-            case "before-prompt": modelfile.before_prompt += args
-            case "after-prompt": modelfile.after_prompt += args
-            case "before-response": modelfile.before_response += args
-            case "after-response": modelfile.after_response += args
+            case "template":
+                modelfile.template = args
+            case "system":
+                modelfile.override_system_prompt += args
+            case "before-prompt":
+                modelfile.before_prompt += args
+            case "after-prompt":
+                modelfile.after_prompt += args
+            case "before-response":
+                modelfile.before_response += args
+            case "after-response":
+                modelfile.after_response += args
 
             case "message":
-                role, content = [extract_text_from_quotes(x) for x in args.split(' ', 1)]
+                role, content = [
+                    extract_text_from_quotes(x) for x in args.split(" ", 1)
+                ]
                 if role in ["user", "assistant"]:
                     modelfile.messages += [{"content": content, "role": role}]
                 elif role == "system":
                     modelfile.override_system_prompt += content
                 else:
                     logger.debug(f"{role} doesn't existed!!")
-            
+
             case "parameter" | "kuwaparam":
-                key, value = [extract_text_from_quotes(x) for x in args.split(' ', 1)]
+                key, value = [extract_text_from_quotes(x) for x in args.split(" ", 1)]
                 modelfile.parameters[key] = convert_value(value)
-            
-            case "input-bot": modelfile.input_bot = args
-            case "output-bot": modelfile.output_bot = args
-            
+
+            case "input-bot":
+                modelfile.input_bot = args
+            case "output-bot":
+                modelfile.output_bot = args
+
             case _:
                 raise ValueError(f'Unknown command "{name}"')
 
         return modelfile
 
     @classmethod
-    def from_json(cls, raw_modelfile:str):
+    def from_json(cls, raw_modelfile: str):
         raw_modelfile = json.loads(raw_modelfile)
-        if not raw_modelfile: raw_modelfile = []
+        if not raw_modelfile:
+            raw_modelfile = []
         parsed_modelfile = cls(
-            override_system_prompt='',
-            before_prompt='',
-            after_prompt='',
+            override_system_prompt="",
+            before_prompt="",
+            after_prompt="",
             messages=[],
-            template='',
-            parameters=ParameterDict()
+            template="",
+            parameters=ParameterDict(),
         )
 
         for command in raw_modelfile:
@@ -129,12 +157,14 @@ class Modelfile:
                 name = command["name"]
                 args = command["args"]
                 # Filter out comments
-                comment_prefix = '#'
+                comment_prefix = "#"
                 if comment_prefix in name:
-                    args = ''
+                    args = ""
                 args = args.split(comment_prefix)[0]
-                
-                parsed_modelfile = Modelfile.append_command(name, args, parsed_modelfile)
+
+                parsed_modelfile = Modelfile.append_command(
+                    name, args, parsed_modelfile
+                )
             except Exception as e:
                 logger.exception(f"Error in modelfile `{command}` with error: `{e}`")
 

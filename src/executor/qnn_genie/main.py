@@ -1,9 +1,7 @@
 import os
 import sys
-import asyncio
 import logging
 import subprocess
-import shlex
 import tempfile
 from pathlib import Path
 from enum import Enum
@@ -13,21 +11,21 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.abspath(Path(__file__).parent)))
 
 from pipe.main import PipeExecutor
-from pipe.src.subprocess_helper import StreamName
 from kuwa.executor import LLMExecutor, Modelfile
 
 logger = logging.getLogger(__name__)
+
 
 class DecodeBuffer:
     """
     Decodes a byte stream, handling partial decoding.
     """
-    
-    def __init__(self, coding='utf-8'):
+
+    def __init__(self, coding="utf-8"):
         self.coding = coding
         self.buffer = bytearray()
-    
-    def push(self, chunk:bytes):
+
+    def push(self, chunk: bytes):
         """
         Adds a chunk to buffer and decode partially.
 
@@ -48,25 +46,34 @@ class DecodeBuffer:
                 i -= 1
         self.buffer = self.buffer[i:]
         return decoded_string
-    
-    def finalize(self, chunk:bytes = b''):
+
+    def finalize(self, chunk: bytes = b""):
         self.buffer += chunk
         if len(self.buffer) != 0:
             logger.debug(f"[DecodeBuffer] undecoded buffer content: {self.buffer}")
         return self.buffer.decode(self.coding, "replace")
+
 
 class OutputState(Enum):
     PROMPT_PROCESSING = 0
     TOKEN_GENERATION = 1
     POST_GENERATION = 2
 
+
 class QnnGenieExecutor(LLMExecutor):
     def __init__(self):
         super().__init__()
 
     def extend_arguments(self, parser):
-        parser.add_argument('--tokenizer', type=str, default="meta-llama/Llama-3.2-3B-Instruct", help='HF repository ID of the tokenizer.')
-        parser.add_argument('--model', type=str, default="llama-v3_2-3b-chat", help='Model ID')
+        parser.add_argument(
+            "--tokenizer",
+            type=str,
+            default="meta-llama/Llama-3.2-3B-Instruct",
+            help="HF repository ID of the tokenizer.",
+        )
+        parser.add_argument(
+            "--model", type=str, default="llama-v3_2-3b-chat", help="Model ID"
+        )
         pass
 
     def setup(self):
@@ -76,10 +83,11 @@ class QnnGenieExecutor(LLMExecutor):
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_hub_model_id)
         self.pipe = None
 
-    async def run_genie_t2t(self, prompt:str, model_id:str, print_debug:bool = False):
-
+    async def run_genie_t2t(
+        self, prompt: str, model_id: str, print_debug: bool = False
+    ):
         # prompt = prompt.replace('\n', '\\n')
-        qai_hub_model_id = model_id.replace('-', '_') + '_quantized'
+        # qai_hub_model_id = model_id.replace("-", "_") + "_quantized"
         working_dir = str((Path.cwd() / model_id).resolve())
         prompt_fd, prompt_file_path = tempfile.mkstemp()
         with os.fdopen(prompt_fd, "w+", encoding="utf-8") as f:
@@ -91,9 +99,17 @@ class QnnGenieExecutor(LLMExecutor):
         genie_t2t_run_paths = list(qnn_binary_path.glob("genie-t2t-run*"))
         genie_config_path = "genie_config.json"
         if len(genie_t2t_run_paths) == 0:
-            raise RuntimeError(f"Could not find \"genie_t2t_run\" executable in directory \"{qnn_binary_path}\"")
-        cmd = [genie_t2t_run_paths[0], '-c', genie_config_path, '--prompt_file', prompt_file_path]
-        cmd = [str(arg) for arg in cmd] 
+            raise RuntimeError(
+                f'Could not find "genie_t2t_run" executable in directory "{qnn_binary_path}"'
+            )
+        cmd = [
+            genie_t2t_run_paths[0],
+            "-c",
+            genie_config_path,
+            "--prompt_file",
+            prompt_file_path,
+        ]
+        cmd = [str(arg) for arg in cmd]
 
         try:
             self.pipe = PipeExecutor()
@@ -101,26 +117,31 @@ class QnnGenieExecutor(LLMExecutor):
             generator = self.pipe.run_cmd(cmd, cwd=working_dir, shell=False)
             # p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=working_dir, shell=False)
             # decode_buffer = DecodeBuffer()
-            begin_keyword = '[BEGIN]:' # [TODO] Remove llama header
-            end_keyword = '[END]'
-            output_buffer = ''
+            begin_keyword = "[BEGIN]:"  # [TODO] Remove llama header
+            end_keyword = "[END]"
+            output_buffer = ""
             output_state = OutputState.PROMPT_PROCESSING
             async for stream_name, chunk in generator:
-            # for chunk in iter(lambda: p.stdout.read(1), b''):
-            #     decoded_string = decode_buffer.push(chunk)
+                # for chunk in iter(lambda: p.stdout.read(1), b''):
+                #     decoded_string = decode_buffer.push(chunk)
 
                 if self.in_debug():
-                    print(chunk, end='', flush=True)
+                    print(chunk, end="", flush=True)
 
                 if print_debug:
                     yield chunk
                     continue
-                
+
                 output_buffer += chunk
 
-                if output_state == OutputState.PROMPT_PROCESSING and begin_keyword in output_buffer:
+                if (
+                    output_state == OutputState.PROMPT_PROCESSING
+                    and begin_keyword in output_buffer
+                ):
                     output_state = OutputState.TOKEN_GENERATION
-                    output_buffer = output_buffer[output_buffer.index(begin_keyword)+len(begin_keyword):].lstrip()
+                    output_buffer = output_buffer[
+                        output_buffer.index(begin_keyword) + len(begin_keyword) :
+                    ].lstrip()
 
                 if output_state == OutputState.TOKEN_GENERATION:
                     if len(output_buffer) < len(end_keyword):
@@ -140,20 +161,19 @@ class QnnGenieExecutor(LLMExecutor):
         finally:
             os.remove(prompt_file_path)
 
-    async def llm_compute(self, history: list[dict], modelfile:Modelfile):
-
-        prompt = self.tokenizer.apply_chat_template(history, tokenize=False, add_generation_prompt=True)
+    async def llm_compute(self, history: list[dict], modelfile: Modelfile):
+        prompt = self.tokenizer.apply_chat_template(
+            history, tokenize=False, add_generation_prompt=True
+        )
         # prompt = "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWhat is France's capital?<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
 
-        model_id = modelfile.parameters['llm_'].get('model', self.model_id)
-        print_debug = modelfile.parameters['llm_'].get('debug', False)
+        model_id = modelfile.parameters["llm_"].get("model", self.model_id)
+        print_debug = modelfile.parameters["llm_"].get("debug", False)
 
         response_generator = self.run_genie_t2t(
-            prompt = prompt,
-            model_id = model_id,
-            print_debug = print_debug
+            prompt=prompt, model_id=model_id, print_debug=print_debug
         )
-        
+
         self.stop = False
         async for reply in response_generator:
             if self.stop:
@@ -167,6 +187,7 @@ class QnnGenieExecutor(LLMExecutor):
             await self.pipe.abort()
         logger.debug("aborted")
         return "Aborted"
+
 
 if __name__ == "__main__":
     executor = QnnGenieExecutor()

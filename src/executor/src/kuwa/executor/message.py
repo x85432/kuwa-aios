@@ -6,8 +6,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class BaseChunk:
-    def __init__(self, cost:int|None=None):
+    def __init__(self, cost: int | None = None):
         self.cost = cost
 
     def __jsonencode__(self):
@@ -19,43 +20,52 @@ class BaseChunk:
     def __len__(self):
         return self.cost if self.cost is not None else self.calculate_cost()
 
+
 class TextChunk(BaseChunk):
-    def __init__(self, value: str, annotations: Optional[List] = None, cost:int|None=None):
+    def __init__(
+        self, value: str, annotations: Optional[List] = None, cost: int | None = None
+    ):
         super().__init__(cost)
         self.value = value
         self.annotations = annotations if annotations is not None else []
         self.cost = cost
 
     def __jsonencode__(self):
-        return {"type": "text", "text": {"value": self.value, "annotations": self.annotations}}
+        return {
+            "type": "text",
+            "text": {"value": self.value, "annotations": self.annotations},
+        }
 
     def calculate_cost(self):
         return len(self.value)
 
+
 class ImageURLChunk(BaseChunk):
-    def __init__(self, image_url: str, cost:int|None=None):
+    def __init__(self, image_url: str, cost: int | None = None):
         super().__init__(cost)
         self.image_url = image_url
         self.cost = cost
 
     def __jsonencode__(self):
         return {"type": "image_url", "image_url": self.image_url}
-    
+
     def calculate_cost(self):
         return 0
 
+
 class AudioURLChunk(BaseChunk):
-    def __init__(self, audio_url: str, cost:int|None=None):
+    def __init__(self, audio_url: str, cost: int | None = None):
         super().__init__(cost)
         self.audio_url = audio_url
         self.cost = cost
 
     def __jsonencode__(self):
         return {"type": "audio_url", "audio_url": self.audio_url}
-    
+
     def calculate_cost(self):
         return 0
-    
+
+
 class LogLevel(Enum):
     EMERGENCY = 0
     ALERT = 1
@@ -69,14 +79,23 @@ class LogLevel(Enum):
     def __str__(self):
         return self.name.upper()
 
+
 class LogChunk(BaseChunk):
-    def __init__(self, text:str, level:LogLevel=LogLevel.INFO, timestamp:str|None=None, cost:int|None=None):
+    def __init__(
+        self,
+        text: str,
+        level: LogLevel = LogLevel.INFO,
+        timestamp: str | None = None,
+        cost: int | None = None,
+    ):
         super().__init__(cost)
         self.text = text
         self.level = level
 
         if timestamp is not None and not is_rfc3339(timestamp):
-            logger.warn(f"\"{timestamp}\" is not in RFC3339 format. Will use the current timestamp.")
+            logger.warn(
+                f'"{timestamp}" is not in RFC3339 format. Will use the current timestamp.'
+            )
             timestamp = None
 
         # Use the current timestamp
@@ -86,13 +105,28 @@ class LogChunk(BaseChunk):
         self.timestamp = timestamp
 
     def __jsonencode__(self):
-        return {"type": "log", "log": {"text": self.text, "level": str(self.level), "timestamp": self.timestamp}}
-    
+        return {
+            "type": "log",
+            "log": {
+                "text": self.text,
+                "level": str(self.level),
+                "timestamp": self.timestamp,
+            },
+        }
+
     def calculate_cost(self):
         return 0
 
+
 class ProgressChunk(BaseChunk):
-    def __init__(self, position: int, total: int, desc: Optional[str] = None, postfix: Optional[str] = None, cost:int|None=None):
+    def __init__(
+        self,
+        position: int,
+        total: int,
+        desc: Optional[str] = None,
+        postfix: Optional[str] = None,
+        cost: int | None = None,
+    ):
         super().__init__(cost)
         self.position = position
         self.total = total
@@ -100,18 +134,27 @@ class ProgressChunk(BaseChunk):
         self.postfix = postfix
 
     def __jsonencode__(self):
-        return {"type": "progress", "progress": {"position": self.position, "total": self.total, "desc": self.desc, "postfix": self.postfix}}
+        return {
+            "type": "progress",
+            "progress": {
+                "position": self.position,
+                "total": self.total,
+                "desc": self.desc,
+                "postfix": self.postfix,
+            },
+        }
 
     def calculate_cost(self):
         return 0
 
+
 class RefusalChunk(BaseChunk):
-    def __init__(self, text: str, cost:int|None=None):
+    def __init__(self, text: str, cost: int | None = None):
         super().__init__(cost)
         self.text = text
 
     def __jsonencode__(self):
         return {"type": "refusal", "refusal": {"text": self.text}}
-    
+
     def calculate_cost(self):
         return 0

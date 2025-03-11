@@ -9,12 +9,28 @@ from urllib.parse import urljoin
 
 logger = logging.getLogger(__name__)
 
+
 class KuwaClient:
-    def __init__(self, base_url=None, kernel_base_url="http://localhost:9000", model=None, auth_token=None, limit: int = 3072):
-        self.base_url = base_url if base_url is not None else os.environ.get("KUWA_BASE_URL", "http://localhost")
+    def __init__(
+        self,
+        base_url=None,
+        kernel_base_url="http://localhost:9000",
+        model=None,
+        auth_token=None,
+        limit: int = 3072,
+    ):
+        self.base_url = (
+            base_url
+            if base_url is not None
+            else os.environ.get("KUWA_BASE_URL", "http://localhost")
+        )
         self.kernel_base_url = kernel_base_url
         self.model = model
-        self.auth_token = auth_token if auth_token is not None else os.environ.get("KUWA_API_KEY", None)
+        self.auth_token = (
+            auth_token
+            if auth_token is not None
+            else os.environ.get("KUWA_API_KEY", None)
+        )
         self.limit = limit
 
     def _request(self, endpoint, method="GET", json=None, files=None):
@@ -22,7 +38,13 @@ class KuwaClient:
             "Authorization": f"Bearer {self.auth_token}",
             "Content-Type": "application/json" if json else None,
         }
-        response = requests.request(method, f"{self.base_url}/{endpoint}", headers=headers, json=json, files=files)
+        response = requests.request(
+            method,
+            f"{self.base_url}/{endpoint}",
+            headers=headers,
+            json=json,
+            files=files,
+        )
         response.raise_for_status()
         return response.json()
 
@@ -30,7 +52,9 @@ class KuwaClient:
         """
         A heuristic method to estimate the tokens
         """
-        logger.debug(f"Estimated prompt tokens: {len(str(chat_history))}; Model input limit: {self.limit}")
+        logger.debug(
+            f"Estimated prompt tokens: {len(str(chat_history))}; Model input limit: {self.limit}"
+        )
         return len(str(chat_history)) > self.limit
 
     async def get_available_llm(self):
@@ -40,12 +64,26 @@ class KuwaClient:
         resp = await loop.run_in_executor(None, requests.get, url)
         if not resp.ok:
             return None
-        llm = [executor for executor in reversed(resp.json()) if not re.match(r"(.*[-_b]qa.*|whisper|painter|tool/.*)", executor)]
+        llm = [
+            executor
+            for executor in reversed(resp.json())
+            if not re.match(r"(.*[-_b]qa.*|whisper|painter|tool/.*)", executor)
+        ]
         logger.debug(llm)
         llm.append(None)
         return llm[0]
 
-    async def create_base_model(self, name: str, access_code:str, auth_token: str = None, order: int = None, version:str=None, description:str=None, system_prompt:str=None, react_btn:str=None):
+    async def create_base_model(
+        self,
+        name: str,
+        access_code: str,
+        auth_token: str = None,
+        order: int = None,
+        version: str = None,
+        description: str = None,
+        system_prompt: str = None,
+        react_btn: str = None,
+    ):
         url = urljoin(self.base_url, "/api/user/create/base_model")
         auth_token = self.auth_token if self.auth_token is not None else auth_token
         headers = {
@@ -63,10 +101,22 @@ class KuwaClient:
         }
         resp = requests.post(url, headers=headers, json=request_body)
         if not resp.ok:
-            raise RuntimeError(f'Request failed with status {resp.status_code}, {resp.json()}')
+            raise RuntimeError(
+                f"Request failed with status {resp.status_code}, {resp.json()}"
+            )
         return resp.json()
 
-    async def create_bot(self, llm_access_code:str, bot_name: str, auth_token: str = None, modelfile:str=None, react_btn:str=None, bot_description:str=None, visibility:int=3, type:str="prompt"):
+    async def create_bot(
+        self,
+        llm_access_code: str,
+        bot_name: str,
+        auth_token: str = None,
+        modelfile: str = None,
+        react_btn: str = None,
+        bot_description: str = None,
+        visibility: int = 3,
+        type: str = "prompt",
+    ):
         url = urljoin(self.base_url, "/api/user/create/bot")
         auth_token = self.auth_token if self.auth_token is not None else auth_token
         headers = {
@@ -85,10 +135,19 @@ class KuwaClient:
         logger.debug(f"Request body: {request_body}")
         resp = requests.post(url, headers=headers, json=request_body)
         if not resp.ok:
-            raise RuntimeError(f'Request failed with status {resp.status_code}, {resp.text}')
+            raise RuntimeError(
+                f"Request failed with status {resp.status_code}, {resp.text}"
+            )
         return resp.json()
 
-    async def chat_complete(self, auth_token: str = None, messages: list = [], timeout=120, streaming=True, botfile=None):
+    async def chat_complete(
+        self,
+        auth_token: str = None,
+        messages: list = [],
+        timeout=120,
+        streaming=True,
+        botfile=None,
+    ):
         url = urljoin(self.base_url, "/v1.0/chat/completions")
         auth_token = self.auth_token if self.auth_token is not None else auth_token
         headers = {
@@ -97,17 +156,14 @@ class KuwaClient:
         }
         model = self.model if self.model is not None else await self.get_available_llm()
         logger.debug(f"Use model {model}")
-        request_body = {
-            "messages": messages,
-            "model": model,
-            "stream": streaming
-        }
+        request_body = {"messages": messages, "model": model, "stream": streaming}
         if botfile is not None:
             request_body["botfile"] = botfile
 
         client = httpx.AsyncClient(timeout=None)
-        async with client.stream('POST', url, headers=headers, json=request_body, timeout=timeout) as response:
-
+        async with client.stream(
+            "POST", url, headers=headers, json=request_body, timeout=timeout
+        ) as response:
             response.raise_for_status()
 
             async for line in response.aiter_lines():
@@ -119,7 +175,7 @@ class KuwaClient:
                 if line == "data: [DONE]":
                     break
                 elif line.startswith("data: "):
-                    chunk = json.loads(line[len("data: "):])["choices"][0]["delta"]
+                    chunk = json.loads(line[len("data: ") :])["choices"][0]["delta"]
                     if not chunk:
                         continue
                     yield chunk["content"]

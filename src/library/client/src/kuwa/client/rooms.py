@@ -1,5 +1,6 @@
 from .base import KuwaClient
 
+
 class RoomOperations(KuwaClient):
     def list_rooms(self):
         return self._request("api/user/read/rooms")
@@ -8,4 +9,4 @@ class RoomOperations(KuwaClient):
         return self._request("api/user/create/room", "POST", {"llm": bot_ids})
 
     def delete_room(self, room_id):
-        return self._request(f"api/user/delete/room", "DELETE", {"id": room_id})
+        return self._request("api/user/delete/room", "DELETE", {"id": room_id})

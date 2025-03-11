@@ -2,14 +2,13 @@ import unittest
 import itertools
 import logging
 from kuwa.executor.llm_executor import (
-    LLMExecutor,
     to_openai_chat_format,
     rectify_chat_history,
-    extract_last_url
+    extract_last_url,
 )
 
-class TestToOpenAiChatFormat(unittest.TestCase):
 
+class TestToOpenAiChatFormat(unittest.TestCase):
     def test_alternative(self):
         kuwa_history = [
             {"isbot": False, "msg": "hello1"},
@@ -39,7 +38,7 @@ class TestToOpenAiChatFormat(unittest.TestCase):
             {"role": "assistant", "content": "world2"},
         ]
         self.assertEqual(to_openai_chat_format(kuwa_history), openai_history)
-    
+
     def test_multiple_assistant(self):
         kuwa_history = [
             {"isbot": False, "msg": "hello1"},
@@ -55,8 +54,8 @@ class TestToOpenAiChatFormat(unittest.TestCase):
         ]
         self.assertEqual(to_openai_chat_format(kuwa_history), openai_history)
 
-class TestRectifyChatHistory(unittest.TestCase):
 
+class TestRectifyChatHistory(unittest.TestCase):
     def test_alternative(self):
         original_history = [
             {"role": "user", "content": "hello1"},
@@ -71,7 +70,7 @@ class TestRectifyChatHistory(unittest.TestCase):
             {"role": "assistant", "content": "world2"},
         ]
         self.assertEqual(rectify_chat_history(original_history), expected_history)
-    
+
     def test_assistant_first(self):
         original_history = [
             {"role": "assistant", "content": "world1"},
@@ -111,8 +110,8 @@ class TestRectifyChatHistory(unittest.TestCase):
         ]
         self.assertEqual(rectify_chat_history(original_history), expected_history)
 
-class TestExtractLastUrl(unittest.TestCase):
 
+class TestExtractLastUrl(unittest.TestCase):
     urls = [
         "http://www.example.com",
         "https://www.example.com",
@@ -123,7 +122,7 @@ class TestExtractLastUrl(unittest.TestCase):
         "https://www.test.com/%E6%B8%AC%E8%A9%A6",
         "https://www.test.com/%E6%B8%AC%E8%A9%A6?q=%E6%B8%AC%E8%A9%A6",
         "https://www.test.com/do.html#A",
-        "https://www.test.com/do.html#%E6%B8%AC%E8%A9%A6"
+        "https://www.test.com/do.html#%E6%B8%AC%E8%A9%A6",
     ]
 
     def test_standalone(self):
@@ -145,7 +144,7 @@ class TestExtractLastUrl(unittest.TestCase):
             url, history = extract_last_url(history)
             self.assertEqual(url, test_url)
             self.assertEqual(history, expected_history)
-    
+
     def test_separate(self):
         chat_history = [
             {"role": "user", "content": "hello1"},
@@ -162,7 +161,7 @@ class TestExtractLastUrl(unittest.TestCase):
 
         msg = "This is a test message!"
         separator = [" ", "  ", "\n", "\n\n", " \n"]
-        template = ["{msg}{sep}{url}","{url}{sep}{msg}"]
+        template = ["{msg}{sep}{url}", "{url}{sep}{msg}"]
         for test_url, sep, tmpl in itertools.product(self.urls, separator, template):
             history = chat_history.copy()
             exp_history = expected_history.copy()
@@ -173,6 +172,7 @@ class TestExtractLastUrl(unittest.TestCase):
             self.assertEqual(url, test_url)
             self.assertEqual(history, exp_history)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     logging.basicConfig(level="DEBUG")
     unittest.main()

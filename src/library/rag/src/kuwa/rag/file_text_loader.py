@@ -2,7 +2,7 @@ import logging
 import asyncio
 import trafilatura
 import textract
-from typing import List, Optional, AsyncIterator
+from typing import List, AsyncIterator
 from pathlib import Path
 from langchain.docstore.document import Document
 from langchain_community.document_loaders.text import TextLoader
@@ -10,6 +10,7 @@ from magika import Magika
 
 logger = logging.getLogger(__name__)
 magika = Magika()
+
 
 class PrefixDict(dict):
     def __missing__(self, key):
@@ -25,6 +26,7 @@ class PrefixDict(dict):
             case _:
                 return prefix_dict[max(prefix_dict.keys(), key=len)]
 
+
 class FileTextLoader(TextLoader):
     """Extract text from files with textract or Trafilatura.
 
@@ -32,42 +34,48 @@ class FileTextLoader(TextLoader):
         file_path: Path to the file to load.
     """
 
-    def __init__(self, file_path: str, encoding="utf-8", autodetect_encoding: bool = False):
+    def __init__(
+        self, file_path: str, encoding="utf-8", autodetect_encoding: bool = False
+    ):
         self.file_path = file_path
         self.encoding = encoding
         self.autodetect_encoding = autodetect_encoding
 
     def lazy_load(self) -> List[Document]:
         """Load text from file path."""
-        
+
         file_magic_result = magika.identify_path(Path(self.file_path))
-        file_mime_type = file_magic_result.output.mime_type.split(';', 1)[0]
-        
-        mime_extractors = PrefixDict(**{
-            'text/': self.load_plain_text,
-            'application/x-yaml': self.load_plain_text,
-            'application/yaml': self.load_plain_text,
-            'application/json': self.load_plain_text,
-            'text/html': self.load_html,
-            'multipart/related': self.load_html,
-            'application/xhtml+xml': self.load_html,
-        })
+        file_mime_type = file_magic_result.output.mime_type.split(";", 1)[0]
+
+        mime_extractors = PrefixDict(
+            **{
+                "text/": self.load_plain_text,
+                "application/x-yaml": self.load_plain_text,
+                "application/yaml": self.load_plain_text,
+                "application/json": self.load_plain_text,
+                "text/html": self.load_html,
+                "multipart/related": self.load_html,
+                "application/xhtml+xml": self.load_html,
+            }
+        )
         fallback_extractor = self.load_doc
 
         extractor = mime_extractors[file_mime_type]
         if extractor is None:
             extractor = fallback_extractor
-        
+
         logger.debug(f"{self.file_path}: {file_mime_type}, {extractor.__name__}")
 
         docs = []
         try:
             docs = extractor()
         except Exception as e:
-            logger.warning(f"Error loading {self.file_path}: {type(e).__name__}: {e.args[0]}. Skipped.")
+            logger.warning(
+                f"Error loading {self.file_path}: {type(e).__name__}: {e.args[0]}. Skipped."
+            )
         finally:
             return docs
-    
+
     async def alazy_load(
         self,
     ) -> AsyncIterator[Document]:
@@ -79,9 +87,9 @@ class FileTextLoader(TextLoader):
     def load_plain_text(self) -> List[Document]:
         """Load text from plaintext file."""
         content = ""
-        with open(self.file_path, encoding=self.encoding, errors='ignore') as f:
+        with open(self.file_path, encoding=self.encoding, errors="ignore") as f:
             content = f.read()
-        
+
         metadata = {"source": self.file_path}
         return [Document(page_content=content, metadata=metadata)]
 
@@ -98,9 +106,9 @@ class FileTextLoader(TextLoader):
         text = ""
         config = trafilatura.settings.use_config()
         config.set("DEFAULT", "EXTRACTION_TIMEOUT", "0")
-        
+
         content = ""
-        with open(self.file_path, encoding=self.encoding, errors='ignore') as f:
+        with open(self.file_path, encoding=self.encoding, errors="ignore") as f:
             content = f.read()
         text = trafilatura.extract(
             content,

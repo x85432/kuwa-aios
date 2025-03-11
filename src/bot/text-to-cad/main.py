@@ -7,8 +7,10 @@ from dotenv import load_dotenv
 from gradio_i18n import Translate, gettext as _
 from src.text_to_cad import text_to_cad
 
+
 def clear_all():
     return [None, None, gr.DownloadButton(visible=False)]
+
 
 def translate_prompt(prompt, language):
     # Your prompt translation logic here
@@ -18,12 +20,15 @@ def translate_prompt(prompt, language):
     # return translated_prompt
     return prompt
 
+
 def generate_cad_model(prompt):
     file_path = text_to_cad(prompt=prompt)
     name = Path(file_path).name
     yield [
         file_path,
-        gr.DownloadButton(label=_("Download")+f" {name}", value=file_path, visible=True)
+        gr.DownloadButton(
+            label=_("Download") + f" {name}", value=file_path, visible=True
+        ),
     ]
     os.remove(file_path)
 
@@ -40,13 +45,22 @@ def create_main_ui():
         with gr.Column(scale=2, min_width=300):
             model_display = gr.Model3D(label=_("3D Model"))
             download_btn = gr.DownloadButton(visible=False)
-    gr.Examples(label=_("Examples"), examples=[
-        _("A dodecahedron"), _("A 1/2 inch gear with 21 teeth"), _("Design a gear with 40 teeth"), _("A 3x6 lego"), _("一個60齒的齒輪")
-    ], inputs=prompt_area)
+    gr.Examples(
+        label=_("Examples"),
+        examples=[
+            _("A dodecahedron"),
+            _("A 1/2 inch gear with 21 teeth"),
+            _("Design a gear with 40 teeth"),
+            _("A 3x6 lego"),
+            _("一個60齒的齒輪"),
+        ],
+        inputs=prompt_area,
+    )
 
     clear_btn.click(clear_all, None, [prompt_area, model_display, download_btn])
     translate_btn.click(translate_prompt, prompt_area, prompt_area)
     generate_btn.click(generate_cad_model, prompt_area, [model_display, download_btn])
+
 
 if __name__ == "__main__":
     load_dotenv()  # take environment variables from .env.
@@ -54,14 +68,20 @@ if __name__ == "__main__":
 
     # Create the Gradio interface
     with gr.Blocks(theme=gr.themes.Soft()) as ui:
-        lang = gr.Dropdown(choices=[("English", "en"), ("中文", "zh")], label=_("Language"))
+        lang = gr.Dropdown(
+            choices=[("English", "en"), ("中文", "zh")], label=_("Language")
+        )
         with Translate("translation.yaml", lang, placeholder_langs=["en", "zh"]):
             create_main_ui()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--server_name', type=str, default=None, help='Gradio server host')
-    parser.add_argument('--server_port', type=int, default=None, help='Gradio server port')
-    parser.add_argument('--root_path', type=str, default=None, help='Gradio root path')
+    parser.add_argument(
+        "--server_name", type=str, default=None, help="Gradio server host"
+    )
+    parser.add_argument(
+        "--server_port", type=int, default=None, help="Gradio server port"
+    )
+    parser.add_argument("--root_path", type=str, default=None, help="Gradio root path")
     args = parser.parse_args()
 
     ui.launch(

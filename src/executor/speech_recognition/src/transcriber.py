@@ -3,10 +3,13 @@ import logging
 import torch
 import whisper_s2t
 import functools
-from whisper_s2t.backends.ctranslate2.hf_utils import download_model as whisper_s2t_download_model
+from whisper_s2t.backends.ctranslate2.hf_utils import (
+    download_model as whisper_s2t_download_model,
+)
 from huggingface_hub.constants import HUGGINGFACE_HUB_CACHE
 
 logger = logging.getLogger(__name__)
+
 
 class WhisperS2tTranscriber:
     """
@@ -17,13 +20,9 @@ class WhisperS2tTranscriber:
         pass
 
     @functools.lru_cache
-    def load_model(
-        self,
-        name = None,
-        enable_word_ts:bool = False,
-        **model_params
-    ):
-        if name is None: return None
+    def load_model(self, name=None, enable_word_ts: bool = False, **model_params):
+        if name is None:
+            return None
         if os.path.isdir(name):
             model_path = name
         else:
@@ -31,28 +30,36 @@ class WhisperS2tTranscriber:
                 name,
                 cache_dir=HUGGINGFACE_HUB_CACHE,
             )
-        
-        device_num = sum(1 for i in os.environ.get("CUDA_VISIBLE_DEVICES", "").split(',') if i.isdecimal())
+
+        device_num = sum(
+            1
+            for i in os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")
+            if i.isdecimal()
+        )
 
         # "word_timestamps" needs configuring when loading model.
-        model_params.update({"asr_options":{"word_timestamps": True}} if enable_word_ts else {})
-        model_params.update(dict(
-            model_identifier=model_path,
-            device_index=list(range(device_num)),
-        ))
+        model_params.update(
+            {"asr_options": {"word_timestamps": True}} if enable_word_ts else {}
+        )
+        model_params.update(
+            dict(
+                model_identifier=model_path,
+                device_index=list(range(device_num)),
+            )
+        )
 
         logger.debug(f"Parameters to load model: {model_params}")
         model = whisper_s2t.load_model(**model_params)
         logger.debug(f"Model {name} loaded")
         return model
-    
+
     def transcribe(
         self,
-        model_name:str,
-        model_backend:str="CTranslate2",
-        model_params:dict=None,
-        audio_files:list=[],
-        **transcribe_kwargs
+        model_name: str,
+        model_backend: str = "CTranslate2",
+        model_params: dict = None,
+        audio_files: list = [],
+        **transcribe_kwargs,
     ):
         logger.debug("Transcribing...")
         result = None
@@ -72,7 +79,7 @@ class WhisperS2tTranscriber:
                 compute_type=compute_type,
             )
             if model_params is not None and len(model_params) > 0:
-                model.update_params({'asr_options': model_params})
+                model.update_params({"asr_options": model_params})
             result = model.transcribe_with_vad(audio_files, **transcribe_kwargs)
 
         except Exception:

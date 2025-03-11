@@ -5,6 +5,7 @@ from collections import deque
 
 logger = logging.getLogger(__name__)
 
+
 class LRUCache:
     def __init__(self, cache_size):
         self.cache_size = cache_size
@@ -33,6 +34,7 @@ class LRUCache:
             self.queue.appendleft(key)
             return self.hash_map[key]
 
+
 class EmbeddingModelStore:
     def __init__(self, n_cached_model=3):
         self.cache = LRUCache(n_cached_model)
@@ -47,13 +49,13 @@ class EmbeddingModelStore:
         """
         model = self.cache.get(model_name)
         if model is None:
-            logger.info(f'Loading embedding model {model_name}...')
+            logger.info(f"Loading embedding model {model_name}...")
             model = HuggingFaceEmbeddings(model_name=model_name)
             self.cache.set(model_name, model)
-            logger.info(f'Embedding model {model_name} loaded.')
+            logger.info(f"Embedding model {model_name} loaded.")
         return model
-    
-    async def aload_model(self, model_name:str="intfloat/multilingual-e5-small"):
+
+    async def aload_model(self, model_name: str = "intfloat/multilingual-e5-small"):
         loop = asyncio.get_running_loop()
         model = await loop.run_in_executor(None, self.load_model, model_name)
         return model

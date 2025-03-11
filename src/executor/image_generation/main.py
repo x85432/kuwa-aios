@@ -2,9 +2,7 @@ import os
 import gc
 import io
 import sys
-import asyncio
 import logging
-import json
 import base64
 import torch
 from enum import Enum
@@ -12,9 +10,10 @@ from functools import lru_cache
 from diffusers import (
     AutoPipelineForText2Image,
     AutoPipelineForImage2Image,
-    AutoPipelineForInpainting
+    AutoPipelineForInpainting,
 )
 from diffusers.utils import load_image
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from kuwa.executor import LLMExecutor, Modelfile
@@ -22,19 +21,24 @@ from kuwa.executor.llm_executor import extract_last_url
 
 logger = logging.getLogger(__name__)
 
+
 def image_to_data_url(img):
-        buffered = io.BytesIO()
-        img.save(buffered, format="JPEG")
-        return 'data:image/jpeg;base64,' + base64.b64encode(buffered.getvalue()).decode("utf-8")
+    buffered = io.BytesIO()
+    img.save(buffered, format="JPEG")
+    return "data:image/jpeg;base64," + base64.b64encode(buffered.getvalue()).decode(
+        "utf-8"
+    )
+
 
 class Task(Enum):
     TEXT2IMG = 1
     IMG2IMG = 2
     INPAINTING = 3
 
+
 class StableDiffusionExecutor(LLMExecutor):
-    model_name:str = "stabilityai/stable-diffusion-2"
-    n_cache:int = 3
+    model_name: str = "stabilityai/stable-diffusion-2"
+    n_cache: int = 3
 
     def __init__(self):
         super().__init__()
@@ -43,13 +47,31 @@ class StableDiffusionExecutor(LLMExecutor):
         """
         Override this method to add custom command-line arguments.
         """
-        model_group = parser.add_argument_group('Model Options')
-        model_group.add_argument('--preload', action='store_true', help='Pre-load the model at executor startup.')
-        model_group.add_argument('--model', type=str, default=self.model_name, help='The name of the stable diffusion model to use.')
-        model_group.add_argument('--n_cache', type=int, default=self.n_cache, help='How many models to cache.')
-        
-        display_group = parser.add_argument_group('Display Options')
-        display_group.add_argument('--show_progress', action="store_true", help='Whether to show the progress of generation.')
+        model_group = parser.add_argument_group("Model Options")
+        model_group.add_argument(
+            "--preload",
+            action="store_true",
+            help="Pre-load the model at executor startup.",
+        )
+        model_group.add_argument(
+            "--model",
+            type=str,
+            default=self.model_name,
+            help="The name of the stable diffusion model to use.",
+        )
+        model_group.add_argument(
+            "--n_cache",
+            type=int,
+            default=self.n_cache,
+            help="How many models to cache.",
+        )
+
+        display_group = parser.add_argument_group("Display Options")
+        display_group.add_argument(
+            "--show_progress",
+            action="store_true",
+            help="Whether to show the progress of generation.",
+        )
 
     def setup(self):
         self.model_name = self.args.model
@@ -60,21 +82,23 @@ class StableDiffusionExecutor(LLMExecutor):
         if self.args.preload:
             self.load_pipe(task=Task.TEXT2IMG, model_name=self.model_name)
 
-    def _load_pipe(self, task:Task, model_name:str):
+    def _load_pipe(self, task: Task, model_name: str):
         logger.info(f"Loading model {model_name}")
         pipe_class_map = {
             Task.TEXT2IMG: AutoPipelineForText2Image,
             Task.IMG2IMG: AutoPipelineForImage2Image,
-            Task.INPAINTING: AutoPipelineForInpainting
+            Task.INPAINTING: AutoPipelineForInpainting,
         }
         pipe_class = pipe_class_map[task]
         pipe = pipe_class.from_pretrained(model_name, torch_dtype=torch.float16)
         logger.info(f"Model {model_name} loaded.")
         return pipe
 
-    async def llm_compute(self, history: list[dict], modelfile:Modelfile):
+    async def llm_compute(self, history: list[dict], modelfile: Modelfile):
         model_name = modelfile.parameters.get("model_name", self.model_name)
-        generation_conf = modelfile.parameters["imgen_"] # num_inference_steps=2, strength=0.5, guidance_scale=0.0
+        generation_conf = modelfile.parameters[
+            "imgen_"
+        ]  # num_inference_steps=2, strength=0.5, guidance_scale=0.0
         img_url, history = extract_last_url(history)
         prompt = next(i for i in reversed(history) if i["role"] == "user")["content"]
         logger.debug(f"Model name: {model_name}")
@@ -84,7 +108,8 @@ class StableDiffusionExecutor(LLMExecutor):
             yield "Please enter prompt"
             return
 
-        if self.show_progress: yield "<<<WARNING>>>[PROGRESS]Generating...<<</WARNING>>>"
+        if self.show_progress:
+            yield "<<<WARNING>>>[PROGRESS]Generating...<<</WARNING>>>"
 
         pipe = None
         if img_url is not None:
@@ -110,6 +135,7 @@ class StableDiffusionExecutor(LLMExecutor):
         self.stop = True
         logger.debug("aborted")
         return "Aborted"
+
 
 if __name__ == "__main__":
     executor = StableDiffusionExecutor()
