@@ -645,6 +645,7 @@ class RoomController extends Controller
             if ($args) {
                 $prompts = implode(' ', array_slice(explode(' ', $args), 1));
                 $prompts = str_starts_with($prompts, '"""') && str_ends_with($prompts, '"""') ? substr($prompts, 3, -3) : $prompts;
+
                 if ($prompts) {
                     $prompts = explode("\n", $prependMessage . $prompts);
                     if ($roomId ?? null) {

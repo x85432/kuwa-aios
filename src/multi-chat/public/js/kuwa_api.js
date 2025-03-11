@@ -121,6 +121,20 @@ class KuwaClient {
         return response;
     }
 
+    async deleteMessage(message_id, callbacks = {}) {
+        const url = `${this.baseUrl}/api/user/delete/room/message`;
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${this.authToken}`,
+        };
+        const requestBody = {
+            id: message_id
+        };
+
+        const response = await this._makeRequest(url, "DELETE", headers, JSON.stringify(requestBody), callbacks);
+        return response;
+    }
+
     async deleteCloud(path = '', callbacks = {}) {
         const url = `${this.baseUrl}/api/user/delete/cloud${path}`;
         const headers = {

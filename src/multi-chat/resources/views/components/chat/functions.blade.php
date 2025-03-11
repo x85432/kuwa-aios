@@ -141,9 +141,11 @@ fill="currentFill" />
             } else {
                 msg = replaceImageUrlWithMarkdown(msg_elem.innerHTML)
             }
-            $(msg_elem).html(marked.parse(DOMPurify.sanitize($('<div>').html(msg).text())));
+            $(msg_elem).html(marked.parse(DOMPurify.sanitize($('<div>').html(msg).text().replaceAll('<\?',
+                '&lt;?'))));
             $(msg_elem).find('table').addClass('table-auto');
-            $(msg_elem).find('table').find('td, th').addClass('border border-2 border-gray-500 border-solid p-1');
+            $(msg_elem).find('table').find('td, th').addClass(
+                'border border-2 border-gray-500 border-solid p-1');
             $(msg_elem).find('ul').addClass('list-inside list-disc');
             $(msg_elem).find('ol').addClass('list-inside list-decimal');
             $(msg_elem).find('> p').addClass('whitespace-pre-wrap');
@@ -213,7 +215,7 @@ xmlns="http://www.w3.org/2000/svg">
         });
     }
 
-    function formatLink(index, elem){
+    function formatLink(index, elem) {
         /**
          * Format the links in the message content.
          * 1. Replace the audio file URL with a preview component.
@@ -225,7 +227,8 @@ xmlns="http://www.w3.org/2000/svg">
         const matched_audios = [...new Set(original_content.match(audio_file_regex))];
         if (!matched_audios) return;
         for (const audio_url of matched_audios) {
-            const audio_preview_elem = `<audio controls><source src="${audio_url}">Your browser does not support the audio element.</audio>`;
+            const audio_preview_elem =
+                `<audio controls><source src="${audio_url}">Your browser does not support the audio element.</audio>`;
             $(elem).html(original_content.replaceAll(audio_url, audio_preview_elem));
         }
     }
@@ -340,6 +343,12 @@ xmlns="http://www.w3.org/2000/svg">
             $(node).parent().parent().addClass("bg-green-100")
             quoted.push([llm_id, history_id]); // Add the pair to the array
         }
+    }
+
+    function delete_msg(history_id) {
+        client.deleteMessage(history_id)
+            .then(response => console.log(response))
+            .catch(error => console.error('Error:', error));
     }
 
     function translates(node, history_id, model) {

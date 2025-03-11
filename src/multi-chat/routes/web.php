@@ -90,6 +90,7 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
                     ->name('api.user.delete.cloud');
                 Route::prefix('room')->group(function () {
                     Route::delete('/', [RoomController::class, 'api_delete_room'])->name('api.user.delete.room');
+                    Route::delete('/message', [RoomController::class, 'api_delete_message'])->name('api.user.delete.room.message');
                 });
             });
         });
