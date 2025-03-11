@@ -553,6 +553,7 @@ class ProfileController extends Controller
         $response->headers->set('X-Accel-Buffering', 'no');
         $response->headers->set('charset', 'utf-8');
         $response->headers->set('Connection', 'close');
+        $response->headers->set('X-Request-ID', self::CHAT_COMPLETION_PREFIX . $history->id);
         
         $response->setCallback(function() use (&$user, &$history, &$llm) {
             $bot_output = "";
