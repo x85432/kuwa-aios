@@ -347,9 +347,13 @@ xmlns="http://www.w3.org/2000/svg">
 
     function delete_msg(history_id) {
         client.deleteMessage(history_id)
-            .then(response => console.log(response))
+            .then(response => {
+                console.log(response);
+                location.reload(); 
+            })
             .catch(error => console.error('Error:', error));
     }
+
 
     function translates(node, history_id, model) {
         $(node).parent().children("button.translates").addClass("hidden")
