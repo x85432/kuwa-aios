@@ -65,6 +65,8 @@ return [
     'bot.output_bot.label' => '選取輸出 Bot，負責處理Bot輸出',
     'bot.input_bot' => '輸入 Bot',
     'bot.input_bot.label' => '選取輸入 Bot，負責處理使用者輸入',
+    'bot.process_bot' => '處理機器人/基礎模型',
+    'bot.process_bot.label' => '選擇基礎模型',
     'bot.button.chat' => '聊天',
     'bot.type' => '類型',
     'bot.type.desc.prompt' => '提示詞 Bot: 透過提供提示詞建立Bot',
