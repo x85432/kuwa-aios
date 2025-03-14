@@ -6,6 +6,7 @@ import requests
 import logging
 import httpx
 from urllib.parse import urljoin
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class KuwaClient:
             else os.environ.get("KUWA_API_KEY", None)
         )
         self.limit = limit
+        self.running_jobs = []
 
     def _request(self, endpoint, method="GET", json=None, files=None):
         headers = {
@@ -166,6 +168,10 @@ class KuwaClient:
         ) as response:
             response.raise_for_status()
 
+            job_id = response.headers.get("x-request-id")
+            logger.debug(f"Job ID: {job_id}")
+            self.running_jobs.append(job_id)
+
             async for line in response.aiter_lines():
                 logger.debug(line)
                 if not streaming:
@@ -179,3 +185,23 @@ class KuwaClient:
                     if not chunk:
                         continue
                     yield chunk["content"]
+            self.running_jobs.remove(job_id)
+
+    async def abort(self, job_ids: List[str] | None = None, auth_token: str = None):
+        if job_ids is None:
+            job_ids = self.running_jobs
+
+        url = urljoin(self.base_url, "/v1.0/chat/abort")
+        auth_token = self.auth_token if self.auth_token is not None else auth_token
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {auth_token}",
+        }
+        logger.debug(f"Aborting jobs {job_ids}")
+        request_body = {"ids": job_ids}
+
+        async with httpx.AsyncClient(timeout=None) as client:
+            resp = await client.post(url, headers=headers, json=request_body)
+            resp.raise_for_status()
+            logger.debug(f"Aborting response: {resp.json()}")
+            return True
