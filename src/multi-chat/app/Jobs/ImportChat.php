@@ -52,7 +52,6 @@ class ImportChat implements ShouldQueue
                 while (count($dispatchedAccessCodes) > 0) {
                     // Retrieve the data from Redis
                     $redisData = Redis::lrange('usertask_' . $this->user_id, 0, -1);
-                    $id_list = $this->ids;
                     // Filter the data based on $dispatchedAccessCodes
                     $filteredData = array_filter($dispatchedids, function ($history_id) use ($redisData) {
                         // Assuming $item is a JSON-encoded string, you may need to decode it if it's a different format

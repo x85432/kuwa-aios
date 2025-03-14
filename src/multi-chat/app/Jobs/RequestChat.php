@@ -19,7 +19,7 @@ use Carbon\Carbon;
 class RequestChat implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    private $input, $access_code, $msgtime, $history_id, $user_id, $channel, $lang, $openai_token, $google_token, $third_party_token, $user_token, $modelfile;
+    private $input, $access_code, $msgtime, $history_id, $user_id, $channel, $lang, $openai_token, $google_token, $third_party_token, $user_token, $modelfile, $preserved_output, $exit_when_finish;
     public $tries = 100; # Wait 1000 seconds in total
     public $timeout = 1200; # For the 100th try, 200 seconds limit is given
     public static $agent_version = 'v1.0';
@@ -29,17 +29,27 @@ class RequestChat implements ShouldQueue
      * Create a new job instance.
      */
 
-     public function processModelfile($modelfile) {
-        return $modelfile ? json_encode(array_values(array_map(function($entry) {
-            if ($entry->name !== 'prompts' && !empty($entry->name) && $entry->name[0] !== '#') {
-                $entry->args = str_starts_with($entry->args, '"') ? trim($entry->args, '"') : $entry->args;
-                return $entry;
-            }
-        }, $modelfile))) : null;
+    public function processModelfile($modelfile)
+    {
+        $excludedNames = ['prompts', 'start-prompts', 'auto-prompts', 'welcome'];
+
+        return $modelfile
+            ? json_encode(
+                array_values(
+                    array_filter(
+                        array_map(function ($entry) use ($excludedNames) {
+                            if (!in_array($entry->name, $excludedNames, true) && !empty($entry->name) && $entry->name[0] !== '#') {
+                                $entry->args = str_starts_with($entry->args, '"') ? trim($entry->args, '"') : $entry->args;
+                                return $entry;
+                            }
+                        }, $modelfile),
+                    ),
+                ),
+            )
+            : null;
     }
-    
-    
-    public function __construct($input, $access_code, $user_id, $history_id, $lang, $channel = null, $modelfile = null)
+
+    public function __construct($input, $access_code, $user_id, $history_id, $lang, $channel = null, $modelfile = null, $preserved_output = '', $exit_when_finish = true)
     {
         $this->input = json_encode(json_decode($input), JSON_UNESCAPED_UNICODE);
         $this->msgtime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' +1 second'));
@@ -47,9 +57,11 @@ class RequestChat implements ShouldQueue
         $this->user_id = $user_id;
         $this->lang = $lang;
         $this->history_id = $history_id;
+        $this->exit_when_finish = $exit_when_finish;
         if ($channel == null) {
             $channel = '';
         }
+        $this->preserved_output = '';
         $this->channel = $channel;
         $this->modelfile = $this->processModelfile($modelfile);
         $user = User::find($user_id);
@@ -66,11 +78,11 @@ class RequestChat implements ShouldQueue
     /**
      * Read an GuzzleHttp stream.
      */
-    private function read_stream(&$stream, $timeout_sec=0.1)
+    private function read_stream(&$stream, $timeout_sec = 0.1)
     {
         $buffer = '';
         $start_time = microtime(true);
-        while (!$stream->eof() && (microtime(true) - $start_time) < $timeout_sec) {
+        while (!$stream->eof() && microtime(true) - $start_time < $timeout_sec) {
             $chunk = $stream->read(1);
             $buffer .= $chunk;
         }
@@ -88,12 +100,12 @@ class RequestChat implements ShouldQueue
         }
         Log::channel('analyze')->Info($this->channel);
         if ($this->history_id > 0 && $this->channel == $this->history_id . '') {
-            if (Histories::find($this->channel) && Histories::find($this->channel)->msg != '* ...thinking... *') {
+            if (Histories::find($this->channel) && Histories::find($this->channel)->msg != '* ...thinking... *' && $this->preserved_output == '') {
                 Log::Debug('Hmmm');
                 return;
             }
         }
-        Log::channel('analyze')->Info('In:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input) . "|" . $this->lang . "|" . $this->modelfile);
+        Log::channel('analyze')->Info('In:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input) . '|' . $this->lang . '|' . $this->modelfile);
         $start = microtime(true);
         $tmp = '';
         try {
@@ -183,7 +195,7 @@ class RequestChat implements ShouldQueue
                             'google_token' => $this->google_token,
                             'third_party_token' => $this->third_party_token,
                             'user_token' => $this->user_token,
-                            'modelfile' => $this->modelfile
+                            'modelfile' => $this->modelfile,
                         ],
                         'stream' => true,
                     ]);
@@ -192,7 +204,10 @@ class RequestChat implements ShouldQueue
                     $insideTag = false;
                     $cache = false;
                     $cached = '';
-                    $tmp = '';
+                    $tmp = $this->preserved_output;
+                    if ($tmp != '') {
+                        Redis::publish($this->channel, 'New ' . json_encode(['msg' => $tmp]));
+                    }
                     while (!$stream->eof()) {
                         $chunk = $this->read_stream($stream);
                         $buffer .= $chunk;
@@ -321,10 +336,14 @@ class RequestChat implements ShouldQueue
                         $msgTimeInSeconds = Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->timestamp;
                         $currentTimeInSeconds = Carbon::now()->timestamp;
                         $ExecutionTime = $currentTimeInSeconds - $msgTimeInSeconds;
-                        Redis::lrem(($this->channel == $this->history_id ? 'usertask_' : 'api_') . $this->user_id, 0, $this->history_id);
+                        if ($this->exit_when_finish) {
+                            Redis::lrem(($this->channel == $this->history_id ? 'usertask_' : 'api_') . $this->user_id, 0, $this->history_id);
+                        }
                         Redis::publish($this->channel, 'New ' . json_encode(['msg' => trim($tmp)]));
-                        Redis::publish($this->channel, 'Ended Ended');
-                    }else{
+                        if ($this->exit_when_finish) {
+                            Redis::publish($this->channel, 'Ended Ended');
+                        }
+                    } else {
                         Redis::lrem(($this->channel == $this->history_id ? 'usertask_' : 'api_') . $this->user_id, 0, $this->history_id);
                     }
                 }

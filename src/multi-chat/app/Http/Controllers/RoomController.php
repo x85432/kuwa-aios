@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Jobs\RequestChat;
+use App\Jobs\BatchChat;
 use App\Models\Histories;
 use App\Jobs\ImportChat;
 use App\Models\ChatRoom;
@@ -622,6 +623,56 @@ class RoomController extends Controller
             $chat->save();
         }
         return $Room->id;
+    }
+
+    function processBotConfig($i, $promptType = 'auto', $roomId = null, $prependMessage = '')
+    {
+        $startPrompt = $promptType . '-prompts';
+
+        $config = json_decode(Bots::find($i)->config, true)['modelfile'] ?? [];
+        $exec_name = array_values(array_filter($config, fn($v) => $v['name'] === $startPrompt))[0]['args'] ?? '';
+        $modelfile = array_values(array_filter($config, fn($v) => $v['name'] === 'prompts'));
+
+        if ($exec_name) {
+            $args = str_starts_with($exec_name, '@') ? ($filtered = array_values(array_filter($modelfile, fn($v) => str_starts_with($v['name'] . ' @' . $v['args'], 'prompts ' . $exec_name . ' '))))[0]['args'] ?? null : '@ ' . $exec_name;
+
+            if ($args) {
+                $prompts = implode(' ', array_slice(explode(' ', $args), 1));
+                $prompts = str_starts_with($prompts, '"""') && str_ends_with($prompts, '"""') ? substr($prompts, 3, -3) : $prompts;
+                if ($prompts) {
+                    $prompts = explode("\n", $prependMessage . $prompts);
+                    if ($roomId ?? null) {
+                        $Room = ChatRoom::findorfail($roomId);
+                        $chat = Chats::where('roomID', '=', $roomId)->where('bot_id',$i)->first();
+                    } else {
+                        $Room = new ChatRoom();
+                        $Room->fill(['name' => $prompts[0], 'user_id' => Auth::user()->id]);
+                        $Room->save();
+                        $chat = new Chats();
+                        $chat->fill(['name' => 'Room Chat', 'bot_id' => $i, 'user_id' => Auth::user()->id, 'roomID' => $Room->id]);
+                        $chat->save();
+                    }
+                    $chatId = $chat->id;
+
+                    $start = date('Y-m-d H:i:s');
+                    $deltaStart = date('Y-m-d H:i:s', strtotime($start . ' +1 second'));
+
+                    $record = new Histories();
+                    $record->fill(['msg' => $prompts[0], 'chat_id' => $chatId, 'isbot' => false, 'chained' => true, 'created_at' => $start, 'updated_at' => $start]);
+                    $record->save();
+
+                    $record = new Histories();
+                    $record->fill(['msg' => '* ...thinking... *', 'chat_id' => $chatId, 'chained' => true, 'isbot' => true, 'created_at' => $deltaStart, 'updated_at' => $deltaStart]);
+                    $record->save();
+                    BatchChat::dispatch($prompts, $record->id);
+                    Redis::rpush('usertask_' . Auth::user()->id, $record->id);
+                    Redis::expire('usertask_' . Auth::user()->id, 1200);
+                    return Redirect::route('room.chat', $Room->id)->with('selLLMs', [$i]);
+                }
+            }
+        }
+
+        return null;
     }
 
     public function new(Request $request)
