@@ -111,7 +111,7 @@
 
                 // Array of command keywords
                 const commandKeywords = [
-                    'FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE',
+                    'FROM', 'PROCESS-BOT', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE',
                     'BEFORE-PROMPT', 'AFTER-PROMPT', 'KUWABOT', 'KUWAPARAM', 'WELCOME', 'PROMPTS', 'WELCOME', 'AUTO-PROMPTS', 'START-PROMPTS',
                     'INPUT-BOT', 'INPUT-PREFIX', 'INPUT-SUFFIX',
                     'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX'
@@ -197,7 +197,7 @@
 
         function modelfile_to_string(array) {
             const singleArgCmdKeywords = [
-                'FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM',
+                'FROM', 'PROCESS-BOT', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM',
                 'BEFORE-PROMPT', 'AFTER-PROMPT',
                 'INPUT-BOT', 'INPUT-PREFIX', 'INPUT-SUFFIX',
                 'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX'

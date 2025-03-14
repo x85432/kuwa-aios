@@ -231,6 +231,7 @@
                                 placeholder="{{ __('store.bot.description.label') }}">
                         </div>
                     </div>
+                    <hr class="agent-bot hidden my-4 border-gray-300 dark:border-gray-600">
                     <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="input-bot">
                         <div class="w-full">
@@ -271,6 +272,20 @@
                         </div>
                     </div>
                     
+                    <hr class="agent-bot hidden my-4 border-gray-300 dark:border-gray-600">
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="process-bot">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-process-bot">{{ __('store.bot.process_bot') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="bots-list" autocomplete="off" id="bot-input_bot"
+                                    oninput="alterBotfile('from', $(this).val());"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.process_bot.label') }}">
+                            </div>
+                        </div>
+                    </div>
                     <div
                         class="prompt-bot modelfile-toggle w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
                         <div class="w-full">
@@ -311,6 +326,7 @@
                         </div>
                     </div>
 
+                    <hr class="agent-bot hidden my-4 border-gray-300 dark:border-gray-600">
                     <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="output-bot">
                         <div class="w-full">

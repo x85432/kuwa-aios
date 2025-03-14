@@ -52,6 +52,8 @@ return [
     'bot.next_bot' => 'Next bot',
     'bot.next_bot.label' => 'Select Next Bot',
     'bot.button.chat' => 'Chat',
+    'bot.input_bot' => 'Process Bot/Base Model',
+    'bot.input_bot.label' => 'Select the base model',
     'bot.type' => 'Type',
     'bot.type.desc.prompt' => 'Prompt Bot: Create a bot by giving it instructions',
     'bot.type.desc.server' => 'Server Bot: Integrating with existing external applications',
