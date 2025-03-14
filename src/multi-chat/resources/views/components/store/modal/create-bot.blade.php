@@ -245,18 +245,32 @@
                         </div>
                     </div>
                     <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
-                        id="output-bot">
+                        id="input_prefix">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                for="bot-output-bot">{{ __('store.bot.output_bot') }}</label>
+                                for="bot-input_prefix">{{ __('store.bot.input_prefix') }}</label>
                             <div class="flex items-center">
-                                <input type="text" list="bots-list" autocomplete="off" id="bot-output_bot"
-                                    oninput="alterBotfile('output-bot', $(this).val());"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="{{ __('store.bot.output_bot.label') }}">
+                                <textarea id="bot-input_prefix" type="text"
+                                    oninput="alterBotfile('input-prefix', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.input_prefix.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
                         </div>
                     </div>
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="input_suffix">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-input_suffix">{{ __('store.bot.input_suffix') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-input_suffix" type="text"
+                                    oninput="alterBotfile('input-suffix', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.input_suffix.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div
                         class="prompt-bot modelfile-toggle w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
                         <div class="w-full">
@@ -296,29 +310,42 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
-                        id="before_response">
+                        id="output-bot">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                for="bot-before_response">{{ __('store.bot.before_response') }}</label>
+                                for="bot-output-bot">{{ __('store.bot.output_bot') }}</label>
                             <div class="flex items-center">
-                                <textarea id="bot-before_response" type="text"
-                                    oninput="alterBotfile('before-response', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
-                                    placeholder="{{ __('store.bot.before_response.label') }}"
+                                <input type="text" list="bots-list" autocomplete="off" id="bot-output_bot"
+                                    oninput="alterBotfile('output-bot', $(this).val());"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.output_bot.label') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="output_prefix">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-output_prefix">{{ __('store.bot.output_prefix') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-output_prefix" type="text"
+                                    oninput="alterBotfile('output-prefix', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.output_prefix.label') }}"
                                     class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
                         </div>
                     </div>
                     <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
-                        id="after_response">
+                        id="output_suffix">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                for="bot-after_response">{{ __('store.bot.after_response') }}</label>
+                                for="bot-output_suffix">{{ __('store.bot.output_suffix') }}</label>
                             <div class="flex items-center">
-                                <textarea id="bot-after_response" type="text"
-                                    oninput="alterBotfile('after-response', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
-                                    placeholder="{{ __('store.bot.after_response.label') }}"
+                                <textarea id="bot-output_suffix" type="text"
+                                    oninput="alterBotfile('output-suffix', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.output_suffix.label') }}"
                                     class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
                         </div>

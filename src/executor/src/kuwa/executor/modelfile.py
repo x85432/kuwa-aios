@@ -78,23 +78,30 @@ class Modelfile:
     template: str = None
     before_prompt: str = None
     after_prompt: str = None
+    process_bot: str = None
     input_bot: str = None
+    input_prefix: str = ""
+    input_suffix: str = ""
     output_bot: str = None
-    before_response: str = ""
-    after_response: str = ""
+    output_prefix: str = ""
+    output_suffix: str = ""
     parameters: ParameterDict = field(default_factory=ParameterDict)
 
     @staticmethod
     def append_command(name, args, modelfile: Modelfile):
         single_arg_cmd = (
+            "from",
+            "process-bot",
             "system",
             "template",
             "before-prompt",
             "after-prompt",
-            "before-response",
-            "after-response",
             "input-bot",
+            "input-prefix",
+            "input-suffix",
             "output-bot",
+            "output-prefix",
+            "output-suffix",
         )
         if name in single_arg_cmd:
             args = extract_text_from_quotes(args)
@@ -108,10 +115,14 @@ class Modelfile:
                 modelfile.before_prompt += args
             case "after-prompt":
                 modelfile.after_prompt += args
-            case "before-response":
-                modelfile.before_response += args
-            case "after-response":
-                modelfile.after_response += args
+            case "output-prefix":
+                modelfile.output_prefix += args
+            case "output-suffix":
+                modelfile.output_suffix += args
+            case "input-prefix":
+                modelfile.input_prefix += args
+            case "input-suffix":
+                modelfile.input_suffix += args
 
             case "message":
                 role, content = [
@@ -132,6 +143,9 @@ class Modelfile:
                 modelfile.input_bot = args
             case "output-bot":
                 modelfile.output_bot = args
+
+            case "from" | "process-bot":
+                modelfile.process_bot = args
 
             case _:
                 raise ValueError(f'Unknown command "{name}"')
