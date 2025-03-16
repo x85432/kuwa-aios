@@ -417,7 +417,11 @@ class HuggingfaceExecutor(LLMExecutor):
         self.CSC = CustomStoppingCriteria()
 
         # Setup generation config
-        self.generation_config["pad_token_id"] = self.tokenizer.eos_token_id
+        self.generation_config["pad_token_id"] = (
+            self.tokenizer.pad_token_id
+            if self.tokenizer.pad_token_id is not None
+            else self.tokenizer.eos_token_id
+        )
         default_gconf = GenerationConfig().to_dict()
         file_gconf = (
             read_config(self.args.generation_config)
@@ -466,11 +470,6 @@ class HuggingfaceExecutor(LLMExecutor):
                 return_tensors="pt",
             )
         except Exception as e:
-            logger.exception(
-                f"Error in template `{self.tokenizer.chat_template}` with error: `{e}`"
-            )
-        finally:
-            self.tokenizer.chat_template = chat_template_backup
             logger.exception(
                 f"Error in template `{self.tokenizer.chat_template}` with error: `{e}`"
             )
