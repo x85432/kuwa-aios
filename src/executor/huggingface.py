@@ -418,13 +418,14 @@ class HuggingfaceExecutor(LLMExecutor):
             if self.multi_modal and self.processor is not None
             else self.tokenizer.apply_chat_template
         )
-        prompt = None
+        model_input = None
         try:
-            prompt = apply_chat_template(
+            model_input = apply_chat_template(
                 history,
                 chat_template=chat_template,
                 tokenize=True,
                 add_generation_prompt=True,
+                return_dict=True,
                 return_tensors="pt",
             )
         except Exception as e:
@@ -435,7 +436,7 @@ class HuggingfaceExecutor(LLMExecutor):
                 f"Error in template `{self.tokenizer.chat_template}` with error: `{e}`"
             )
 
-        return prompt
+        return model_input
 
     def fetch_and_process_image(self, history: list[dict], prompt: str = ""):
         if self.processor is None:
@@ -484,7 +485,10 @@ class HuggingfaceExecutor(LLMExecutor):
         # Trim the history to fit into the context window
         prompt_embedding = []
         while True:
-            prompt_embedding = self.synthesis_prompt(prepended_messages + history, system_prompt, modelfile.template)
+            model_inputs = self.synthesis_prompt(
+                prepended_messages + history, system_prompt, modelfile.template
+            )
+            prompt_embedding = model_inputs['input_ids']
             logger.debug(f"Length of prompt: {prompt_embedding.shape[1]}")
             if prompt_embedding.shape[1] <= self.limit: break
 
@@ -495,7 +499,7 @@ class HuggingfaceExecutor(LLMExecutor):
                 return
         prompt = self.tokenizer.decode(prompt_embedding[0])
         logging.debug(f"Prompt: {prompt}")
-        model_inputs = {"input_ids": prompt_embedding.to(self.model.device)}
+        model_inputs = model_inputs.to(self.model.device)
         if (
             self.multi_modal
             and self.processor is not None
