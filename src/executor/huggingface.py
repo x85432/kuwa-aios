@@ -64,6 +64,17 @@ VLM_IMAGE_TOKEN = {
     "gemma3": "<start_of_image>",
 }
 
+TORCH_DTYPES = {
+    "auto": "auto",  # Use the configuration from config.json of model
+    "fp32": torch.float32,
+    "float32": torch.float32,
+    "fp16": torch.float16,
+    "float16": torch.float16,
+    "bf16": torch.bfloat16,
+    "bfloat16": torch.bfloat16,
+}
+
+
 class CustomStoppingCriteria(StoppingCriteria):
     def __init__(self):
         self.proc = None
@@ -100,8 +111,7 @@ class HuggingfaceExecutor(LLMExecutor):
     stop_words: list = []
     system_prompt: str = None
     no_system_prompt: bool = False
-    timeout: float = 600.0
-    device_map: str = "auto"
+    timeout: float = 60.0
     generation_config: dict = {
         "max_new_tokens": 4096,
         "do_sample": False,
@@ -163,6 +173,13 @@ class HuggingfaceExecutor(LLMExecutor):
             default=False,
             help="Load the model in 8bit.",
         )
+        parser.add_argument(
+            "--torch_dtype",
+            type=str,
+            choices=TORCH_DTYPES.keys(),
+            default="auto",
+            help="Data type for PyTorch tensors. 'auto' selects based on config.json of model. 'fp16' uses half-precision, 'bf16' uses brain float 16.",
+        )
         model_group.add_argument(
             "--trust_remote_code",
             action="store_true",
@@ -170,7 +187,10 @@ class HuggingfaceExecutor(LLMExecutor):
             help="Trust the remote code when loading model.",
         )
         model_group.add_argument(
-            "--device_map", type=str, default=self.device_map, help="Override the device_map of HF Accelerate."
+            "--device_map",
+            type=str,
+            default="auto",
+            help="Override the device_map of HF Accelerate.",
         )
         model_group.add_argument(
             "--tokenizer", type=str, default=None, help="Override the tokenizer."
@@ -195,37 +215,39 @@ class HuggingfaceExecutor(LLMExecutor):
             raise Exception("You need to configure a local or huggingface model path!")
 
         self.limit = self.args.limit
-        self.load_8bits = self.args.load_8bits
-        self.trust_remote_code = self.args.trust_remote_code
+        torch_dtype = TORCH_DTYPES[self.args.torch_dtype]
+        trust_remote_code = self.args.trust_remote_code
         try:
-            self.device_map = json.loads(self.args.device_map)
+            device_map = json.loads(self.args.device_map)
         except json.decoder.JSONDecodeError:
-            self.device_map = self.args.device_map
-        model_dtype = {}
-        model_class = AutoModelForCausalLM
-        if self.load_8bits:
+            device_map = self.args.device_map
+        model_dtype = {"torch_dtype": torch_dtype}
+        if self.args.load_8bits:
             model_dtype["load_in_8bit"] = True
-        else:
-            model_dtype["torch_dtype"] = torch.float16 
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.tokenizer_name,
-            trust_remote_code=self.trust_remote_code,
+            trust_remote_code=trust_remote_code,
         )
         self.processor = None
-        processor = AutoProcessor.from_pretrained(
-            self.processor_name,
-            trust_remote_code=self.trust_remote_code,
-        )
-        if type(processor) != type(self.tokenizer):
-            self.processor = processor
+        try:
+            processor = AutoProcessor.from_pretrained(
+                self.processor_name,
+                trust_remote_code=trust_remote_code,
+            )
+            if type(processor) is not type(self.tokenizer):
+                self.processor = processor
+        except Exception as e:
+            logging.warning(
+                f"Could not load the processor {self.processor_name}: {str(e)}"
+            )
         model_config = PretrainedConfig.from_pretrained(self.model_path)
         self.model_type = model_config.model_type
         model_class = VLM_TYPE_MAPPING.get(self.model_type, AutoModelForCausalLM)
         self.model = model_class.from_pretrained(
             self.model_path,
-            device_map=self.device_map,
-            trust_remote_code=self.trust_remote_code,
+            device_map=device_map,
+            trust_remote_code=trust_remote_code,
             **model_dtype,
         )
         logger.debug(
@@ -235,6 +257,7 @@ class HuggingfaceExecutor(LLMExecutor):
             + f"Processor class: {type(self.processor)}"
         )
         logger.debug(f"Device map: {self.model.hf_device_map}")
+
         self.system_prompt = self.args.system_prompt
         self.no_system_prompt = self.args.no_system_prompt
         self.timeout = self.args.timeout
@@ -371,7 +394,7 @@ class HuggingfaceExecutor(LLMExecutor):
                 yield buffer # Flush buffer
 
         except queue.Empty:
-            message = "The model produced no output. Increasing the executor's \"--timeout\" value of this executor may resolve this.\nIf the problem persists, a GPU out-of-memory or a model-specific issue is likely."
+            message = 'The model produced no output. Increasing the executor\'s "--timeout" value of this executor may resolve this.\nIf the problem persists, a GPU out-of-memory or a model-specific issue is likely.'
             logger.exception(message)
             yield LogChunk(message, level=LogLevel.ERROR)
             raise
