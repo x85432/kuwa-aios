@@ -162,6 +162,34 @@ if "%option%"=="1" (
 ) else if "%option%"=="7" (
     :function5
     set userInput=n
+    set /p "userInput=Download Gemma3 1B model (~2GB)? [y/N] "
+    
+    if /I "!userInput!"=="y" (
+    	echo Downloading model...
+		huggingface-cli download "google/gemma-3-1b-it"
+		copy gemma3-1b\_run.bat gemma3-1b\run.bat
+		echo Model downloaded!
+	) else (
+		echo Will not download the model
+	)
+    pause
+) else if "%option%"=="8" (
+    :function5
+    set userInput=n
+    set /p "userInput=Download Gemma3 4B model (~8GB)? [y/N] "
+    
+    if /I "!userInput!"=="y" (
+    	echo Downloading model...
+		huggingface-cli download "google/gemma-3-4b-it"
+		copy gemma3-4b\_run.bat gemma3-4b\run.bat
+		echo Model downloaded!
+	) else (
+		echo Will not download the model
+	)
+    pause
+) else if "%option%"=="9" (
+    :function5
+    set userInput=n
     set /p "userInput=Download gemma-3-1b-it-q4_0.gguf.gguf (~2GB)? [y/N] "
     
     if /I "!userInput!"=="y" (
