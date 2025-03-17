@@ -60,6 +60,8 @@ VLM_TOKENIZER_MAPPING = {}  # Placeholder
 
 VLM_PROCESSOR_MAPPING = {}  # Placeholder
 
+VLM_SKIP_FETCH_IMAGE = ["gemma3"]
+
 # VLM_IMAGE_TOKEN = {
 #     "llava": "<image>",
 #     "llava_next": "<image>",
@@ -494,7 +496,11 @@ class HuggingfaceExecutor(LLMExecutor):
         prompt = self.tokenizer.decode(prompt_embedding[0])
         logging.debug(f"Prompt: {prompt}")
         model_inputs = {"input_ids": prompt_embedding.to(self.model.device)}
-        if self.multi_modal and self.processor is not None:
+        if (
+            self.multi_modal
+            and self.processor is not None
+            and self.model_type not in VLM_SKIP_FETCH_IMAGE
+        ):
             model_inputs = self.fetch_and_process_image(
                 history=history, prompt=prompt
             ).to(self.model.device)
@@ -543,7 +549,7 @@ class HuggingfaceExecutor(LLMExecutor):
                 yield buffer # Flush buffer
 
         except queue.Empty:
-            message = 'The model produced no output. Increasing the executor\'s "--timeout" value of this executor may resolve this.\nIf the problem persists, a GPU out-of-memory or a model-specific issue is likely.'
+            message = 'The model produced no output. Increasing the executor\'s "--timeout" value may resolve this.\nIf the problem persists, a GPU out-of-memory or a model-specific issue is likely.'
             logger.exception(message)
             yield LogChunk(message, level=LogLevel.ERROR)
             raise
