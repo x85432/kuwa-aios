@@ -24,10 +24,12 @@ set "names[3]=Stable Diffusion Model"
 set "names[4]=Diarization Model"
 set "names[5]=Llama3.1 Model"
 set "names[6]=Gemma2 Model"
+set "names[7]=Gemma3 1B Model"
+set "names[8]=Gemma3 4B (Multi-Modal) Model"
 REM set "names[4]=Embedding Model"
 REM set "names[5]=GGUF Model"
 REM set "names[6]=HuggingFace Model"
-set "names[7]=Exit"
+set "names[9]=Exit"
 
 REM Define an array to store the model types and their names
 set "models[1]=whisper"
@@ -36,23 +38,25 @@ set "models[3]=stable_diffusion"
 set "models[4]=diarization"
 set "models[5]=llama"
 set "models[6]=gemma"
+set "models[7]=gemma3-1b"
+set "models[8]=gemma3-4b"
 REM set "models[4]=embedding_model"
 REM set "models[5]=gguf_model"
 REM set "models[6]=huggingface"
-set "models[7]=exit"
+set "models[9]=exit"
 :main
 cls
 echo Now in: "%cd%"
 
 echo Download Model:
 
-for %%a in (1 2 3 4 5 6 7) do (
+for %%a in (1 2 3 4 5 6 7 8 9) do (
     echo %%a - !names[%%a]!
-    if "%%a" == "6" (
+    if "%%a" == "8" (
         echo ------------
     )
 )
-set /p "option=Enter the option number (1-7): "
+set /p "option=Enter the option number (1-9): "
 if not defined models[%option%] (
     echo Invalid option. Please try again.
     goto main
@@ -156,6 +160,34 @@ if "%option%"=="1" (
 	)
     pause
 ) else if "%option%"=="7" (
+    :function5
+    set userInput=n
+    set /p "userInput=Download Gemma3 1B model (~2GB)? [y/N] "
+    
+    if /I "!userInput!"=="y" (
+    	echo Downloading model...
+		huggingface-cli download "google/gemma-3-1b-it"
+		copy gemma3-1b\_run.bat gemma3-1b\run.bat
+		echo Model downloaded!
+	) else (
+		echo Will not download the model
+	)
+    pause
+) else if "%option%"=="8" (
+    :function5
+    set userInput=n
+    set /p "userInput=Download Gemma3 4B model (~8GB)? [y/N] "
+    
+    if /I "!userInput!"=="y" (
+    	echo Downloading model...
+		huggingface-cli download "google/gemma-3-4b-it"
+		copy gemma3-4b\_run.bat gemma3-4b\run.bat
+		echo Model downloaded!
+	) else (
+		echo Will not download the model
+	)
+    pause
+) else if "%option%"=="9" (
     exit
 )
 if "%1"=="quick" (
