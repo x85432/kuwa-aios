@@ -14,7 +14,6 @@ services:
     command: [
       "--model_path", "google/gemma-3-1b-it",
       "--visible_gpu", "0",
-      "--timeout", "60000",
       "--log", "debug"
     ]
     restart: unless-stopped

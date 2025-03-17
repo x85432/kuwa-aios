@@ -14,9 +14,8 @@ services:
     command: [
       "--model_path", "google/gemma-3-4b-it",
       "--visible_gpu", "0",
-      "--timeout", "60000",
       # "--load_8bits",
-      # "--device_map", "cpu",
+      "--device_map", "cpu",
       "--log", "debug",
     ]
     restart: unless-stopped
@@ -28,4 +27,6 @@ services:
     #       - driver: nvidia
     #         device_ids: ['0']
     #         capabilities: [gpu]
+    extra_hosts:
+      - "localhost:host-gateway"
     networks: ["backend"]
