@@ -14,7 +14,10 @@ llama-cpp-python >= 0.2.77, == 0.2.87
 # Huggingface
 torch == 2.3.0
 torchvision == 0.18.0
-transformers
+#transformers
+# Install the development version of transformers to enable Gemma-3 supporting.
+# A stable release of transformers should be used as soon as released.
+git+https://github.com/huggingface/transformers@fc8764c9a618add64c33e83720f974750bcd0978
 accelerate
 sentencepiece
 pillow

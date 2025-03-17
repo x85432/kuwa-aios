@@ -10,15 +10,25 @@ import argparse
 import functools
 import mimetypes
 import requests
-from inspect import cleandoc
+import queue
+import json
 from typing import Optional
 from threading import Thread
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from transformers import (
-    AutoTokenizer, AutoModelForCausalLM, AutoProcessor,
-    PaliGemmaForConditionalGeneration, LlavaForConditionalGeneration, LlavaNextForConditionalGeneration,
-    PretrainedConfig, GenerationConfig, TextIteratorStreamer,
-    StoppingCriteria, StoppingCriteriaList,
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    AutoProcessor,
+    AutoModelForVision2Seq,
+    PaliGemmaForConditionalGeneration,
+    LlavaForConditionalGeneration,
+    LlavaNextForConditionalGeneration,
+    Gemma3ForConditionalGeneration,
+    PretrainedConfig,
+    GenerationConfig,
+    TextIteratorStreamer,
+    StoppingCriteria,
+    StoppingCriteriaList,
 )
 
 from kuwa.executor import LLMExecutor, Modelfile
@@ -28,6 +38,7 @@ from kuwa.executor.util import (
     read_config,
     merge_config,
 )
+from kuwa.executor.message import LogChunk, LogLevel
 from transformers.utils import is_vision_available
 
 if is_vision_available():
@@ -40,6 +51,8 @@ VLM_TYPE_MAPPING = {
     "llava_next": LlavaNextForConditionalGeneration,
     "paligemma": PaliGemmaForConditionalGeneration,
     "phi3_v": AutoModelForCausalLM,
+    "granite": AutoModelForVision2Seq,
+    "gemma3": Gemma3ForConditionalGeneration,
 }
 
 VLM_IMAGE_TOKEN = {
@@ -47,6 +60,8 @@ VLM_IMAGE_TOKEN = {
     "llava_next": "<image>",
     "paligemma": "<image>",
     "phi3_v": "<|image_1|>",
+    "granite": "<image>",
+    "gemma3": "<start_of_image>",
 }
 
 class CustomStoppingCriteria(StoppingCriteria):
@@ -85,7 +100,8 @@ class HuggingfaceExecutor(LLMExecutor):
     stop_words: list = []
     system_prompt: str = None
     no_system_prompt: bool = False
-    timeout: float = 10.0
+    timeout: float = 600.0
+    device_map: str = "auto"
     generation_config: dict = {
         "max_new_tokens": 4096,
         "do_sample": False,
@@ -99,21 +115,70 @@ class HuggingfaceExecutor(LLMExecutor):
         super().__init__()
     
     def extend_arguments(self, parser):
-        model_group = parser.add_argument_group('Model Options')
-        model_group.add_argument('--model_path', default=self.model_path, help='Model path. It can be the path to local model or the model name on HuggingFace Hub')
-        model_group.add_argument('--visible_gpu', default=None, help='Specify the GPU IDs that this executor can use. Separate by comma.')
-        model_group.add_argument('--system_prompt', default=self.system_prompt, help='The system prompt that is prepend to the chat history.')
-        model_group.add_argument('--no_system_prompt', default=False, action='store_true', help='Disable the system prompt if the model doesn\'t support it.')
-        model_group.add_argument('--limit', type=int, default=self.limit, help='The limit of the user prompt')
-        model_group.add_argument('--override_chat_template', default=None,
-            help='Override the default chat template provided by the model. Reference: https://huggingface.co/docs/transformers/main/en/chat_templating')
-        model_group.add_argument('--stop', default=[], nargs='*', help="Additional end-of-string keywords to stop generation.")
-        model_group.add_argument('--timeout', type=float, default=self.timeout, help='The generation timeout in seconds.')
-        model_group.add_argument('--load_8bits', action="store_true", default=False, help='Load the model in 8bit.')
-        model_group.add_argument('--trust_remote_code', action="store_true", default=False, help='Trust the remote code when loading model.')
-        model_group.add_argument('--tokenizer', type=str, default=None, help='Override the tokenizer.')
-        model_group.add_argument('--processor', type=str, default=None, help='Override the processor.')
-        
+        model_group = parser.add_argument_group("Model Options")
+        model_group.add_argument(
+            "--model_path",
+            default=self.model_path,
+            help="Model path. It can be the path to local model or the model name on HuggingFace Hub",
+        )
+        model_group.add_argument(
+            "--visible_gpu",
+            default=None,
+            help="Specify the GPU IDs that this executor can use. Separate by comma.",
+        )
+        model_group.add_argument(
+            "--system_prompt",
+            default=self.system_prompt,
+            help="The system prompt that is prepend to the chat history.",
+        )
+        model_group.add_argument(
+            "--no_system_prompt",
+            default=False,
+            action="store_true",
+            help="Disable the system prompt if the model doesn't support it.",
+        )
+        model_group.add_argument(
+            "--limit", type=int, default=self.limit, help="The limit of the user prompt"
+        )
+        model_group.add_argument(
+            "--override_chat_template",
+            default=None,
+            help="Override the default chat template provided by the model. Reference: https://huggingface.co/docs/transformers/main/en/chat_templating",
+        )
+        model_group.add_argument(
+            "--stop",
+            default=[],
+            nargs="*",
+            help="Additional end-of-string keywords to stop generation.",
+        )
+        model_group.add_argument(
+            "--timeout",
+            type=float,
+            default=self.timeout,
+            help="The generation timeout in seconds.",
+        )
+        model_group.add_argument(
+            "--load_8bits",
+            action="store_true",
+            default=False,
+            help="Load the model in 8bit.",
+        )
+        model_group.add_argument(
+            "--trust_remote_code",
+            action="store_true",
+            default=False,
+            help="Trust the remote code when loading model.",
+        )
+        model_group.add_argument(
+            "--device_map", type=str, default=self.device_map, help="Override the device_map of HF Accelerate."
+        )
+        model_group.add_argument(
+            "--tokenizer", type=str, default=None, help="Override the tokenizer."
+        )
+        model_group.add_argument(
+            "--processor", type=str, default=None, help="Override the processor."
+        )
+
         # Generation Options
         gen_group = parser.add_argument_group('Generation Options', 'GenerationConfig for Transformers. See https://huggingface.co/docs/transformers/en/main_classes/text_generation#transformers.GenerationConfig')
         gen_group.add_argument('-c', '--generation_config', default=None, help='The generation configuration in YAML or JSON format. This can be overridden by other command-line arguments.')
@@ -132,6 +197,10 @@ class HuggingfaceExecutor(LLMExecutor):
         self.limit = self.args.limit
         self.load_8bits = self.args.load_8bits
         self.trust_remote_code = self.args.trust_remote_code
+        try:
+            self.device_map = json.loads(self.args.device_map)
+        except json.decoder.JSONDecodeError:
+            self.device_map = self.args.device_map
         model_dtype = {}
         model_class = AutoModelForCausalLM
         if self.load_8bits:
@@ -153,13 +222,19 @@ class HuggingfaceExecutor(LLMExecutor):
         model_config = PretrainedConfig.from_pretrained(self.model_path)
         self.model_type = model_config.model_type
         model_class = VLM_TYPE_MAPPING.get(self.model_type, AutoModelForCausalLM)
-        logger.debug(f"Model type; Model class: {self.model_type}; {model_class}")
         self.model = model_class.from_pretrained(
             self.model_path,
-            device_map="auto",
+            device_map=self.device_map,
             trust_remote_code=self.trust_remote_code,
-            **model_dtype
+            **model_dtype,
         )
+        logger.debug(
+            f"Model type: {self.model_type}\n"
+            + f"Model class: {type(self.model)}\n"
+            + f"Tokenizer class: {type(self.tokenizer)}\n"
+            + f"Processor class: {type(self.processor)}"
+        )
+        logger.debug(f"Device map: {self.model.hf_device_map}")
         self.system_prompt = self.args.system_prompt
         self.no_system_prompt = self.args.no_system_prompt
         self.timeout = self.args.timeout
@@ -221,7 +296,7 @@ class HuggingfaceExecutor(LLMExecutor):
             requests.head(url, allow_redirects=True).headers["content-type"] in self.get_supported_image_mime():
             images = [Image.open(requests.get(url, stream=True, allow_redirects=True).raw)]
         logger.info("Image fetched. Processing...")
-        result = self.processor(prompt, images, return_tensors="pt")
+        result = self.processor(text=prompt, images=images, return_tensors="pt")
         logger.info("Image processed.")
         return result
 
@@ -295,9 +370,12 @@ class HuggingfaceExecutor(LLMExecutor):
                 if self.in_debug(): print(end=buffer, flush=True)
                 yield buffer # Flush buffer
 
-        except Exception as e:
-            logger.exception("Error occurs during generation.")
-            yield "[Oops, Cuda out of memory! Please try toggle off chained state, or remove some texts.]"
+        except queue.Empty:
+            message = "The model produced no output. Increasing the executor's \"--timeout\" value of this executor may resolve this.\nIf the problem persists, a GPU out-of-memory or a model-specific issue is likely."
+            logger.exception(message)
+            yield LogChunk(message, level=LogLevel.ERROR)
+            raise
+
         finally:
             self.CSC.proc = None
             torch.cuda.empty_cache()
