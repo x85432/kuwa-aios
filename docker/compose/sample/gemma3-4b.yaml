@@ -1,0 +1,31 @@
+services:
+  gemma-3-4b-executor:
+    image: kuwaai/model-executor
+    environment:
+      EXECUTOR_TYPE: huggingface
+      EXECUTOR_ACCESS_CODE: .model/google/gemma-3-4b-it
+      EXECUTOR_NAME: Gemma-3-4B
+      EXECUTOR_IMAGE: gemma.png # Refer to src/multi-chat/public/images
+      HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN}
+    depends_on:
+      - executor-builder
+      - kernel
+      - multi-chat
+    command: [
+      "--model_path", "google/gemma-3-4b-it",
+      "--visible_gpu", "0",
+      "--timeout", "60000",
+      # "--load_8bits",
+      # "--device_map", "cpu",
+      "--log", "debug",
+    ]
+    restart: unless-stopped
+    volumes: ["~/.cache/huggingface:/root/.cache/huggingface"]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #       - driver: nvidia
+    #         device_ids: ['0']
+    #         capabilities: [gpu]
+    networks: ["backend"]
