@@ -658,11 +658,11 @@ class RoomController extends Controller
                     $deltaStart = date('Y-m-d H:i:s', strtotime($start . ' +1 second'));
 
                     $record = new Histories();
-                    $record->fill(['msg' => $prompts[0], 'chat_id' => $chatId, 'isbot' => false, 'chained' => true, 'created_at' => $start, 'updated_at' => $start]);
+                    $record->fill(['msg' => $prompts[0], 'chat_id' => $chatId, 'isbot' => false, 'chained' =>  Session::get('chained') ?? true, 'created_at' => $start, 'updated_at' => $start]);
                     $record->save();
 
                     $record = new Histories();
-                    $record->fill(['msg' => '* ...thinking... *', 'chat_id' => $chatId, 'chained' => true, 'isbot' => true, 'created_at' => $deltaStart, 'updated_at' => $deltaStart]);
+                    $record->fill(['msg' => '* ...thinking... *', 'chat_id' => $chatId, 'chained' =>  Session::get('chained') ?? true, 'isbot' => true, 'created_at' => $deltaStart, 'updated_at' => $deltaStart]);
                     $record->save();
                     BatchChat::dispatch($prompts, $record->id);
                     Redis::rpush('usertask_' . Auth::user()->id, $record->id);

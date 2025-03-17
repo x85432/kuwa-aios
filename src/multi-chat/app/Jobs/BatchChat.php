@@ -59,21 +59,24 @@ class BatchChat implements ShouldQueue
         $dispatchedAccessCodes[] = $access_code;
         $dispatchedids[] = $this->history_id;
         foreach ($this->prompts as $index => $prompt) {
+            // get new record
+            $new_input = implode("\n", array_column(array_filter($buffer, fn($item) => $item['isbot']), 'msg'));
             if ($index != 0) {
                 $buffer[] = ['msg' => $prompt, 'isbot' => false];
+                
                 Redis::rpush('usertask_' . $this->user_id, $this->history_id);
                 Redis::expire('usertask_' . $this->user_id, 1200);
             }
-            // get new record
-            $new_input = implode("\n", array_column(array_filter($buffer, fn($item) => $item['isbot']), 'msg'));
-            Log::channel('analyze')->Info($new_input);
-            RequestChat::dispatch(json_encode(array_merge($input, $buffer)), $access_code, $this->user_id, $this->history_id, App::getLocale(), $this->history_id, $modelfile, $new_input, $index === count($this->prompts) - 1);
+
+            RequestChat::dispatch(json_encode($history->chained ? array_merge($input, $buffer) : [['msg' => $prompt, 'isbot' => false]]), $access_code, $this->user_id, $this->history_id, App::getLocale(), $this->history_id, $modelfile, $new_input . "\n", $index === count($this->prompts) - 1);
 
             while (true) {
                 $record = Histories::find($this->history_id)->fresh();
                 if ($record->msg != '* ...thinking... *') {
-                    $buffer[] = ['msg' => $record->msg, 'isbot' => true];
-                    if ($index === count($this->prompts) - 1) return;
+                    $buffer[] = ['msg' => trim(mb_substr($record->msg, mb_strlen($new_input, 'UTF-8'), null, 'UTF-8')), 'isbot' => true];
+                    if ($index === count($this->prompts) - 1) {
+                        return;
+                    }
                     $record->msg = '* ...thinking... *';
                     $record->save();
                     break;

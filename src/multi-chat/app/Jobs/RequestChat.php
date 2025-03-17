@@ -19,7 +19,7 @@ use Carbon\Carbon;
 class RequestChat implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    private $input, $access_code, $msgtime, $history_id, $user_id, $channel, $lang, $openai_token, $google_token, $third_party_token, $user_token, $modelfile, $preserved_output, $exit_when_finish;
+    private $input, $access_code, $msgtime, $history_id, $user_id, $channel, $lang, $openai_token, $google_token, $third_party_token, $user_token, $modelfile, $preserved_output, $exit_when_finish, $nim_token;
     public $tries = 100; # Wait 1000 seconds in total
     public $timeout = 1200; # For the 100th try, 200 seconds limit is given
     public static $agent_version = 'v1.0';
@@ -61,7 +61,7 @@ class RequestChat implements ShouldQueue
         if ($channel == null) {
             $channel = '';
         }
-        $this->preserved_output = '';
+        $this->preserved_output = $preserved_output;
         $this->channel = $channel;
         $this->modelfile = $this->processModelfile($modelfile);
         $user = User::find($user_id);
@@ -77,6 +77,9 @@ class RequestChat implements ShouldQueue
 
     /**
      * Read an GuzzleHttp stream.
+     *
+     * [Deprecated] Since 0.4.0, we use SSE stream with JSON payload to handle internal response.
+     * Reading raw byte stream is deprecated and should be removed in the future.
      */
     private function read_stream(&$stream, $timeout_sec = 0.1)
     {
@@ -184,8 +187,14 @@ class RequestChat implements ShouldQueue
                             $kuwa_flag = false;
                         }
                     }
-                    $response = $client->post($kernel_location . '/' . self::$agent_version . '/chat/completions', [
-                        'headers' => ['Content-Type' => 'application/x-www-form-urlencoded', 'Accept-Language' => $this->lang],
+                    $response = $client->post($kernel_location . '/' . self::$kernel_api_version . '/chat/completions', [
+                        'headers' => [
+                            'Content-Type' => 'application/x-www-form-urlencoded',
+                            'Accept-Language' => $this->lang,
+                            'X-Kuwa-User-Id' => $this->user_id,
+                            'X-Kuwa-Api-Token' => $this->user_token,
+                            'X-Kuwa-Api-Base-Urls' => config('app.KUWA_API_BASE_URLS'),
+                        ],
                         'form_params' => [
                             'input' => $this->input,
                             'name' => $this->access_code,
@@ -204,42 +213,54 @@ class RequestChat implements ShouldQueue
                     $insideTag = false;
                     $cache = false;
                     $cached = '';
-                    $tmp = $this->preserved_output;
-                    if ($tmp != '') {
-                        Redis::publish($this->channel, 'New ' . json_encode(['msg' => $tmp]));
-                    }
                     while (!$stream->eof()) {
-                        $chunk = $this->read_stream($stream);
-                        $buffer .= $chunk;
-                        $bufferLength = mb_strlen($buffer, '8bit');
-                        $messageLength = null;
-                        for ($i = $bufferLength; $i > 0 ; $i--) {
-                            $message = mb_substr($buffer, 0, $i, '8bit');
-                            if (mb_check_encoding($message, 'UTF-8')) {
-                                $messageLength = $i;
-                                break;
+                        $chunk = \GuzzleHttp\Psr7\Utils::readLine($stream);
+                        // Extract text response from SSE data
+                        if (str_starts_with($chunk, 'data: ')) {
+                            $json = substr($chunk, strlen('data: '));
+                            $resp = json_decode($json, true);
+                            $resp_chunks = $resp['delta'] ?? [];
+                            $chunk = '';
+                            foreach ($resp_chunks as $resp_chunk) {
+                                $type = $resp_chunk['type'] ?? null;
+                                switch ($type) {
+                                    case 'text':
+                                        $chunk .= $resp_chunk['text']['value'] ?? '';
+                                        break;
+                                    case 'log':
+                                        $chunk .= "\n[" . ($resp_chunk['log']['level'] ?? '') . '] ' . ($resp_chunk['log']['text'] ?? '');
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
                         }
-                        if ($messageLength !== null) {
-                            $message = mb_substr($buffer, 0, $messageLength, '8bit');
-                            if (mb_check_encoding($message, 'UTF-8')) {
-                                if ($this->channel != $this->history_id) {
-                                    $tmp .= $message;
-                                    Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
-                                    $buffer = mb_substr($buffer, $messageLength, null, '8bit');
-                                } else {
-                                    if (str_starts_with($message, '<') && !$cache) {
-                                        $cache = true;
-                                    }
-                                    if (!$cache) {
-                                        $tmp .= $message;
-                                        $outputTmp = $tmp . '...';
-                                        if ($kuwa_flag) {
-                                            $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
-                                        }
-                                        if ($warningMessages) {
-                                            $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
-                                        }
+                        $buffer->addChunk($chunk);
+                        $message = $buffer->processBuffer();
+
+                        if ($this->preserved_output != '') {
+                            $message = $this->preserved_output . $message;
+                            $this->preserved_output = '';
+                        }
+                        if ($message === '') {
+                            continue;
+                        }
+                        if ($this->channel != $this->history_id) {
+                            $tmp .= $message;
+                            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
+                        } else {
+                            if (str_starts_with($message, '<') && !$cache) {
+                                $cache = true;
+                            }
+                            if (!$cache) {
+                                $tmp .= $message;
+                                $outputTmp = $tmp . '...';
+                                if ($kuwa_flag) {
+                                    $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
+                                }
+                                if ($warningMessages) {
+                                    $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
+                                }
 
                                         Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
                                     } else {
@@ -388,5 +409,52 @@ class RequestChat implements ShouldQueue
 
         Redis::publish($this->channel, 'New ' . json_encode(['msg' => '[Sorry, something is broken, please try again later!]']));
         Redis::publish($this->channel, 'Ended Ended');
+    }
+}
+
+class Utf8Buffer
+{
+    private $buffer = '';
+
+    /**
+     * Adds a chunk of data to the buffer.
+     *
+     * @param string $chunk The data chunk to add.
+     */
+    public function addChunk(string $chunk): void
+    {
+        $this->buffer .= $chunk;
+    }
+
+    /**
+     * Processes the buffer to extract and return complete UTF-8 messages.
+     *  Returns null if no complete message is found.
+     *
+     * @return string|null The UTF-8 message, or null if none is found.
+     */
+    public function processBuffer(): ?string
+    {
+        $bufferLength = mb_strlen($this->buffer, '8bit');
+
+        for ($i = $bufferLength; $i > 0; $i--) {
+            $message = mb_substr($this->buffer, 0, $i, '8bit');
+
+            // UTF-8 encoding check.
+            if (mb_check_encoding($message, 'UTF-8')) {
+                $this->buffer = mb_substr($this->buffer, $i, $bufferLength - $i, '8bit'); // remove the processed message from the buffer
+                return $message;
+            }
+        }
+
+        return ''; // No complete UTF-8 message found
+    }
+
+    /**
+     * Gets the remaining unprocessed buffer.
+     * @return string
+     */
+    public function getRemainingBuffer(): string
+    {
+        return $this->buffer;
     }
 }
