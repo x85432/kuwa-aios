@@ -2,17 +2,18 @@ services:
   gemma-3-1b-executor:
     image: kuwaai/model-executor
     environment:
-      EXECUTOR_TYPE: huggingface
-      EXECUTOR_ACCESS_CODE: .model/google/gemma-3-1b-3-1b-it
-      EXECUTOR_NAME: Gemma-3-1B
+      EXECUTOR_TYPE: llamacpp
+      EXECUTOR_ACCESS_CODE: .model/google/gemma-1b-it
+      EXECUTOR_NAME: Gemma 3 1B
       EXECUTOR_IMAGE: gemma.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 311003
       HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN}
     depends_on:
       - executor-builder
       - kernel
       - multi-chat
     command: [
-      "--model_path", "google/gemma-3-1b-it",
+      "--model_path", "hf://tetf/gemma-3-1b-it-qat-q4_0-GGUF?gemma-3-1b-it-q4_0.gguf",
       "--visible_gpu", "0",
       "--log", "debug"
     ]

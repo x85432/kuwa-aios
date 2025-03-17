@@ -3,9 +3,10 @@ services:
     image: kuwaai/model-executor
     environment:
       EXECUTOR_TYPE: huggingface
-      EXECUTOR_ACCESS_CODE: .model/google/gemma-3-1b-3-4b-it
-      EXECUTOR_NAME: Gemma-3-4B
+      EXECUTOR_ACCESS_CODE: .model/google/gemma
+      EXECUTOR_NAME: Gemma 3 4B
       EXECUTOR_IMAGE: gemma.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 301000
       HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN}
     depends_on:
       - executor-builder
