@@ -32,7 +32,7 @@ use App\Models\LLMs;
 |
 */
 
-Route::middleware(LanguageMiddleware::class)->group(function () {
+Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function () {
     Route::get('/', function () {
         return view('welcome');
     })->name('/');

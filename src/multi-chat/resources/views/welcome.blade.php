@@ -23,6 +23,9 @@
     <link href="{{ asset('css/flowbite.min.css') }}" rel="stylesheet" />
     <script src="{{ asset('js/flowbite.min.js') }}"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Scripts -->
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
 </head>
 
 <body class="antialiased scrollbar">
@@ -85,7 +88,7 @@
                 @foreach ($languages as $key => $value)
                     @unless ($key == session('locale', config('app.locale')))
                         <li>
-                            <a href="/lang/{{ $key }}"
+                            <a href="#" onclick="changeLanguage('{{ $key }}')"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
                                 role="menuitem">
                                 <div class="inline-flex items-center">
@@ -95,6 +98,17 @@
                         </li>
                     @endunless
                 @endforeach
+                <script>
+                    function changeLanguage(locale) {
+                        $.ajax({
+                            url: '/lang/' + locale,
+                            type: 'GET',
+                            success: function() {
+                                location.reload();
+                            }
+                        });
+                    }
+                </script>
             </ul>
         </div>
 
