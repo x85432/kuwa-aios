@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Models\Feedback;
 use DB;
 use Session;
+// use Illuminate\Support\Facades\Log;
 
 class BotController extends Controller
 {
@@ -48,7 +49,12 @@ class BotController extends Controller
             $line = trim($line);
 
             // Array of command keywords
-            $commandKeywords = ['FROM', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE', 'BEFORE-PROMPT', 'AFTER-PROMPT', 'PROMPTS', 'AUTO-PROMPTS', 'START-PROMPTS', 'WELCOME'];
+            $commandKeywords = [
+                'FROM', 'PROCESS-BOT', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE',
+                'BEFORE-PROMPT', 'AFTER-PROMPT', 'PROMPTS', 'AUTO-PROMPTS', 'START-PROMPTS', 'WELCOME',
+                'INPUT-BOT', 'INPUT-PREFIX', 'INPUT-SUFFIX',
+                'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX'
+            ];
 
             // Check if the line starts with a command keyword
             if (strpos($line, '#') === 0) {
@@ -311,7 +317,7 @@ class BotController extends Controller
             } else {
                 $errorResponse = [
                     'status' => 'error',
-                    'message' => 'You have no permission to use Chat API',
+                    'message' => 'You have no permission to use this Kuwa API',
                 ];
 
                 return response()->json($errorResponse, 401, [], JSON_UNESCAPED_UNICODE);
@@ -444,5 +450,23 @@ class BotController extends Controller
 
         // If none of the criteria hold, return false
         return false;
+    }
+
+    public function listBots(Request $request)
+    {
+        $bots = Bots::getBots($request->user()->group_id);
+        $bot_list = Bots::sortBotsByName($bots)->values()->all();
+
+        $expose_bot = function (Bots $bot): array{
+            return array(
+                "name" => $bot['name'],
+                "value" => '.bot/' . $bot['name']
+            );
+        };
+
+        $bot_list = array_map($expose_bot, $bot_list);
+
+        return response()->json($bot_list);
+
     }
 }

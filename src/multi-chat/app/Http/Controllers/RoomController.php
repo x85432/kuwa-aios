@@ -78,7 +78,7 @@ class RoomController extends Controller
             ->toArray();
         $client = new Client(['timeout' => 300]);
         $kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
-        $response = $client->post($kernel_location . '/' . RequestChat::$agent_version . '/chat/abort', [
+        $response = $client->post($kernel_location . '/' . RequestChat::$kernel_api_version . '/chat/abort', [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'form_params' => [
                 'history_id' => json_encode($list),
@@ -437,7 +437,7 @@ class RoomController extends Controller
             } else {
                 $errorResponse = [
                     'status' => 'error',
-                    'message' => 'You have no permission to use Chat API',
+                    'message' => 'You have no permission to use this Kuwa API',
                 ];
 
                 return response()->json($errorResponse, 401, [], JSON_UNESCAPED_UNICODE);
@@ -465,7 +465,7 @@ class RoomController extends Controller
             } else {
                 $errorResponse = [
                     'status' => 'error',
-                    'message' => 'You have no permission to use Chat API',
+                    'message' => 'You have no permission to use this Kuwa API',
                 ];
 
                 return response()->json($errorResponse, 401, [], JSON_UNESCAPED_UNICODE);
@@ -490,16 +490,18 @@ class RoomController extends Controller
             $user = $result;
             if (User::find($user->id)->hasPerm('Room_delete_room_message')) {
                 Auth::setUser(User::find($user->id));
-                $this->new($request);
-                if (session('room_id') != null) {
-                    return response()->json(['status' => 'success', 'result' => session('room_id')], 200, [], JSON_UNESCAPED_UNICODE);
+                $history = Histories::withTrashed()->find($request->input('id'));
+                if ($history) {
+                    $room_id = Chats::withTrashed()->find($history->chat_id)->room_id;
+                    $history->forceDelete();
+                    return response()->json(['status' => 'success', 'result' => $room_id], 200, [], JSON_UNESCAPED_UNICODE);
                 } else {
                     return response()->json(['status' => 'failed'], 200, [], JSON_UNESCAPED_UNICODE);
                 }
             } else {
                 $errorResponse = [
                     'status' => 'error',
-                    'message' => 'You have no permission to use Chat API',
+                    'message' => 'You have no permission to use this Kuwa API',
                 ];
 
                 return response()->json($errorResponse, 401, [], JSON_UNESCAPED_UNICODE);
@@ -578,9 +580,7 @@ class RoomController extends Controller
                 if ($upload_result['succeed']) {
                     $input = $upload_result['url'] . "\n" . $input;
                 } else {
-                    return redirect()
-                        ->route('room.home')
-                        ->with('errorString', $upload_result['msg']);
+                    return redirect()->route('room.home')->with('errorString', $upload_result['msg']);
                 }
             }
             $chatname = $input;
@@ -629,40 +629,6 @@ class RoomController extends Controller
             $chat->save();
         }
         return $Room->id;
-    }
-
-    function processBotConfig($i, $promptType = 'auto', $roomId = null, $prependMessage = '') {
-        $startPrompt = $promptType . '-prompts';
-    
-        $config = json_decode(Bots::find($i)->config, true)['modelfile'] ?? [];
-        $exec_name = array_values(array_filter($config, fn($v) => $v['name'] === $startPrompt))[0]['args'] ?? '';
-        $modelfile = array_values(array_filter($config, fn($v) => $v['name'] === 'prompts'));
-    
-        if ($exec_name) {
-            $args = str_starts_with($exec_name, '@') 
-                ? ($filtered = array_values(array_filter($modelfile, fn($v) => str_starts_with($v['name'] . ' @' . $v['args'], 'prompts ' . $exec_name . ' '))))[0]['args'] ?? null
-                : '@ ' . $exec_name;
-    
-            if ($args) {
-                $prompts = implode(' ', array_slice(explode(' ', $args), 1));
-                $prompts = str_starts_with($prompts, '"""') && str_ends_with($prompts, '"""') ? substr($prompts, 3, -3) : $prompts;
-    
-                if ($prompts) {
-                    $requestData = [
-                        '_token' => csrf_token(),
-                        'history' => $prependMessage . $prompts,
-                        'llm_ids' => [$i],
-                        'room_id' => $roomId ?? null,
-                    ];
-    
-                    $req = new Request(array_filter($requestData));
-                    $req->setUserResolver(fn() => Auth::user());
-                    return $this->import($req);
-                }
-            }
-        }
-    
-        return null;
     }
 
     function processBotConfig($i, $promptType = 'auto', $roomId = null, $prependMessage = '')
@@ -742,7 +708,9 @@ class RoomController extends Controller
 
         foreach ($llms as $i) {
             $result = $this->processBotConfig($i, 'start');
-            if ($result != null) return $result;
+            if ($result != null) {
+                return $result;
+            }
         }
 
         return redirect()->route('room.home')->with('llms', $llms);
@@ -774,7 +742,7 @@ class RoomController extends Controller
                 return response()->json(
                     [
                         'status' => 'error',
-                        'message' => 'You have no permission to use Chat API',
+                        'message' => 'You have no permission to use this Kuwa API',
                     ],
                     401,
                     [],
@@ -834,10 +802,7 @@ class RoomController extends Controller
             if ($upload_result['succeed']) {
                 $input = $upload_result['url'] . "\n" . $input;
             } else {
-                return redirect()
-                    ->route('room.chat', $roomId)
-                    ->with('errorString', $upload_result['msg'])
-                    ->withInput();
+                return redirect()->route('room.chat', $roomId)->with('errorString', $upload_result['msg'])->withInput();
             }
         }
 
@@ -864,18 +829,13 @@ class RoomController extends Controller
                 if (in_array($chat->bot_id, $selectedLLMs)) {
                     $bot = Bots::findOrFail($chat->bot_id);
                     $result = $this->processBotConfig($chat->bot_id, 'auto', $roomId, str_replace("\r\n", '\n', $input) . "\n");
-                    if ($result == null){
+                    if ($result == null) {
                         $history = new Histories();
                         $history->fill(['msg' => $input, 'chat_id' => $chat->id, 'isbot' => false, 'created_at' => $start, 'updated_at' => $start]);
                         $history->save();
                         $access_code = LLMs::findOrFail($bot->model_id)->access_code;
                         if ($chained) {
-                            $tmp = Histories::where('chat_id', '=', $chat->id)
-                                ->select('msg', 'isbot')
-                                ->orderby('created_at')
-                                ->orderby('id', 'desc')
-                                ->get()
-                                ->toJson();
+                            $tmp = Histories::where('chat_id', '=', $chat->id)->select('msg', 'isbot')->orderby('created_at')->orderby('id', 'desc')->get()->toJson();
                         } else {
                             $tmp = json_encode([['msg' => $input, 'isbot' => false]]);
                         }
@@ -889,6 +849,9 @@ class RoomController extends Controller
                 }
             }
         }
-        return redirect()->route('room.chat', $roomId)->with('selLLMs', $selectedLLMs)->with('mode_track', request()->input('mode_track'));
+        return redirect()
+            ->route('room.chat', $roomId)
+            ->with('selLLMs', $selectedLLMs)
+            ->with('mode_track', request()->input('mode_track'));
     }
 }
