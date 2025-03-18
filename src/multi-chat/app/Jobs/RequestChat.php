@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Jobs;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -22,7 +21,7 @@ class RequestChat implements ShouldQueue
     private $input, $access_code, $msgtime, $history_id, $user_id, $channel, $lang, $openai_token, $google_token, $third_party_token, $user_token, $modelfile, $preserved_output, $exit_when_finish, $nim_token;
     public $tries = 100; # Wait 1000 seconds in total
     public $timeout = 1200; # For the 100th try, 200 seconds limit is given
-    public static $agent_version = 'v1.0';
+    public static $kernel_api_version = 'v1.0';
     public $filters = ["[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]", '[Oops, the LLM returned empty message, please try again later or report to admins!]', '[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]', '[Sorry, something is broken, please try again later!]'];
 
     /**
@@ -67,6 +66,7 @@ class RequestChat implements ShouldQueue
         $user = User::find($user_id);
         $this->openai_token = $user->openai_token;
         $this->google_token = $user->google_token;
+        $this->nim_token = $user->nim_token;
         $this->third_party_token = $user->third_party_token;
         if ($user->tokens()->where('name', 'API_Token')->count() != 1) {
             $user->tokens()->where('name', 'API_Token')->delete();
@@ -114,7 +114,7 @@ class RequestChat implements ShouldQueue
         try {
             $kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
             $client = new Client(['timeout' => 300]);
-            $response = $client->post($kernel_location . '/' . self::$agent_version . '/worker/schedule', [
+            $response = $client->post($kernel_location . '/' . self::$kernel_api_version . '/worker/schedule', [
                 'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
                 'form_params' => [
                     'name' => $this->access_code,
@@ -202,6 +202,7 @@ class RequestChat implements ShouldQueue
                             'history_id' => $this->history_id * ($this->channel == $this->history_id ? 1 : -1),
                             'openai_token' => $this->openai_token,
                             'google_token' => $this->google_token,
+                            'nim_token' => $this->nim_token,
                             'third_party_token' => $this->third_party_token,
                             'user_token' => $this->user_token,
                             'modelfile' => $this->modelfile,
@@ -209,7 +210,7 @@ class RequestChat implements ShouldQueue
                         'stream' => true,
                     ]);
                     $stream = $response->getBody();
-                    $buffer = '';
+                    $buffer = new Utf8Buffer();
                     $insideTag = false;
                     $cache = false;
                     $cached = '';
@@ -262,43 +263,40 @@ class RequestChat implements ShouldQueue
                                     $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
                                 }
 
-                                        Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
-                                    } else {
-                                        //start caching
-                                        $cached .= $message;
-                                        if (!(strpos('<<<WARNING>>>', $cached) !== false || strpos($cached, '<<<WARNING>>>') !== false)) {
-                                            $cache = false;
-                                            $tmp .= $cached;
-                                            $outputTmp = $tmp;
-                                            if ($this->channel == $this->history_id) {
-                                                $outputTmp .= '...';
-                                            }
-                                            if ($kuwa_flag && $this->channel == $this->history_id) {
-                                                $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
-                                            }
-                                            if ($warningMessages) {
-                                                $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
-                                            }
-
-                                            if ($this->channel != $this->history_id) {
-                                                // Loop over each character in the UTF-8 string
-                                                for ($i = 0; $i < mb_strlen($outputTmp, 'UTF-8'); $i++) {
-                                                    // Get the current character
-                                                    $char = mb_substr($outputTmp, $i, 1, 'UTF-8');
-                                                    // Publish the character to Redis
-                                                    Redis::publish($this->channel, 'New ' . json_encode(['msg' => $char]));
-                                                }
-                                            } else {
-                                                Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
-                                            }
-                                            $cached = '';
-                                        } elseif ($message === '>' && (str_ends_with($cached, '<<</WARNING>>>') || str_ends_with($cached, '<<<\/WARNING>>>'))) {
-                                            $warningMessages[] = trim(str_replace(['<<<WARNING>>>', '<<</WARNING>>>', '<<<\/WARNING>>>'], '', $cached));
-                                            $cache = false;
-                                            $cached = '';
-                                        }
+                                Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
+                            } else {
+                                //start caching
+                                $cached .= $message;
+                                if (!(strpos('<<<WARNING>>>', $cached) !== false || strpos($cached, '<<<WARNING>>>') !== false)) {
+                                    $cache = false;
+                                    $tmp .= $cached;
+                                    $outputTmp = $tmp;
+                                    if ($this->channel == $this->history_id) {
+                                        $outputTmp .= '...';
                                     }
-                                    $buffer = mb_substr($buffer, $messageLength, null, '8bit');
+                                    if ($kuwa_flag && $this->channel == $this->history_id) {
+                                        $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
+                                    }
+                                    if ($warningMessages) {
+                                        $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
+                                    }
+
+                                    if ($this->channel != $this->history_id) {
+                                        // Loop over each character in the UTF-8 string
+                                        for ($i = 0; $i < mb_strlen($outputTmp, 'UTF-8'); $i++) {
+                                            // Get the current character
+                                            $char = mb_substr($outputTmp, $i, 1, 'UTF-8');
+                                            // Publish the character to Redis
+                                            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $char]));
+                                        }
+                                    } else {
+                                        Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
+                                    }
+                                    $cached = '';
+                                } elseif ($message === '>' && (str_ends_with($cached, '<<</WARNING>>>') || str_ends_with($cached, '<<<\/WARNING>>>'))) {
+                                    $warningMessages[] = trim(str_replace(['<<<WARNING>>>', '<<</WARNING>>>', '<<<\/WARNING>>>'], '', $cached));
+                                    $cache = false;
+                                    $cached = '';
                                 }
                             }
                         }
