@@ -16,8 +16,7 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
+    <link href="{{ asset('css/fontBunny.css') }}" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('css/font_awesome..all.min.css') }}" />
 
     <!-- Styles -->
