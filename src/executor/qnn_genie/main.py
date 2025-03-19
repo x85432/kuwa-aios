@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from enum import Enum
 from transformers import AutoTokenizer
+from functools import lru_cache
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.abspath(Path(__file__).parent)))
@@ -80,8 +81,13 @@ class QnnGenieExecutor(LLMExecutor):
         self.model_id = self.args.model
         self.hf_hub_model_id = self.args.tokenizer
         self.stop = False
-        self.tokenizer = AutoTokenizer.from_pretrained(self.hf_hub_model_id)
+        self.tokenizer = self.get_tokenizer(self.hf_hub_model_id)
         self.pipe = None
+
+    @lru_cache
+    def get_tokenizer(self, hf_hub_model_id):
+        tokenizer = AutoTokenizer.from_pretrained(hf_hub_model_id)
+        return tokenizer
 
     async def run_genie_t2t(
         self, prompt: str, model_id: str, print_debug: bool = False
@@ -95,7 +101,7 @@ class QnnGenieExecutor(LLMExecutor):
             f.seek(0)
             logger.debug(f"[prompt] {f.read()}")
 
-        qnn_binary_path = (Path.cwd() / "QNN_binaries").resolve()
+        qnn_binary_path = (Path.cwd() / "QNN_binaries-2.31").resolve()
         genie_t2t_run_paths = list(qnn_binary_path.glob("genie-t2t-run*"))
         genie_config_path = "genie_config.json"
         if len(genie_t2t_run_paths) == 0:
@@ -162,13 +168,16 @@ class QnnGenieExecutor(LLMExecutor):
             os.remove(prompt_file_path)
 
     async def llm_compute(self, history: list[dict], modelfile: Modelfile):
+        model_id = modelfile.parameters["llm_"].get("model", self.model_id)
+        tokenizer_id = modelfile.parameters["llm_"].get(
+            "tokenizer", self.hf_hub_model_id
+        )
+        print_debug = modelfile.parameters["llm_"].get("debug", False)
+
+        self.tokenizer = self.get_tokenizer(tokenizer_id)
         prompt = self.tokenizer.apply_chat_template(
             history, tokenize=False, add_generation_prompt=True
         )
-        # prompt = "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWhat is France's capital?<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
-
-        model_id = modelfile.parameters["llm_"].get("model", self.model_id)
-        print_debug = modelfile.parameters["llm_"].get("debug", False)
 
         response_generator = self.run_genie_t2t(
             prompt=prompt, model_id=model_id, print_debug=print_debug
