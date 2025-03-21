@@ -38,9 +38,9 @@
                     @auth
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            @if (Auth::user()->hasPerm('tab_Dashboard'))
-                                <a href="{{ url('/dashboard') }}"
-                                    class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">{{ __('dashboard.route') }}</a>
+                            @if (Auth::user()->hasPerm('tab_Manage'))
+                                <a href="{{ url('/manage') }}"
+                                    class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">{{ __('manage.route') }}</a>
                             @endif
                             @if (Auth::user()->hasPerm('tab_Room'))
                                 <a href="{{ route('room.home') }}"
