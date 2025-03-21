@@ -196,14 +196,14 @@
                 hljs.configure({
                     languages: hljs.listLanguages()
                 }); //enable auto detect
-                $('#chatroom div.text-sm.space-y-3.break-words pre >div').remove()
-                $('#chatroom div.text-sm.space-y-3.break-words pre code.language-undefined').each(function() {
+                $('#chatroom div.msg-content pre > div').remove()
+                $('#chatroom div.msg-content pre code.language-undefined').each(function() {
                     $(this).text($(this).text())
                     $(this)[0].dataset.highlighted = '';
                     $(this)[0].classList = ""
                     hljs.highlightElement($(this)[0]);
                 });
-                $('#chatroom div.text-sm.space-y-3.break-words pre').each(function() {
+                $('#chatroom div.msg-content pre').each(function() {
                     let languageClass = '';
                     $(this).children("code")[0].classList.forEach(cName => {
                         if (cName.startsWith('language-')) {
@@ -238,7 +238,7 @@ xmlns="http://www.w3.org/2000/svg">
                 data = JSON.parse(event.data)
                 number = parseInt(data["history_id"]);
                 $('#task_' + number).text(data["msg"]);
-                histories[number] = $("#history_" + number + " div.text-sm.space-y-3.break-words")
+                histories[number] = $("#history_" + number + " div.msg-content")
                     .text()
                 hljs.configure({
                     languages: []

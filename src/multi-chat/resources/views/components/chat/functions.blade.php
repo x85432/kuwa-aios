@@ -62,9 +62,9 @@
                 $("#language_list").prepend(`<option value="${$val}">`)
             })
         }
-        $(node).find('div.text-sm.space-y-3.break-words').each(function() {
-            if ($(this).text() == "<pending holder>") {
-                $(this).html(`<svg aria-hidden="true"
+        $(node).find('div.msg-content').each(function(_, msg_elem) {
+            if ($(msg_elem).text() === "<pending holder>") {
+                $(msg_elem).html(`<svg aria-hidden="true"
 class="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-400 fill-blue-800 w-[16px] h-[16px]"
 viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path
@@ -74,120 +74,102 @@ fill="currentColor" />
 d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
 fill="currentFill" />
 </svg>`);
-            } else {
-                let warnings = /&lt;&lt;&lt;WARNING&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g
-                    .exec(this.innerHTML);
+                return;
+            }
 
-                let infos = /&lt;&lt;&lt;INFO&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/INFO&gt;&gt;&gt;/g
-                    .exec(this.innerHTML);
+            let warnings = /&lt;&lt;&lt;WARNING&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g
+                .exec(this.innerHTML);
 
-                function parseProgressBar(line) {
-                    if (line.startsWith('[PROGRESS_BAR]')) {
-                        datas = line.replace('[PROGRESS_BAR]', '').split('%/')
-                        return `${datas[1]}<div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-    <div class="bg-blue-600 h-2.5 rounded-full animate-pulse animate-gradient-left-to-right" style="width: ${datas[0]}%"></div>
+            let infos = /&lt;&lt;&lt;INFO&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/INFO&gt;&gt;&gt;/g
+                .exec(this.innerHTML);
+
+            function parseProgressBar(line) {
+                if (line.startsWith('[PROGRESS_BAR]')) {
+                    datas = line.replace('[PROGRESS_BAR]', '').split('%/')
+                    return `${datas[1]}<div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+<div class="bg-blue-600 h-2.5 rounded-full animate-pulse animate-gradient-left-to-right" style="width: ${datas[0]}%"></div>
 </div>`
-                    }
-                    return line;
                 }
-                $(this).html(this.innerHTML.replace(
-                        /&lt;&lt;&lt;WARNING&gt;&gt;&gt;[\s\S]*?&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g, '')
-                    .replace(
-                        /&lt;&lt;&lt;INFO&gt;&gt;&gt;[\s\S]*?&lt;&lt;&lt;\/INFO&gt;&gt;&gt;/g, ''));
-                $msg = this
-                if ($(this).hasClass("bot-msg")) {
-                    if (warnings) {
-                        warnings = warnings.filter(function(line) {
-                            return !line.startsWith('&lt;&lt;&lt;WARNING&gt;&gt;&gt;')
-                        }).map(function(line) {
-                            return parseProgressBar(line);
-                        })
-                        var listItems = warnings.map(function(line) {
-                            return `<div class="warning_msg mt-2 flex items-center p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
-  <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-  </svg>
-  <div class="ml-2 flex-1 overflow-hidden flex">
-    <span class="font-medium overflow-hidden flex-1">` + line + `</span>
-  </div>
-</div>`;
-                        });
-                        $(this).parent().find("div.warning_msg").remove();
-                        $(this).after(listItems.join(''));
-                    }
-                    if (infos) {
-                        infos = infos.filter(function(line) {
-                            return !line.startsWith('&lt;&lt;&lt;INFO&gt;&gt;&gt;')
-                        }).map(function(line) {
-                            return parseProgressBar(line);
-                        })
-                        var listItems = infos.map(function(line) {
-                            return `<div class="info_msg mt-2 flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:text-blue-400 bg-blue-400" role="alert">
-  <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-  </svg>
-  <div class="ml-2 flex-1 overflow-hidden flex">
-    <span class="font-medium overflow-hidden flex-1">` + line + `</span>
-  </div>
-</div>`;
-                        });
-                        $(this).parent().find("div.info_msg").remove();
-                        $(this).after(listItems.join(''));
-                        console.log(infos);
-                    }
-                    $msg = translate_msg($msg.innerHTML);
-                } else {
-                    $msg = replaceImageUrlWithMarkdown($msg.innerHTML)
-                }
-                $(this).html(marked.parse(DOMPurify.sanitize($('<div>').html($msg).text())));
-                $(node).find('div.text-sm.space-y-3.break-words table').addClass('table-auto');
-                $(node).find('div.text-sm.space-y-3.break-words table *').addClass(
-                    'border border-2 border-gray-500 border-solid p-1');
-                $(node).find('div.text-sm.space-y-3.break-words ul').addClass('list-inside list-disc');
-                $(node).find('div.text-sm.space-y-3.break-words ol').addClass('list-inside list-decimal');
-                $(node).find('div.text-sm.space-y-3.break-words > p').addClass('whitespace-pre-wrap');
-                var links = $(node).find('div.text-sm.space-y-3.break-words a');
-
-                links.addClass('text-blue-700 hover:text-blue-900').prop('target', '_blank');
-
-                links.filter(function() {
-                        return isValidURL($(this).text());
+                return line;
+            }
+            $(msg_elem).html(msg_elem.innerHTML.replace(
+                    /&lt;&lt;&lt;WARNING&gt;&gt;&gt;[\s\S]*?&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g, '')
+                .replace(
+                    /&lt;&lt;&lt;INFO&gt;&gt;&gt;[\s\S]*?&lt;&lt;&lt;\/INFO&gt;&gt;&gt;/g, ''));
+            let msg = "";
+            if ($(msg_elem).hasClass("bot-msg")) {
+                if (warnings) {
+                    warnings = warnings.filter(function(line) {
+                        return !line.startsWith('&lt;&lt;&lt;WARNING&gt;&gt;&gt;')
+                    }).map(function(line) {
+                        return parseProgressBar(line);
                     })
-                    .each(function() {
-                        var originalUrl = $(this).attr('href');
-                        var decodedUrl = decodeURIComponent(originalUrl);
-                        var input = $(this).text();
-                        const regex =
-                            /(https?:\/\/[^\s]*\.(?:mp3|wav|ogg|flac|aac|m4a|webm|aiff|alac|opus|wma|amr|midi))/g;
-                        const matches = [...new Set(input.match(regex))];
-                        if (matches) {
-                            for (const match of matches) {
-                                const audioTag =
-                                    `<audio controls><source src="${match}" type="audio/mpeg">Your browser does not support the audio element.</audio>`;
-                                $(this).html(input.replaceAll(match,
-                                    audioTag));
-                            }
-                        }
+                    var listItems = warnings.map(function(line) {
+                        return `<div class="warning_msg mt-2 flex items-center p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+<svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+</svg>
+<div class="ml-2 flex-1 overflow-hidden flex">
+<span class="font-medium overflow-hidden flex-1">` + line + `</span>
+</div>
+</div>`;
                     });
-                $(node).find('div.text-sm.space-y-3.break-words pre code').each(function() {
-                    $(this).html(this.textContent)
-                    hljs.highlightElement($(this)[0]);
-                });
-                $(node).find('div.text-sm.space-y-3.break-words pre code').addClass(
-                    "scrollbar scrollbar-3 rounded-b-lg")
-                $(node).find('div.text-sm.space-y-3.break-words pre').each(function() {
-                    let languageClass = '';
-                    $(this).children("code")[0].classList.forEach(cName => {
-                        if (cName.startsWith('language-')) {
-                            languageClass = cName.replace('language-', '');
-                            return;
-                        }
+                    $(msg_elem).parent().find("div.warning_msg").remove();
+                    $(msg_elem).after(listItems.join(''));
+                }
+                if (infos) {
+                    infos = infos.filter(function(line) {
+                        return !line.startsWith('&lt;&lt;&lt;INFO&gt;&gt;&gt;')
+                    }).map(function(line) {
+                        return parseProgressBar(line);
                     })
-                    verilog = languageClass == "verilog" ?
-                        `<button onclick="compileVerilog(this)" class="flex items-center hover:bg-gray-900 px-2 py-2 "><span>{{ __('chat.button.verilog_compile_test') }}</span></button>` :
-                        ``
-                    $(this).prepend(
-                        `<div class="flex items-center text-gray-200 bg-gray-800 rounded-t-lg overflow-hidden">
+                    var listItems = infos.map(function(line) {
+                        return `<div class="info_msg mt-2 flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:text-blue-400 bg-blue-400" role="alert">
+<svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+</svg>
+<div class="ml-2 flex-1 overflow-hidden flex">
+<span class="font-medium overflow-hidden flex-1">` + line + `</span>
+</div>
+</div>`;
+                    });
+                    $(msg_elem).parent().find("div.info_msg").remove();
+                    $(msg_elem).after(listItems.join(''));
+                    console.log(infos);
+                }
+                msg = translate_msg(msg_elem.innerHTML);
+            } else {
+                msg = replaceImageUrlWithMarkdown(msg_elem.innerHTML)
+            }
+            $(msg_elem).html(marked.parse(DOMPurify.sanitize($('<div>').html(msg).text())));
+            $(msg_elem).find('table').addClass('table-auto');
+            $(msg_elem).find('table').find('td, th').addClass('border border-2 border-gray-500 border-solid p-1');
+            $(msg_elem).find('ul').addClass('list-inside list-disc');
+            $(msg_elem).find('ol').addClass('list-inside list-decimal');
+            $(msg_elem).find('> p').addClass('whitespace-pre-wrap');
+
+            let links = $(msg_elem).find('a');
+            links.addClass('text-blue-700 hover:text-blue-900').prop('target', '_blank');
+            links.filter((_, x) => isValidURL($(x).text())).each(formatLink);
+
+            $(msg_elem).find('pre code').each(function(_, code_elem) {
+                $(code_elem).html(code_elem.textContent)
+                hljs.highlightElement($(code_elem)[0]);
+            });
+            $(msg_elem).find('pre code').addClass("scrollbar scrollbar-3 rounded-b-lg")
+            $(msg_elem).find('pre').each(function(_, pre_elem) {
+                let languageClass = '';
+                $(pre_elem).children("code")[0].classList.forEach(cName => {
+                    if (cName.startsWith('language-')) {
+                        languageClass = cName.replace('language-', '');
+                        return;
+                    }
+                })
+                verilog = languageClass == "verilog" ?
+                    `<button onclick="compileVerilog(this)" class="flex items-center hover:bg-gray-900 px-2 py-2 "><span>{{ __('chat.button.verilog_compile_test') }}</span></button>` :
+                    ``
+                $(pre_elem).prepend(
+                    `<div class="flex items-center text-gray-200 bg-gray-800 rounded-t-lg overflow-hidden">
 <span class="pl-4 py-2 mr-auto"><input class="bg-gray-900" list="language_list" oninput="switchLang(this)" value="${languageClass}"></span>
 ${verilog}
 <button onclick="copytext(this, $(this).parent().parent().children('code').text().trim())"
@@ -203,33 +185,49 @@ stroke-linejoin="round" class="icon-sm" style="display:none;" height="1em" width
 xmlns="http://www.w3.org/2000/svg">
 <polyline points="20 6 9 17 4 12"></polyline>
 </svg><span>{{ __('Copy') }}</span></button></div>`
-                    )
-                })
+                )
+            })
 
-                $(node).find("div.text-sm.space-y-3.break-words h5").each(function() {
-                    var pattern = /<%ref-(\d+)%>/;
-                    var match = DOMPurify.sanitize(this).replaceAll("&lt;", "<").replaceAll("&gt;", ">")
-                        .match(pattern);
-                    if (match) {
-                        var refNumber = match[1];
-                        $msg = DOMPurify.sanitize($("#history_" + refNumber).find("div:eq(3) div div")[
-                            0], {
-                            ALLOWED_TAGS: [],
-                            ALLOWED_ATTR: []
-                        }).trim()
-                        var $button = $("<button>")
-                            .addClass("bg-gray-700 rounded p-2 hover:bg-gray-800")
-                            .data("tooltip-target", "ref-tooltip")
-                            .data("tooltip-placement", "top")
-                            .attr("onmouseover", "refToolTip(" + refNumber + ")")
-                            .attr("onclick", "scrollToRef(" + refNumber + ")");
-                        $button.text($msg.substring(0, 30) + ($msg.length < 30 ? "" : "..."));
+            $(msg_elem).find("h5").each(function(_, h5_elem) {
+                var pattern = /<%ref-(\d+)%>/;
+                var match = DOMPurify.sanitize(h5_elem).replaceAll("&lt;", "<").replaceAll("&gt;", ">")
+                    .match(pattern);
+                if (match) {
+                    var refNumber = match[1];
+                    $msg = DOMPurify.sanitize($("#history_" + refNumber).find("div:eq(3) div div")[
+                        0], {
+                        ALLOWED_TAGS: [],
+                        ALLOWED_ATTR: []
+                    }).trim()
+                    var $button = $("<button>")
+                        .addClass("bg-gray-700 rounded p-2 hover:bg-gray-800")
+                        .data("tooltip-target", "ref-tooltip")
+                        .data("tooltip-placement", "top")
+                        .attr("onmouseover", "refToolTip(" + refNumber + ")")
+                        .attr("onclick", "scrollToRef(" + refNumber + ")");
+                    $button.text($msg.substring(0, 30) + ($msg.length < 30 ? "" : "..."));
 
-                        $(this).empty().append($button);
-                    }
-                });
-            }
+                    $(h5_elem).empty().append($button);
+                }
+            });
         });
+    }
+
+    function formatLink(index, elem){
+        /**
+         * Format the links in the message content.
+         * 1. Replace the audio file URL with a preview component.
+         */
+        let original_url = $(elem).attr('href');
+        let decoded_url = decodeURIComponent(original_url);
+        let original_content = $(elem).text();
+        const audio_file_regex = /([^\s]*\.(?:mp3|wav|ogg|flac|aac|m4a|webm|aiff|alac|opus|wma|amr|midi))/g;
+        const matched_audios = [...new Set(original_content.match(audio_file_regex))];
+        if (!matched_audios) return;
+        for (const audio_url of matched_audios) {
+            const audio_preview_elem = `<audio controls><source src="${audio_url}">Your browser does not support the audio element.</audio>`;
+            $(elem).html(original_content.replaceAll(audio_url, audio_preview_elem));
+        }
     }
 
     function isValidURL(url) {
@@ -317,7 +315,7 @@ xmlns="http://www.w3.org/2000/svg">
     }
 
     function refToolTip(refID) {
-        $msg = $("#history_" + refID + " div.text-sm.space-y-3.break-words").text().trim()
+        $msg = $("#history_" + refID + " div.msg-content").text().trim()
         $('#ref-tooltip').text($msg);
     }
     let quoted = [];

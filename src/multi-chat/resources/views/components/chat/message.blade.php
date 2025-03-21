@@ -44,7 +44,7 @@
             <div tabindex="0" hidefocus="true" class="transition-colors p-3 bg-gray-300 rounded-r-lg rounded-bl-lg"
                 @if (!$anonymous && $history->isbot) onfocus="toggleHighlight(this, true)" onblur="toggleHighlight(this, false)" @endif>
                 {{-- blade-formatter-disable --}}
-                <div class="text-sm space-y-3 break-words{{ $history->chained ? ' chain-msg' : '' }}{{ $history->isbot ? ' bot-msg' : '' }}" id="task_{{ $history->id }}">{{ $history->msg == "* ...thinking... *" ? "<pending holder>" : $history->msg }}</div>
+                <div class="text-sm space-y-3 break-words msg-content {{ $history->chained ? ' chain-msg' : '' }}{{ $history->isbot ? ' bot-msg' : '' }}" id="task_{{ $history->id }}">{{ $history->msg == "* ...thinking... *" ? "<pending holder>" : $history->msg }}</div>
                 {{-- blade-formatter-enable --}}
                 <x-chat.react-buttons :history="$history" :showOnFinished='true' />
             </div>
@@ -74,7 +74,7 @@
                 @if (!$anonymous && $history->isbot) onfocus="toggleHighlight(this, true)" onblur="toggleHighlight(this, false)" @endif
                 class="p-3 transition-colors {{ $history->isbot ? 'bg-gray-300 rounded-r-lg rounded-bl-lg' : 'bg-cyan-500 text-white rounded-l-lg rounded-br-lg' }}">
                 {{-- blade-formatter-disable --}}
-                <div class="text-sm space-y-3 break-words{{$history->chained ? ' chain-msg' : ''}}{{$history->isbot ? ' bot-msg' : ''}}">{{ $message }}</div>
+                <div class="text-sm space-y-3 break-words msg-content {{$history->chained ? ' chain-msg' : ''}}{{$history->isbot ? ' bot-msg' : ''}}">{{ $message }}</div>
                 {{-- blade-formatter-enable --}}
                 @if (!$readonly)
                     <x-chat.react-buttons :history="$history" :showOnFinished='false' />
