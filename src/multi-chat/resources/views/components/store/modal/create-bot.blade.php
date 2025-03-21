@@ -442,8 +442,8 @@
 
         let bot_type = getCurrentBotType();
         if (bot_type === "server") {
-            $("#llm_name").val("Redirector");
-            change_bot_image('#llm_img', '#create-bot_image', "Redirector");
+            $("#llm_name").val("Weblet");
+            change_bot_image('#llm_img', '#create-bot_image', "Weblet");
         }
         if (bot_type === "agent") {
             $("#llm_name").val("Agent");
@@ -457,7 +457,7 @@
             llm_name: "{{ __('store.hint.must_select_base_model') }}",
         }
         if ($("#bot_type").val() === "server") {
-            $("#llm_name").val("Redirector");
+            $("#llm_name").val("Weblet");
             error_messages["bot_server_url"] = "{{ __('store.hint.must_enter_server_url') }}";
         }
         
