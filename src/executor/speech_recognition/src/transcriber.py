@@ -41,12 +41,9 @@ class WhisperS2tTranscriber:
         model_params.update(
             {"asr_options": {"word_timestamps": True}} if enable_word_ts else {}
         )
-        model_params.update(
-            dict(
-                model_identifier=model_path,
-                device_index=list(range(device_num)),
-            )
-        )
+        model_params.update({"model_identifier": model_path})
+        if device_num > 0:
+            model_params.update({"device_index": list(range(device_num))})
 
         logger.debug(f"Parameters to load model: {model_params}")
         model = whisper_s2t.load_model(**model_params)
