@@ -1,16 +1,17 @@
 <?php
 
 namespace App\Http\Middleware;
+
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\WorkerController;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\App;
 use Illuminate\Http\Request;
-use App\Jobs\CheckUpdate;
 use App\Jobs\HealthCheck;
-use Illuminate\Support\Facades\Redis;
+use App\Jobs\CheckUpdate;
 use Closure;
 
 class AuthCheck
@@ -30,27 +31,10 @@ class AuthCheck
         }
 
         if ($request->user()) {
-            $jobs = Redis::lrange('queues:default', 0, -1);
-            $runningJobs = [];
-
-            foreach ($jobs as $job) {
-                $jobData = json_decode($job);
-                $displayName = $jobData->displayName;
-
-                if (!in_array($displayName, $runningJobs)) {
-                    $runningJobs[] = $displayName;
-                } elseif (in_array($displayName, ['App\Jobs\CheckUpdate', 'App\Jobs\HealthCheck'])) {
-                    Redis::lrem('queues:default', 0, $job);
-                }
-            }
-
             if ($request->user()->require_change_password) {
                 return redirect()->route('change_password');
             }
         }
-
-        Redis::throttle('health_check')->block(0)->allow(1)->every(5)->then(fn() => HealthCheck::dispatch(), fn() => null);
-
         return $next($request);
     }
 }

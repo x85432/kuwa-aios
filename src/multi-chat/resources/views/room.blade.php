@@ -34,68 +34,13 @@
                         ->where('id', '=', request()->route('room_id'))
                         ->first()['identifier'];
                     $DC = $DC[$identifier];
-                    $llms = App\Models\Bots::whereIn('bots.id', array_map('intval', explode(',', $identifier)))
-                        ->join('llms', function ($join) {
-                            $join->on('llms.id', '=', 'bots.model_id');
-                        })
-                        ->leftjoin('users', 'users.id', '=', 'bots.owner_id')
-                        ->where('llms.enabled', '=', true)
-                        ->select(
-                            'llms.*',
-                            'bots.*',
-                            DB::raw('COALESCE(bots.description, llms.description) as description'),
-                            DB::raw('COALESCE(bots.config, llms.config) as config'),
-                            'bots.image as image',
-                            'llms.image as base_image',
-                            'llms.name as llm_name',
-                            'users.group_id',
-                            'llms.updated_at as updated_at',
-                            'healthy',
-                        )
-                        ->orderby('bots.id')
-                        ->get();
+                    $llms = App\Models\Bots::getBotsFromIds(explode(',', $identifier));
                 } else {
-                    $llms = App\Models\Bots::whereIn('bots.id', session('llms'))
-                        ->Join('llms', function ($join) {
-                            $join->on('llms.id', '=', 'bots.model_id');
-                        })
-                        ->leftjoin('users', 'users.id', '=', 'bots.owner_id')
-                        ->select(
-                            'llms.*',
-                            'bots.*',
-                            DB::raw('COALESCE(bots.description, llms.description) as description'),
-                            DB::raw('COALESCE(bots.config, llms.config) as config'),
-                            'bots.image as image',
-                            'llms.image as base_image',
-                            'llms.name as llm_name',
-                            'users.group_id',
-                            'llms.updated_at as updated_at',
-                            'healthy',
-                        )
-                        ->orderby('bots.id')
-                        ->get();
+                    $llms = App\Models\Bots::getBotsFromIds(session('llms'));
                     $DC = $DC[implode(',', $llms->pluck('id')->toArray())];
                 }
             } catch (Exception $e) {
-                $llms = App\Models\Bots::whereIn('bots.id', session('llms'))
-                    ->Join('llms', function ($join) {
-                        $join->on('llms.id', '=', 'bots.model_id');
-                    })
-                    ->leftjoin('users', 'users.id', '=', 'bots.owner_id')
-                    ->select(
-                        'llms.*',
-                        'bots.*',
-                        DB::raw('COALESCE(bots.description, llms.description) as description'),
-                        DB::raw('COALESCE(bots.config, llms.config) as config'),
-                        'bots.image as image',
-                        'llms.image as base_image',
-                        'llms.name as llm_name',
-                        'users.group_id',
-                        'llms.updated_at as updated_at',
-                        'healthy',
-                    )
-                    ->orderby('bots.id')
-                    ->get();
+                $llms = App\Models\Bots::getBotsFromIds(session('llms'));
                 $DC = null;
             }
         @endphp
@@ -108,42 +53,6 @@
         <x-chat.modals.import_history :llms="$llms ?? []" />
     @endif
     <div class="flex h-full mx-auto">
-        <div
-            class="bg-white dark:bg-gray-800 text-white w-64 hidden sm:flex flex-shrink-0 relative rounded-l-lg overflow-hidden">
-            <div class="p-3 flex flex-1 flex-col h-full overflow-y-auto scrollbar">
-                @if ($bots->count() == 0)
-                    <div
-                        class="flex-1 h-full flex flex-col w-full text-center rounded-r-lg overflow-hidden justify-center items-center text-gray-700 dark:text-white">
-                        {!! __('chat.placeholder.no_llms') !!}
-                    </div>
-                @else
-                    <div class="mb-2">
-                        <div class="border border-black dark:border-white border-1 rounded-lg flex overflow-hidden">
-                            <a href="{{ route('room.home') }}"
-                                class="flex justify-center transition items-center px-4 cursor-pointer hover:bg-gray-200 text-black dark:text-white dark:hover:bg-gray-500 rounded-l-lg duration-300">←</a>
-                            @if (request()->user()->hasPerm('Room_update_new_chat'))
-                                <button data-modal-target="create-model-modal" data-modal-toggle="create-model-modal"
-                                    class="flex w-full border-x border-1 border-black dark:border-white menu-btn flex items-center justify-center h-12 dark:hover:bg-gray-700 hover:bg-gray-200 transition duration-300">
-
-                                    <p class="flex-1 text-center text-gray-700 dark:text-white">
-                                        {{ __('room.button.create_room') }}
-                                    </p>
-                                </button>
-                            @endif
-                            @if (request()->user()->hasPerm('Room_update_import_chat'))
-                                <button data-modal-target="importModal" data-modal-toggle="importModal"
-                                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 {{ request()->user()->hasPerm('Room_update_new_chat') ? 'rounded-r-lg ' : 'rounded-lg w-full' }} flex items-center justify-center transition duration-300">
-                                    {{ request()->user()->hasPerm('Room_update_new_chat') ? '' : '匯入對話　' }}
-                                    <i class="fas fa-file-import"></i>
-                                </button>
-                            @endif
-                        </div>
-                    </div>
-                    <x-room.rooms.list/>
-                @endif
-            </div>
-        </div>
-
         @if (count($llms) == 1 && $llms[0]->type === 'server')
             @php
                 $modelfile = json_decode($llms[0]->config)->modelfile;
@@ -163,8 +72,43 @@
                     class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
                     <iframe src="{{ $url }}" style="height:100%;width:100%" frameborder="0"></iframe>
                 </div>
-            </div>
+            @endif
         @else
+            <div
+                class="bg-white dark:bg-gray-800 text-white w-64 hidden sm:flex flex-shrink-0 relative rounded-l-lg overflow-hidden">
+                <div class="p-3 flex flex-1 flex-col h-full overflow-y-auto scrollbar">
+                    @if ($bots->count() == 0)
+                        <div
+                            class="flex-1 h-full flex flex-col w-full text-center rounded-r-lg overflow-hidden justify-center items-center text-gray-700 dark:text-white">
+                            {!! __('chat.placeholder.no_llms') !!}
+                        </div>
+                    @else
+                        <div class="mb-2">
+                            <div class="border border-black dark:border-white border-1 rounded-lg flex overflow-hidden">
+                                <a href="{{ route('room.home') }}"
+                                    class="flex justify-center transition items-center px-4 cursor-pointer hover:bg-gray-200 text-black dark:text-white dark:hover:bg-gray-500 rounded-l-lg duration-300">←</a>
+                                @if (request()->user()->hasPerm('Room_update_new_chat'))
+                                    <button data-modal-target="create-model-modal" data-modal-toggle="create-model-modal"
+                                        class="flex w-full border-x border-1 border-black dark:border-white menu-btn flex items-center justify-center h-12 dark:hover:bg-gray-700 hover:bg-gray-200 transition duration-300">
+
+                                        <p class="flex-1 text-center text-gray-700 dark:text-white">
+                                            {{ __('room.button.create_room') }}
+                                        </p>
+                                    </button>
+                                @endif
+                                @if (request()->user()->hasPerm('Room_update_import_chat'))
+                                    <button data-modal-target="importModal" data-modal-toggle="importModal"
+                                        class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 {{ request()->user()->hasPerm('Room_update_new_chat') ? 'rounded-r-lg ' : 'rounded-lg w-full' }} flex items-center justify-center transition duration-300">
+                                        {{ request()->user()->hasPerm('Room_update_new_chat') ? '' : '匯入對話　' }}
+                                        <i class="fas fa-file-import"></i>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                        <x-room.rooms.list/>
+                    @endif
+                </div>
+            </div>
             <div id="histories"
                 class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
                 <x-room.header :llms="$llms" />
