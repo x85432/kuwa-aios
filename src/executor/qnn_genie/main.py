@@ -173,10 +173,19 @@ class QnnGenieExecutor(LLMExecutor):
             "tokenizer", self.hf_hub_model_id
         )
         print_debug = modelfile.parameters["llm_"].get("debug", False)
+            
+        # Apply modelfile
+        msg = modelfile.messages + history
+        if modelfile.override_system_prompt is not None:
+            msg = [{"content": modelfile.override_system_prompt, "role": "system"}] + msg
+
+        msg[-1]["content"] = (
+            modelfile.before_prompt + msg[-1]["content"] + modelfile.after_prompt
+        )
 
         self.tokenizer = self.get_tokenizer(tokenizer_id)
         prompt = self.tokenizer.apply_chat_template(
-            history, tokenize=False, add_generation_prompt=True
+            msg, tokenize=False, add_generation_prompt=True
         )
 
         response_generator = self.run_genie_t2t(
