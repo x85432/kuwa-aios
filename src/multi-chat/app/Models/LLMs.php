@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Permissions;
 use \DB;
 
 class LLMs extends Model
 {
     use HasFactory;
     protected $table = 'llms';
-    protected $fillable = ['image', 'name', "access_code", "order", 'enabled', "description", "config", 'healthy', 'updated_at'];
+    protected $fillable = ['image', 'name', 'access_code', 'order', 'enabled', 'description', 'config', 'healthy', 'updated_at'];
+
     static function getModelPermIds()
     {
         return DB::table(function ($query) {
@@ -20,6 +22,7 @@ class LLMs extends Model
         ->join('llms', DB::raw('CAST(llms.id AS '. (config('database.default') == "mysql" ? 'CHAR' : 'TEXT') .')'), '=', 'p.model_id')
         ->select('p.id as id', 'llms.name as name');
     }
+    
     static function getLLMs($group_id, $enabled = true)
     {
         return DB::table(function ($query) use ($group_id) {

@@ -106,9 +106,13 @@
                                         src="{{ $bot->image ?? $bot->base_image ? asset(Storage::url($bot->image ?? $bot->base_image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
                                 </div>
                                 <div class="absolute bottom-0 right-0 z-2 opacity-90">
-                                    @if (!$bot->healthy || time() - strtotime($bot->updated_at) > 300)
-                                        <div class="bg-red-500 rounded-full w-3 h-3"
-                                            data-updated-at="{{ $bot->updated_at }}"></div>
+                                    @if ($bot->type == 'server')
+                                        <i class="fas fa-external-link-alt text-blue-400"></i>
+                                    @elseif ($bot->type == 'prompt')
+                                        @if (!$bot->healthy || time() - strtotime($bot->updated_at) > 300)
+                                            <div class="bg-red-500 rounded-full w-3 h-3"
+                                                data-updated-at="{{ $bot->updated_at }}"></div>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
