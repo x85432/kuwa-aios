@@ -41,7 +41,7 @@ class HealthCheck implements ShouldQueue
                 // Separate found and not found LLMs
                 $foundIds = [];
                 foreach ($llms as $llm) {
-                    if (strpos($responseData, $llm->access_code) !== false) {
+                    if (strpos($responseData, "'{$llm->access_code}'") !== false || strpos($responseData, "\"{$llm->access_code}\"") !== false) {
                         $foundIds[] = $llm->id;
                     }
                 }
