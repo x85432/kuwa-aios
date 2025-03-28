@@ -57,4 +57,10 @@ return [
     'rule.warning' => 'Message d’avertissement (facultatif)',
     'rule.filter.input' => 'Filtre d’entrée',
     'rule.filter.output' => 'Filtre de sortie',
+    'inspect.begin_date' => 'Date de début',
+    'inspect.end_date' => 'Date de fin',
+    'inspect.search_msg' => 'Message de recherche',
+    'inspect.filter_model' => 'Filtrer le modèle',
+    'inspect.filter_content' => 'Filtrer le contenu',
+    'inspect.please_select_model' => 'Veuillez sélectionner un modèle',
 ];

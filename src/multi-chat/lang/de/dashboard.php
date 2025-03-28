@@ -57,4 +57,10 @@ return [
     'rule.warning' => 'Warnmeldung (optional)',
     'rule.filter.input' => 'Eingabefilter',
     'rule.filter.output' => 'Ausgabefilter',
+    'inspect.begin_date' => 'Startdatum',
+    'inspect.end_date' => 'Enddatum',
+    'inspect.search_msg' => 'Suchmeldung',
+    'inspect.filter_model' => 'Modell filtern',
+    'inspect.filter_content' => 'Inhalt filtern',
+    'inspect.please_select_model' => 'Bitte wählen Sie ein Modell aus',
 ];

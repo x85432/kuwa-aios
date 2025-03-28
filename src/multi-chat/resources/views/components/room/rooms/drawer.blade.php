@@ -23,7 +23,7 @@
                 @if (request()->user()->hasPerm('Room_update_import_chat'))
                     <button data-modal-target="importModal" data-modal-toggle="importModal"
                         class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 {{ request()->user()->hasPerm('Room_update_new_chat') ? 'rounded-r-lg ' : 'rounded-lg w-full' }} flex items-center justify-center transition duration-300">
-                        {{ request()->user()->hasPerm('Room_update_new_chat') ? '' : '匯入對話　' }}
+                        {{ request()->user()->hasPerm('Room_update_new_chat') ? '' : __('chat.button.header.import') }}
                         <i class="fas fa-file-import"></i>
                     </button>
                 @endif

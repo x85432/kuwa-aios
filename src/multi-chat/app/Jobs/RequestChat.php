@@ -22,7 +22,7 @@ class RequestChat implements ShouldQueue
     public $tries = 100; # Wait 1000 seconds in total
     public $timeout = 1200; # For the 100th try, 200 seconds limit is given
     public static $kernel_api_version = 'v1.0';
-    public $filters = ["[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]", '[Oops, the LLM returned empty message, please try again later or report to admins!]', '[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]', '[Sorry, something is broken, please try again later!]'];
+    public $filters = ["[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]", '[Oops, the LLM returned empty message, please try again later or report to admins!]', '[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]', '[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]', '[Sorry, something is broken, please try again later!]'];
 
     /**
      * Create a new job instance.
@@ -250,7 +250,7 @@ class RequestChat implements ShouldQueue
                                 $tmp .= $message;
                                 $outputTmp = $tmp . '...';
                                 if ($kuwa_flag) {
-                                    $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
+                                    $outputTmp .= "\n\n[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]";
                                 }
                                 if ($warningMessages) {
                                     $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
@@ -268,7 +268,7 @@ class RequestChat implements ShouldQueue
                                         $outputTmp .= '...';
                                     }
                                     if ($kuwa_flag && $this->channel == $this->history_id) {
-                                        $outputTmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
+                                        $outputTmp .= "\n\n[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]";
                                     }
                                     if ($warningMessages) {
                                         $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
@@ -304,7 +304,7 @@ class RequestChat implements ShouldQueue
                         if ($this->channel != $this->history_id) {
                             Redis::publish($this->channel, 'Ended Ended');
                         } elseif ($kuwa_flag) {
-                            $tmp .= "\n\n[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
+                            $tmp .= "\n\n[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]";
                         }
                     }
                 } catch (Exception $e) {

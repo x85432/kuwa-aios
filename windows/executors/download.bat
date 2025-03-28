@@ -2,18 +2,18 @@
 setlocal EnableDelayedExpansion
 cd "%~dp0"
 if "%1"=="quick" (
-    call ..\src\variables.bat no_migrate
+	call ..\src\variables.bat no_migrate
 ) else (
-    call ..\src\variables.bat
+	call ..\src\variables.bat
 )
 cd "%~dp0"
 if "%1"=="quick" (
-    if "%2"=="" (
-        set option=2
-    ) else (
-        set option=%2
-    )
-    goto quick_main
+	if "%2"=="" (
+		set option=2
+	) else (
+		set option=%2
+	)
+	goto quick_main
 )
 
 
@@ -67,97 +67,97 @@ set "EXECUTOR_TYPE=!models[%option%]!"
 if "%option%"=="1" (
     :function1
     set userInput=n
-    set /p "userInput=Download Whisper Medium model (1.4GB)? [y/N] "
+    set /p "userInput=Do you want to download the Whisper Medium model (approximately 1.4GB)? [y/N] "
     
     if /I "!userInput!"=="y" (
-        echo Downloading Whisper Model...
-        set python_exe=..\packages\%python_folder%\python.exe
-        if exist "!python_exe!" (
-            !python_exe! ../../src/executor/speech_recognition/download_model.py
-        ) else (
-            echo Python executable not found: !python_exe!. Please build first using build.bat.
-        )
-        echo Download complete.
-    ) else (
-        echo Model download canceled.
-    )
+    	echo Downloading model...
+		set python_exe=..\packages\%python_folder%\python.exe
+		if exist "!python_exe!" (
+			!python_exe! ../../src/executor/speech_recognition/download_model.py
+		) else (
+			echo The file is missing !python.exe!, please execute build.bat first.
+		)
+		echo Download complete!
+	) else (
+		echo The model will not be downloaded.
+	)
     pause
 ) else if "%option%"=="2" (
     :function2
     set userInput=n
-    set /p "userInput=Download Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_S model (4.7GB)? [y/N] "
+    set /p "userInput=Do you want to download the GGUF model of Llama3-TAIDE-LX-8B-Chat-Alpha1.Q4_K_M (approximately 4.7GB)? [y/N] "
     
     if /I "!userInput!"=="y" (
-        echo Downloading Llama Model...
-        curl -L -o "Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_S.gguf" https://huggingface.co/nctu6/Llama-3.1-TAIDE-LX-8B-Chat-GGUF/resolve/main/Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf?download=true
-        echo Download complete.
-    ) else (
-        echo Model download canceled.
-    )
+    	echo Downloading model...
+    	curl -L -o "taide/taide-8b-a.3-q4_k_m.gguf" https://huggingface.co/QuantFactory/Llama3-TAIDE-LX-8B-Chat-Alpha1-GGUF/resolve/main/Llama3-TAIDE-LX-8B-Chat-Alpha1.Q4_K_M.gguf
+		echo Download complete!
+	) else (
+		echo The model will not be downloaded.
+	)
     pause
 ) else if "%option%"=="3" (
     :function3
     set userInput=n
-    set /p "userInput=Download Stable Diffusion 2 model (4.8GB)? [y/N] "
+    set /p "userInput=Do you want to download the Stable diffusion 2 model (approximately 4.8GB)? [y/N] "
     
     if /I "!userInput!"=="y" (
-        echo Downloading Stable Diffusion Model...
-        set python_exe=..\packages\%python_folder%\python.exe
+    	echo Downloading model...
+		set python_exe=..\packages\%python_folder%\python.exe
 
-        if exist "!python_exe!" (
-            !python_exe! ../../src/executor/image_generation/download_model.py
-        ) else (
-            echo Python executable not found: !python_exe!. Please build first using build.bat.
-        )
-        echo Download complete.
-    ) else (
-        echo Model download canceled.
-    )
+		if exist "!python_exe!" (
+			!python_exe! ../../src/executor/image_generation/download_model.py
+		) else (
+			echo The file is missing !python.exe!, please execute build.bat first.
+		)
+		echo Download complete!
+	) else (
+		echo The model will not be downloaded.
+	)
     pause
 ) else if "%option%"=="4" (
     :function4
     set userInput=n
-    set /p "userInput=Download pyannote/speaker-diarization-3.1 model (31.2MB)? [y/N] "
+    set /p "userInput=Do you want to download the pyannote/speaker-diarization-3.1 model (approximately 31.2MB)? [y/N] "
     
     if /I "!userInput!"=="y" (
-        echo Downloading Diarization Model...
-        set python_exe=..\packages\%python_folder%\python.exe
+    	echo Downloading model...
+		set python_exe=..\packages\%python_folder%\python.exe
 
-        if exist "!python_exe!" (
-            !python_exe! ../../src/executor/speech_recognition/download_model.py --diarizer
-        ) else (
-            echo Python executable not found: !python_exe!. Please build first using build.bat.
-        )
-        echo Download complete.
-    ) else (
-        echo Model download canceled.
-    )
+		if exist "!python_exe!" (
+			!python_exe! ../../src/executor/speech_recognition/download_model.py --diarizer
+		) else (
+			echo The file is missing !python.exe!, please execute build.bat first.
+		)
+		echo Download complete!
+	) else (
+		echo The model will not be downloaded.
+	)
     pause
 ) else if "%option%"=="5" (
     :function5
     set userInput=n
-    set /p "userInput=Download Llama3.1-8B.Q4_K_M GGUF model (4.7GB)? [y/N] "
+    set /p "userInput=Do you want to download the GGUF model Llama3.1-8B.Q4_K_M (approximately 4.7GB)? [y/N] "
     
     if /I "!userInput!"=="y" (
-        echo Downloading Llama Model...
-        curl -L -o "llama3_1/llama3_1-8b-q4_k_m.gguf" https://huggingface.co/chatpdflocal/llama3.1-8b-gguf/resolve/main/ggml-model-Q4_K_M.gguf
-        echo Download complete.
-    ) else (
-        echo Model download canceled.
-    )
+    	echo Downloading model...
+    	curl -L -o "llama3_1/llama3_1-8b-q4_k_m.gguf" https://huggingface.co/chatpdflocal/llama3.1-8b-gguf/resolve/main/ggml-model-Q4_K_M.gguf
+		echo Download complete!
+	) else (
+		echo The model will not be downloaded.
+	)
     pause
 ) else if "%option%"=="6" (
     :function5
     set userInput=n
-    set /p "userInput=Download Gemma-2-2b-it-Q8_0 GGUF model (2.78GB)? [y/N] "
+    set /p "userInput=Download GGUF model for gemma-2-2b-it-Q8_0 (approximately 2.78GB)? [y/N] "
     
     if /I "!userInput!"=="y" (
-        echo Downloading Gemma2 Model...
-        curl -L -o "gemma2/gemma-2-2b-it-Q8_0.gguf" https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q8_0.gguf
-        echo Download complete.
-    ) else (
-        echo Model download canceled.
-    )
+    	echo Downloading model...
+    	curl -L -o "gemma2/gemma-2-2b-it-Q8_0.gguf" https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q8_0.gguf
+		echo Download complete!
+	) else (
+		echo The model will not be downloaded.
+	)
     pause
 ) else if "%option%"=="7" (
     :function5
@@ -180,46 +180,14 @@ if "%option%"=="1" (
     
     if /I "!userInput!"=="y" (
     	echo Downloading model...
-		huggingface-cli download "google/gemma-3-4b-it"
-		copy gemma3-4b\_run.bat gemma3-4b\run.bat
-		echo Model downloaded!
+    	curl -L -o "gemma2/gemma-2-2b-it-Q8_0.gguf" https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q8_0.gguf
+		echo Download complete!
 	) else (
-		echo Will not download the model
-	)
-    pause
-) else if "%option%"=="9" (
-    :function5
-    set userInput=n
-    set /p "userInput=Download gemma-3-1b-it-q4_0.gguf.gguf (~2GB)? [y/N] "
-    
-    if /I "!userInput!"=="y" (
-        echo Downloading model...
-        curl -L -o "gemma-3-1b-it-q4_0.gguf.gguf" https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-q4_0.gguf.gguf?download=true
-        copy gemma3-1b\_run.bat gemma3-1b\run.bat
-        echo Model downloaded!
-    ) else (
-        echo Will not download the model.
-    )
-    pause
-) else if "%option%"=="8" (
-    :function5
-    set userInput=n
-    set /p "userInput=Download Gemma3 4B model (~8GB)? [y/N] "
-    
-    if /I "!userInput!"=="y" (
-        echo Downloading model...
-        huggingface-cli download "google/gemma-3-4b-it"
-        copy gemma3-4b\_run.bat gemma3-4b\run.bat
-        echo Model downloaded!
-    ) else (
-        echo Will not download the model.
-    )
-    pause
-) else if "%option%"=="9" (
+		echo The model will not be downloaded.
     exit
 )
 if "%1"=="quick" (
-    exit
+	exit
 )
 
 goto main

@@ -57,4 +57,10 @@ return [
     'rule.warning' => '警告メッセージ（オプション）',
     'rule.filter.input' => '入力フィルター',
     'rule.filter.output' => '出力フィルター',
+    'inspect.begin_date' => '開始日',
+    'inspect.end_date' => '終了日',
+    'inspect.search_msg' => '検索メッセージ',
+    'inspect.filter_model' => 'モデルのフィルタリング',
+    'inspect.filter_content' => 'コンテンツのフィルタリング',
+    'inspect.please_select_model' => 'モデルを選択してください',
 ];

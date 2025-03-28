@@ -68,4 +68,11 @@ return [
     'rule.warning' => '警告提示訊息(可選)',
     'rule.filter.input' => '輸入過濾',
     'rule.filter.output' => '輸出過濾',
+
+    'inspect.begin_date' => '開始日期',
+    'inspect.end_date' => '結束日期',
+    'inspect.search_msg' => '搜尋訊息',
+    'inspect.filter_model' => '過濾模型',
+    'inspect.filter_content' => '過濾模型',
+    'inspect.please_select_model' => '請選擇模型',
 ];

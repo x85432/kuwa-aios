@@ -57,4 +57,11 @@ return [
     'rule.warning' => 'Warning message (optional)',
     'rule.filter.input' => 'Input filter',
     'rule.filter.output' => 'Output filter',
+
+    'inspect.begin_date' => 'Start Date',
+    'inspect.end_date' => 'End Date',
+    'inspect.search_msg' => 'Search Message',
+    'inspect.filter_model' => 'Filter Model',
+    'inspect.filter_content' => 'Filter Content',
+    'inspect.please_select_model' => 'Please select a model',
 ];

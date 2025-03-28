@@ -18,7 +18,7 @@ class ExportTrainData extends Command
         $file = $this->argument('file');
         if ($file) {
             $trainData = [];
-            $invalidContents = ["[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]", '[Oops, the LLM returned empty message, please try again later or report to admins!]', '[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]'];
+            $invalidContents = ["[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]", '[Oops, the LLM returned empty message, please try again later or report to admins!]', '[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]', '[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]'];
             foreach (json_decode(file_get_contents($file)) as $key => $value) {
                 //model record
                 foreach ($value as $innerKey => $innerValue) {

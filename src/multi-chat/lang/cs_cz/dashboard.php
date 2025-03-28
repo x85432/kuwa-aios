@@ -57,4 +57,10 @@ return [
     'rule.warning' => 'Upozornění (volitelné)',
     'rule.filter.input' => 'Filtrování vstupu',
     'rule.filter.output' => 'Filtrování výstupu',
+    'inspect.begin_date' => 'Datum začátku',
+    'inspect.end_date' => 'Datum konce',
+    'inspect.search_msg' => 'Zpráva vyhledávání',
+    'inspect.filter_model' => 'Filtrovat model',
+    'inspect.filter_content' => 'Filtrovat obsah',
+    'inspect.please_select_model' => 'Vyberte prosím model',
 ];

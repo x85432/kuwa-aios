@@ -18,17 +18,17 @@
                 </svg>
                 <h3
                     class="mb-5 text-lg font-normal text-gray-500 flex-col dark:text-gray-400 overflow-hidden flex justify-center items-center">
-                    <span>您確定要刪除聊天室 </span>
+                    <span> {{ __('chat.header.delete_chat')}} </span>
                     <span class="truncate-text overflow-hidden overflow-ellipsis inline-block max-w-[200px] text-lg"
                         style="text-wrap:nowrap">&lt;hi&gt;</span>
                 </h3>
                 <input name="id" type="hidden" value="">
                 <button onclick="deleteRoom($(this).prev().val())"
                     class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
-                    刪除
+                    {{ __('chat.button.delete') }}
                 </button>
                 <button onclick="$('#delete_chat_modal').addClass('hidden')" type="button"
-                    class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">取消</button>
+                    class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">{{ __('chat.button.cancel') }}</button>
             </div>
         </div>
     </div>

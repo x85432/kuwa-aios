@@ -68,12 +68,12 @@
                     $('<li>').append($('<a>', {
                         target: 'new',
                         class: 'block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white !text-green-500 hover:!text-green-600',
-                        text: '分享連結'
+                        text: '{{ __("room.button.share_link") }}'
                     })),
                     $('<li>').append($('<a>', {
                         href: '#',
                         class: 'block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white !text-red-500 hover:!text-red-600',
-                        text: '刪除'
+                        text: '{{ __("chat.button.delete") }}'
                     }).on('click', function(e) {
                         e.preventDefault();
                         $('#delete_chat_modal').removeClass('hidden');

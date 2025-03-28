@@ -57,4 +57,10 @@ return [
     'rule.warning' => '경고 메시지(옵션)',
     'rule.filter.input' => '입력 필터',
     'rule.filter.output' => '출력 필터',
+    'inspect.begin_date' => '시작 날짜',
+    'inspect.end_date' => '종료 날짜',
+    'inspect.search_msg' => '검색 메시지',
+    'inspect.filter_model' => '모델 필터링',
+    'inspect.filter_content' => '콘텐츠 필터링',
+    'inspect.please_select_model' => '모델을 선택하십시오',
 ];

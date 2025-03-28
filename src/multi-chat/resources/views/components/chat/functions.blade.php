@@ -76,6 +76,13 @@ fill="currentFill" />
 </svg>`);
                 return;
             }
+            let display_raw_message = false;
+            if (display_raw_message){
+                let raw_msg = DOMPurify.sanitize(msg_elem.innerHTML);
+                console.log(raw_msg); 
+                $(msg_elem).html(`<p class="whitespace-pre-wrap">${raw_msg}</p>`);
+                return;
+            }
 
             let warnings = /&lt;&lt;&lt;WARNING&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g
                 .exec(this.innerHTML);
@@ -402,7 +409,7 @@ xmlns="http://www.w3.org/2000/svg">
                         } else {
                             output += content
                             $($(node).parent().parent().children()[0]).text(output +
-                                (model ? "" : '\n\n[此訊息經由該模型嘗試翻譯，瀏覽器重新整理後可復原]'));
+                                (model ? "" : '\n\n[This message is being attempted to be translated by that model, and the browser can be refreshed to recover afterwards.]'));
                             histories[history_id] = $($(node).parent().parent()
                                 .children()[0]).text()
                             chatroomFormatter($("#history_" + history_id));

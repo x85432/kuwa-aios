@@ -121,7 +121,7 @@
                     // Increment counts
                     status === 'BUSY' ? busyCount++ : readyCount++;
 
-                    // Create IP item if it doesn’t exist
+                    // Create IP item if it doesn't exist
                     if (!ipItem.length) {
                         ipList.append(
                             $('<li>', {
