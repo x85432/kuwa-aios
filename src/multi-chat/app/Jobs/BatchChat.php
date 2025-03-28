@@ -71,18 +71,25 @@ class BatchChat implements ShouldQueue
             RequestChat::dispatch(json_encode($history->chained ? array_merge($input, $buffer) : [['msg' => $prompt, 'isbot' => false]]), $access_code, $this->user_id, $this->history_id, App::getLocale(), $this->history_id, $modelfile, $new_input . "\n", $index === count($this->prompts) - 1);
 
             while (true) {
-                $record = Histories::find($this->history_id)->fresh();
-                if ($record->msg != '* ...thinking... *') {
-                    $buffer[] = ['msg' => trim(mb_substr($record->msg, mb_strlen($new_input, 'UTF-8'), null, 'UTF-8')), 'isbot' => true];
-                    if ($index === count($this->prompts) - 1) {
-                        return;
+                $record = Histories::find($this->history_id);
+            
+                if ($record) {
+                    $record = $record->fresh();
+                    
+                    if ($record->msg != '* ...thinking... *') {
+                        $buffer[] = ['msg' => trim(mb_substr($record->msg, mb_strlen($new_input, 'UTF-8'), null, 'UTF-8')), 'isbot' => true];
+                        if ($index === count($this->prompts) - 1) {
+                            return;
+                        }
+                        $record->msg = '* ...thinking... *';
+                        $record->save();
+                        break;
                     }
-                    $record->msg = '* ...thinking... *';
-                    $record->save();
-                    break;
                 }
+            
                 sleep(0.5);
             }
+            
         }
     }
     public function failed(\Throwable $exception)

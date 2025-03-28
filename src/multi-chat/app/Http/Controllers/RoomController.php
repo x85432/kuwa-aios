@@ -599,15 +599,25 @@ class RoomController extends Controller
             $chats = Chats::where('roomID', $Room->id)->get();
             foreach ($chats as $chat) {
                 if (in_array($chat->bot_id, $selectedLLMs)) {
-                    $history = new Histories();
-                    $history->fill(['msg' => $input, 'chat_id' => $chat->id, 'isbot' => false, 'created_at' => $ct, 'updated_at' => $ct]);
-                    $history->save();
-                    $history = new Histories();
-                    $history->fill(['msg' => '* ...thinking... *', 'chat_id' => $chat->id, 'isbot' => true, 'created_at' => $dct, 'updated_at' => $dct]);
-                    $history->save();
-                    RequestChat::dispatch(json_encode([['msg' => $input, 'isbot' => false]]), LLMs::findOrFail(Bots::findOrFail($chat->bot_id)->model_id)->access_code, Auth::user()->id, $history->id, App::getLocale(), null, json_decode(Bots::find($chat->bot_id)->config ?? '')->modelfile ?? null);
-                    Redis::rpush('usertask_' . Auth::user()->id, $history->id);
-                    Redis::expire('usertask_' . Auth::user()->id, 1200);
+                    $bot = Bots::findOrFail($chat->bot_id);
+                    $result = $this->processBotConfig($chat->bot_id, 'auto', $Room->id, str_replace("\r\n", '\n', $input) . "\n");
+                    if ($result == null) {
+                        $history = new Histories();
+                        $history->fill(['msg' => $input, 'chat_id' => $chat->id, 'isbot' => false, 'created_at' => $ct, 'updated_at' => $ct]);
+                        $history->save();
+                        $access_code = LLMs::findOrFail($bot->model_id)->access_code;
+                        if ($chained) {
+                            $tmp = Histories::where('chat_id', '=', $chat->id)->select('msg', 'isbot')->orderby('created_at')->orderby('id', 'desc')->get()->toJson();
+                        } else {
+                            $tmp = json_encode([['msg' => $input, 'isbot' => false]]);
+                        }
+                        $history = new Histories();
+                        $history->fill(['msg' => '* ...thinking... *', 'chained' => $chained, 'chat_id' => $chat->id, 'isbot' => true, 'created_at' => $dct, 'updated_at' => $dct]);
+                        $history->save();
+                        RequestChat::dispatch($tmp, $access_code, Auth::user()->id, $history->id, App::getLocale(), null, json_decode($bot->config ?? '')->modelfile ?? null);
+                        Redis::rpush('usertask_' . Auth::user()->id, $history->id);
+                        Redis::expire('usertask_' . Auth::user()->id, 1200);
+                    }
                 }
             }
         }
