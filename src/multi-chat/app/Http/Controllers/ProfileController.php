@@ -448,8 +448,15 @@ class ProfileController extends Controller
         }
 
         $is_calling_bot = str_starts_with($jsonData['model'], self::BOT_PREFIX);
+        
         $llm = LLMs::where('access_code', '=', $jsonData['model']);
         $bot = Bots::where('bots.name', '=', $is_calling_bot ? substr($jsonData['model'], strlen(self::BOT_PREFIX)) : '');
+        
+        // Default bot
+        if($is_calling_bot && (substr($jsonData['model'], strlen(self::BOT_PREFIX)) == ".def")){
+            $is_calling_bot = false;
+            $llm = LLMs::select('*')->orderBy('order');
+        }
 
         if (!((!$is_calling_bot && $llm->exists()) || ($is_calling_bot && $bot->exists()))) {
             // Handle the case where the specified model doesn't exist
