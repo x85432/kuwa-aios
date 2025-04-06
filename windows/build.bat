@@ -39,12 +39,6 @@ call src\download_extract.bat %url_PHP% packages\%php_folder% packages\%php_fold
 REM Download and extract PHP if not exists
 call src\download_extract.bat %url_PHP_Archive% packages\%php_folder_Archive% packages\%php_folder_Archive% php.zip
 
-REM Download and extract xpdfreader if not exists
-call src\download_extract.bat %url_XpdfReader% packages\%xpdfreader_folder% packages\%xpdfreader_folder% xpdfreader.zip
-
-REM Download and extract antiword if not exists
-call src\download_extract.bat %url_antiword% packages\%antiword_folder% packages\. antiword.zip
-
 REM Download and extract git bash if not exists
 call src\download_extract.bat %url_gitbash% packages\%gitbash_folder% packages\%gitbash_folder% gitbash.7z.exe
 

@@ -47,19 +47,6 @@ for %%I in ("%url_Redis%") do set "filename_Redis=%%~nxI"
 set "redis_folder=%filename_Redis:~0,-4%"
 for /f "tokens=2 delims=-" %%v in ("%filename_Redis%") do set "version_Redis=%%v"
 
-REM Variables for XpdfReader
-set "url_XpdfReader=https://github.com/kuwaai/xpdf/releases/download/4.05-kuwa1/xpdf-tools-4.05-kuwa1-win-x64.zip"
-for %%I in ("%url_XpdfReader%") do set "filename_XpdfReader=%%~nxI"
-set "xpdfreader_folder=%filename_XpdfReader:~0,-4%"
-for /f "tokens=2 delims=-" %%v in ("%filename_XpdfReader%") do set "version_XpdfReader=%%v"
-
-REM Variables for Antiword
-set "url_antiword=http://web.archive.org/web/20240812110344/https://softpedia-secure-download.com/dl/127df4c3450903e8d13e0d4784017069/66b9eb8d/100136188/software/office/antiword-0_37-windows.zip"
-for %%I in ("%url_antiword%") do set "filename_antiword=%%~nxI"
-set "antiword_folder=antiword"
-for /f "tokens=2 delims=-" %%v in ("%filename_antiword%") do set "version_antiword=%%v"
-set "HOME=%~dp0..\packages\%antiword_folder%\"
-
 REM Variables for git bash
 set "url_gitbash=https://github.com/git-for-windows/git/releases/download/v2.45.1.windows.1/PortableGit-2.45.1-64-bit.7z.exe"
 for %%I in ("%url_gitbash%") do set "filename_gitbash=%%~nxI"
@@ -82,6 +69,7 @@ set "CSIDL_LOCAL_APPDATA=%KUWA_CACHE%\appdata"
 set "HF_HOME=%KUWA_CACHE%\huggingface"
 set "CACHE_PATH_ENV=%KUWA_CACHE%\selenium"
 set "PYANNOTE_CACHE=%KUWA_CACHE%\torch\pyannote"
+set "HOME=%KUWA_CACHE%"
 
 REM Kuwa env
 set "KUWA_ROOT=%~dp0..\root"
