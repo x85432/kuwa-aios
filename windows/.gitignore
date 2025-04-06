@@ -12,3 +12,4 @@ cache
 src/conf/migrations.txt
 logs/
 .ssh/
+.gitconfig
