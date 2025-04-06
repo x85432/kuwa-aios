@@ -34,7 +34,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 async def _extractor(content: str, url: str, content_type: str) -> str:
     mime_extractor = {
         "text/html": html_extractor,
@@ -107,7 +106,8 @@ async def file_extractor(content: str, url: str, content_type: str) -> str:
     try:
         loop = asyncio.get_event_loop()
         converter = MarkItDown(enable_plugins=False)  # Set to True to enable plugins
-        text = await loop.run_in_executor(None, converter.convert, str(file_path))
+        result = await loop.run_in_executor(None, converter.convert, str(file_path))
+        text = result.text_content
     except Exception:
         logger.exception("Failed to extract text.")
 
