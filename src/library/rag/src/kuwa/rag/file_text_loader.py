@@ -1,12 +1,13 @@
 import logging
 import asyncio
+import traceback
 import trafilatura
-import textract
 from typing import List, AsyncIterator
 from pathlib import Path
 from langchain.docstore.document import Document
 from langchain_community.document_loaders.text import TextLoader
 from magika import Magika
+from markitdown import MarkItDown
 
 logger = logging.getLogger(__name__)
 magika = Magika()
@@ -28,7 +29,7 @@ class PrefixDict(dict):
 
 
 class FileTextLoader(TextLoader):
-    """Extract text from files with textract or Trafilatura.
+    """Extract text from files.
 
     Args:
         file_path: Path to the file to load.
@@ -73,6 +74,7 @@ class FileTextLoader(TextLoader):
             logger.warning(
                 f"Error loading {self.file_path}: {type(e).__name__}: {e.args[0]}. Skipped."
             )
+            logger.debug(traceback.format_exc())
         finally:
             return docs
 
@@ -95,8 +97,9 @@ class FileTextLoader(TextLoader):
 
     def load_doc(self) -> List[Document]:
         """Load text from document file."""
-        text = textract.process(self.file_path, encoding=self.encoding)
-        text = text.decode(self.encoding)
+        converter = MarkItDown(enable_plugins=False)  # Set to True to enable plugins
+        result = converter.convert(self.file_path)
+        text = result.text_content
 
         metadata = {"source": self.file_path}
         return [Document(page_content=text, metadata=metadata)]

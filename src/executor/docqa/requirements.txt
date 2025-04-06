@@ -2,7 +2,7 @@ langchain
 langchain-community
 accelerate
 sentence-transformers
-textract
+markitdown
 bs4
 # faiss-gpu # Since the count of fetched document is relatively small, CPU is enough.
 faiss-cpu

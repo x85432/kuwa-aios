@@ -24,8 +24,8 @@ from langchain.docstore.document import Document
 from langchain.document_loaders.base import BaseLoader
 from langchain.utils.html import extract_sub_links
 import aiohttp
-import textract
 import trafilatura
+from markitdown import MarkItDown
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 
@@ -106,8 +106,8 @@ async def file_extractor(content: str, url: str, content_type: str) -> str:
     text = ""
     try:
         loop = asyncio.get_event_loop()
-        text = await loop.run_in_executor(None, textract.process, str(file_path))
-        text = text.decode("utf-8")
+        converter = MarkItDown(enable_plugins=False)  # Set to True to enable plugins
+        text = await loop.run_in_executor(None, converter.convert, str(file_path))
     except Exception:
         logger.exception("Failed to extract text.")
 
