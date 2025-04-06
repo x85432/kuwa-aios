@@ -60,8 +60,8 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 ; Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Components]
-Name: "product"; Description: "Product Components"; Types: custom;Flags: fixed;
-Name: "product\Kuwa"; Description: "Kuwa"; Types: custom ;Flags: fixed; ExtraDiskSpaceRequired:12819344608;
+Name: "product"; Description: "Product Components"; Types: full compact custom;Flags: fixed;
+Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: fixed; ExtraDiskSpaceRequired:12819344608;
 
 //Name: "product\Kuwa\Huggingface"; Description: "Huggingface Executor Runtime"; Types: full compact custom;
 
@@ -72,8 +72,8 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types: custom ;Flags: fixed; ExtraDis
 //Name: "product\n8n"; Description: "n8n"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 //Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 
-Name: "models"; Description: "Model Selection"; Types: custom;Flags: fixed;
-Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: custom;ExtraDiskSpaceRequired:892338176;
+Name: "models"; Description: "Model Selection"; Types: full custom;Flags: fixed;
+Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: full compact custom;ExtraDiskSpaceRequired:892338176;
 Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom; ExtraDiskSpaceRequired:4294967296;
 
 [Files]
@@ -150,17 +150,15 @@ begin
   begin
     Email := AccountPage.Values[0];
     Password := AccountPage.Values[1];
-    ConfirmPass := AccountPage.Values[1];
+    ConfirmPass := AccountPage.Values[2];
 
-    if (Email = '') or (Password = '') then
+    if (Email = '') or (Password = '') or (ConfirmPass = '') then
     begin
-      MsgBox('Both email and password must be filled out to proceed.', mbError, MB_OK);
       Abort;
     end;
     
     if not (Password = ConfirmPass) then
     begin
-      MsgBox('Password mismatch!', mbError, MB_OK);
       Abort;
     end;
 
@@ -177,6 +175,20 @@ begin
 
     SaveStringToFile(InitFile, InitContent, False);
   end;
+end;
+function IsValidEmail(strEmail : String) : boolean;
+var
+    strTemp  : String;
+    nSpace   : Integer;
+    nAt      : Integer;
+    nDot     : Integer;
+begin
+    strEmail := Trim(strEmail);
+    nSpace := Pos(' ', strEmail);
+    nAt := Pos('@', strEmail);
+    strTemp := Copy(strEmail, nAt + 1, Length(strEmail) - nAt + 1);
+    nDot := Pos('.', strTemp) + nAt;
+    Result := ((nSpace = 0) and (1 < nAt) and (nAt + 1 < nDot) and (nDot < Length(strEmail)));
 end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
@@ -225,18 +237,34 @@ begin
   begin
     Username := AccountPage.Values[0];
     Password := AccountPage.Values[1];
+    ConfirmPass := AccountPage.Values[2];
+
+    Result := True; // Default result is True, but will be set to False if any validation fails
 
     if (Username = '') or (Password = '') then
     begin
       MsgBox('Both username and password are required.', mbError, MB_OK);
       Result := False;
-    end
-    else
+    end;
+
+    if not (ConfirmPass = Password) then
     begin
-      Result := True;
+      MsgBox('Password mismatch!', mbError, MB_OK);
+      Result := False;
+    end;
+
+    if (ConfirmPass = '') then
+    begin
+      MsgBox('Please repeat your password to confirm', mbError, MB_OK);
+      Result := False;
+    end;
+
+    if not IsValidEmail(Username) then
+    begin
+      MsgBox('Please enter a valid email address.', mbError, MB_OK);
+      Result := False;
     end;
   end
   else
     Result := True;
 end;
-
