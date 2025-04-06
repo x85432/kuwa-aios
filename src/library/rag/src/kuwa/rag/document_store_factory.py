@@ -128,6 +128,7 @@ class DocumentStoreFactory:
                 jobs.append(loader.aload())
         docs = await asyncio.gather(*jobs)
         docs = [doc for sub_docs in docs for doc in sub_docs]
+        logger.info(f"Successfully loaded {len(docs)} documents.")
         return docs
 
     @lru_cache()
