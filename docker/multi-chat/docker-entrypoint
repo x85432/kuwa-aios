@@ -82,7 +82,7 @@ seed_admin() {
     fi
 
     printf "${ADMIN_NAME}\n${ADMIN_EMAIL}\n${ADMIN_PASSWORD}" \
-      | php artisan db:seed --class=AdminSeeder --force || return 0
+      | php artisan create:admin-user || return 0
     printf "Admin \"${ADMIN_NAME}\" had been added\n"
 }
 

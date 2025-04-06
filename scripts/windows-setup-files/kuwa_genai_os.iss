@@ -60,8 +60,8 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 ; Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Components]
-Name: "product"; Description: "Product Components"; Types: full compact custom;
-Name: "product\Kuwa"; Description: "Kuwa"; Types: full compact custom ;Flags: fixed; ExtraDiskSpaceRequired:12819344608;
+Name: "product"; Description: "Product Components"; Types: custom;Flags: fixed;
+Name: "product\Kuwa"; Description: "Kuwa"; Types: custom ;Flags: fixed; ExtraDiskSpaceRequired:12819344608;
 
 //Name: "product\Kuwa\Huggingface"; Description: "Huggingface Executor Runtime"; Types: full compact custom;
 
@@ -72,8 +72,8 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types: full compact custom ;Flags: fi
 //Name: "product\n8n"; Description: "n8n"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 //Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 
-Name: "models"; Description: "Model Selection"; Types: full compact custom;Flags: fixed;
-Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: full compact custom;ExtraDiskSpaceRequired:892338176;
+Name: "models"; Description: "Model Selection"; Types: custom;Flags: fixed;
+Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: custom;ExtraDiskSpaceRequired:892338176;
 Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom; ExtraDiskSpaceRequired:4294967296;
 
 [Files]
@@ -109,7 +109,7 @@ var
   DownloadPage: TDownloadWizardPage;
   AccountPage: TInputQueryWizardPage;
   AutoLoginCheckBox: TNewCheckBox;
-  Username, Password: String;
+  Username, Password, ConfirmPass: String;
   AutoLoginValue: String;
 
 function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
@@ -128,13 +128,14 @@ begin
 
   AccountPage.Add('Email:', False); 
   AccountPage.Add('Password:', True); 
+  AccountPage.Add('Confirm Password:', True); 
 
   AutoLoginCheckBox := TNewCheckBox.Create(WizardForm);
   AutoLoginCheckBox.Parent := AccountPage.Surface;
-  AutoLoginCheckBox.Top := AccountPage.Edits[1].Top + AccountPage.Edits[1].Height + 12;
-  AutoLoginCheckBox.Left := AccountPage.Edits[1].Left;
+  AutoLoginCheckBox.Top := AccountPage.Edits[2].Top + AccountPage.Edits[2].Height + 12;
+  AutoLoginCheckBox.Left := AccountPage.Edits[2].Left;
   AutoLoginCheckBox.Width := 300;
-  AutoLoginCheckBox.Caption := 'Enable auto login';
+  AutoLoginCheckBox.Caption := 'Single User Mode';
   AutoLoginCheckBox.Checked := False; 
   DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
   DownloadPage.ShowBaseNameInsteadOfUrl := True;
@@ -144,16 +145,22 @@ var
   InitFile: String;
   InitContent: String;
   Email: String;
-  AtPos: Integer;
 begin
   if CurStep = ssPostInstall then
   begin
     Email := AccountPage.Values[0];
     Password := AccountPage.Values[1];
+    ConfirmPass := AccountPage.Values[1];
 
     if (Email = '') or (Password = '') then
     begin
       MsgBox('Both email and password must be filled out to proceed.', mbError, MB_OK);
+      Abort;
+    end;
+    
+    if not (Password = ConfirmPass) then
+    begin
+      MsgBox('Password mismatch!', mbError, MB_OK);
       Abort;
     end;
 

@@ -11,8 +11,8 @@ call src\download_extract.bat %url_ffmpeg% packages\%ffmpeg_folder% packages\. f
 
 if exist "packages\%python_folder%\Scripts\pip.exe" (
 	pushd ..\src\executor\speech_recognition
-	pip install --default-timeout=1000 https://www.piwheels.org/simple/docopt/docopt-0.6.2-py2.py3-none-any.whl#sha256=15fde8252aa9f2804171014d50d069ffbf42c7a50b7d74bcbb82bfd5700fcfc2
-	pip install --default-timeout=1000 -r requirements.txt
+	uv pip install --system https://www.piwheels.org/simple/docopt/docopt-0.6.2-py2.py3-none-any.whl#sha256=15fde8252aa9f2804171014d50d069ffbf42c7a50b7d74bcbb82bfd5700fcfc2
+	uv pip install --system -r requirements.txt
 	popd
 	exit /b 0
 ) else (

@@ -1,2 +1,2 @@
 cd ../..
-php artisan db:seed --class=AdminSeeder
+php artisan create:admin-user

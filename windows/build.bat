@@ -111,11 +111,11 @@ REM Install pip for python
 if not exist "packages\%python_folder%\Scripts\pip.exe" (
 	pushd "packages\%python_folder%"
 	python get-pip.py --no-warn-script-location
-    python -m pip install pip==24.0
+    python -m pip install pip uv
 	popd
 ) else (
     echo pip already installed, skipping installing.
-    python -m pip install --upgrade pip
+    python -m pip install -U pip uv
 )
 
 REM Check if .env file exists
@@ -136,6 +136,33 @@ call php ..\..\windows\packages\composer.phar update
 call php artisan key:generate --force
 call php artisan db:seed --class=InitSeeder --force
 call php artisan migrate --force
+
+:: Check if init.txt exists
+if exist init.txt (
+    :: Read init.txt
+    for /f "tokens=1,2 delims==" %%A in (init.txt) do (
+        set "%%A=%%B"
+    )
+
+    :: Extract name from email (username before @)
+    for /f "delims=@ tokens=1" %%E in ("!username!") do (
+        set "name=%%E"
+    )
+
+    pushd "..\src\multi-chat\"
+    php artisan create:admin-user --name=!name! --email=!username! --password=!password!
+    :: Check autologin is true
+	if /i "!autologin!"=="true" (
+		:: Append the line to .env
+		echo. >> ".env"
+		echo APP_AUTO_EMAIL=!username!>> ".env"
+	)
+    popd
+    del init.txt
+) else (
+    echo init.txt not found. Skipping seeding.
+)
+
 rmdir /Q /S public\storage
 call php artisan storage:link
 call npm.cmd install
@@ -155,14 +182,14 @@ popd
 
 REM Download required pip packages
 pushd "..\src\kernel"
-pip install --default-timeout=1000 --force-reinstall .
+uv pip install --system --force-reinstall .
 call :install-requirements-txt
 popd
 pushd "..\src\library\client"
-pip install --default-timeout=1000 --force-reinstall .
+uv pip install --system --force-reinstall .
 popd
 pushd "..\src\executor"
-pip install --default-timeout=1000 --force-reinstall .
+uv pip install --system --force-reinstall .
 call :install-requirements-txt
 pushd "docqa"
 call :install-requirements-txt
@@ -212,6 +239,6 @@ goto :eof
 :install-requirements-txt
 for /f "tokens=*" %%a in ('findstr /v /r /c:"^#" requirements.txt') do (
   echo Installing "%%a"...
-  pip install --default-timeout=1000 "%%a"
+  uv pip install --system "%%a"
 )
 goto :eof
