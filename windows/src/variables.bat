@@ -69,7 +69,7 @@ set "CSIDL_LOCAL_APPDATA=%KUWA_CACHE%\appdata"
 set "HF_HOME=%KUWA_CACHE%\huggingface"
 set "CACHE_PATH_ENV=%KUWA_CACHE%\selenium"
 set "PYANNOTE_CACHE=%KUWA_CACHE%\torch\pyannote"
-set "HOME=%KUWA_CACHE%"
+set "HOME=%~dp0.."
 
 REM Kuwa env
 set "KUWA_ROOT=%~dp0..\root"
