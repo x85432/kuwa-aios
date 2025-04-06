@@ -26,7 +26,7 @@ return [
     'button.share_link' => 'Share Link',
     'button.sort_by' => 'Sort By',
     'button.create' => 'Create',
-    'button.group_by_time' => 'Time Group',
-    'button.group_by_bot' => 'Bot Group',
+    'button.group_by_time' => 'Group by Time',
+    'button.group_by_bot' => 'Group by Bot',
     'button.reload' => 'Reload',
 ];
