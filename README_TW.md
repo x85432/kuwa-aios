@@ -21,9 +21,9 @@
   <a href="#">
     <img src="https://img.shields.io/github/v/release/kuwaai/genai-os">
   </a>
-  <a href="#">
+  <!--<a href="#">
     <img src="https://img.shields.io/github/downloads/kuwaai/genai-os/total">
-  </a>
+  </a>-->
   <a href="#">
     <img src="https://img.shields.io/github/license/kuwaai/genai-os">
   </a>
