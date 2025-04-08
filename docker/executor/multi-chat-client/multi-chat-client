@@ -7,10 +7,11 @@ from urllib.parse import urlencode
 from fcgi_client import PHPFPMClient
 from retry import retry
 
-def add_executor(client:PHPFPMClient, access_code:str, name:str, image:str=None, verbose:bool=False):
+def add_executor(client:PHPFPMClient, access_code:str, name:str, image:str=None, verbose:bool=False, create_bot:bool=True):
     request = {
         "access_code": access_code,
         "name": name,
+        "create_bot": create_bot
     }
     if image is not None:
         request["image"] = image
@@ -59,6 +60,7 @@ if __name__ == '__main__':
     add_model_parser.add_argument("access_code", type=str, help="The access code of the executor")
     add_model_parser.add_argument("name", type=str, help="The name of the executor")
     add_model_parser.add_argument("--image", type=str, default=None, help="The image of the executor. Reference to the directory \"/app/default-icons/\" on multi-chat.")
+    add_model_parser.add_argument("--create_bot", type=bool, default=True, help="Whether create bot.")
     
     ping_parser = subparsers.add_parser('ping', help='Probe whether multi-chat is available.')
     args = parser.parse_args()
@@ -70,7 +72,7 @@ if __name__ == '__main__':
 
     client = PHPFPMClient(args.target, args.timeout)
     if args.subcommand == "add-executor":
-        add_executor(client, access_code=args.access_code, name=args.name, image=args.image)
+        add_executor(client, access_code=args.access_code, name=args.name, image=args.image, create_bot=args.create_bot)
     elif args.subcommand == "ping":
         ping(client)
     else:

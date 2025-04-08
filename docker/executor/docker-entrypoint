@@ -47,6 +47,7 @@ add_executor(){
     IFS=';' read -r -a access_code_arr <<< "${EXECUTOR_ACCESS_CODE}"
     IFS=';' read -r -a name_arr <<< "${EXECUTOR_NAME}"
     IFS=';' read -r -a image_arr <<< "${EXECUTOR_IMAGE}"
+    IFS=';' read -r -a create_bot_arr <<< "${EXECUTOR_CREATE_BOT}"
     for idx in "${!name_arr[@]}"
     do
         access_code="${access_code_arr[idx]}"
@@ -58,7 +59,7 @@ add_executor(){
             image=""
         fi
         echo "Trying to add Executor \"${name}\"(${access_code}) to multi-chat."
-        multi-chat-client add-executor "${access_code}" "${name}" ${image} || true
+        multi-chat-client add-executor "${access_code}" "${name}" ${image} "--create_bot" "${create_bot_arr[idx]}" || true
         if [[ $? -eq 0 ]]; then
             echo "Successfully add Executor \"${name}\"(${access_code}) to multi-chat."
         else
