@@ -118,6 +118,9 @@ class OllamaExecutor(LLMExecutor):
             else {}
         )
         arg_gconf = self.args.generation_kwargs
+        self.ollama_options = merge_config(
+            base=self.ollama_options, top={"num_ctx": self.context_window}
+        )
         self.ollama_options = merge_config(base=self.ollama_options, top=file_gconf)
         self.ollama_options = merge_config(base=self.ollama_options, top=arg_gconf)
 
@@ -177,6 +180,7 @@ class OllamaExecutor(LLMExecutor):
     def get_supported_image_mime(self):
         def ext2mime(ext):
             return mimetypes.guess_type(f"a{ext}")[0]
+
         exts = Image.registered_extensions()
         exts = {ex for ex, f in exts.items() if f in Image.OPEN}
         mimes = {ext2mime(ex) for ex in exts} - {None}
