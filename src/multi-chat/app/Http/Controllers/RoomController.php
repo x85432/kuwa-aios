@@ -549,6 +549,7 @@ class RoomController extends Controller
     {
         $llms = $request->input('llm');
         $selectedLLMs = $request->input('chatsTo');
+        $chained = (Session::get('chained') ?? true) == true;
         if (count($selectedLLMs) > 0 && count($llms) > 0) {
             $result = Bots::wherein(
                 'model_id',
