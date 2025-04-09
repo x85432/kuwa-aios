@@ -521,6 +521,7 @@
             `Date: ${formatDate()}`,
             `Content-Type: multipart/related; boundary="${boundary}"; type=application/vnd.kuwabot`,
             "Content-Transfer-Encoding: quoted-printable",
+            "Accept-Language: {{ str_replace('_', '-',$locale = App::getLocale()); }}",
             "",
             `--${boundary}`,
             "Content-Type: application/vnd.kuwabot;",
