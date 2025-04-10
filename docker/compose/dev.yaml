@@ -6,6 +6,9 @@ services:
     environment:
       APP_ENV: development
       APP_DEBUG: true
+      - ../multi-chat/add-executor.php:/app/app/Console/add-executor.php
+      - ../multi-chat/check-update.php:/app/app/Console/check-update.php
+      - ../multi-chat/update-project.php:/app/app/Console/update-project.php
   db-ui:
     image: adminer
     restart: always

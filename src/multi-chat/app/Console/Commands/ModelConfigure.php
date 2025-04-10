@@ -24,7 +24,7 @@ class ModelConfigure extends Command
     {
         $accessCode = $this->argument('access_code');
         $name = $this->argument('name');
-        $force = !!$this->option('do_not_create_bot');
+        $force = !!$this->option('force');
 
         try {
             if (!$force && LLMs::where('access_code', '=', $accessCode)->exists()) {
