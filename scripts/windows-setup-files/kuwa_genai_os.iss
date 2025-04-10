@@ -210,12 +210,12 @@ begin
     DownloadPage.Add('https://web.archive.org/web/20240812110344if_/https://softpedia-secure-download.com/dl/127df4c3450903e8d13e0d4784017069/66b9eb8d/100136188/software/office/antiword-0_37-windows.zip', 'packages\antiword.zip', '');
     DownloadPage.Add('https://github.com/git-for-windows/git/releases/download/v2.45.1.windows.1/PortableGit-2.45.1-64-bit.7z.exe', 'packages\gitbash.7z.exe', '');
     DownloadPage.Add('https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-7.0.2-essentials_build.zip', 'packages\ffmpeg.zip', '');
-    
+
     if WizardIsComponentSelected('models\gemma3_1b_q5_km') then begin
       DownloadPage.Add('https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q5_K_M.gguf?download=true', 'models\gemma-3-1b-it-Q5_K_M.gguf', '');
     end;
     if WizardIsComponentSelected('models\llama3_point_1_taide_lx_8_q4_km') then begin
-      DownloadPage.Add('https://huggingface.co/nctu6/Llama-3.1-TAIDE-LX-8B-Chat-GGUF/resolve/main/Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf?download=true', 'models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_S.gguf', '');
+      DownloadPage.Add('https://huggingface.co/tetf/Llama-3.1-TAIDE-LX-8B-Chat-GGUF/resolve/main/Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf?download=true', 'models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf', '');
     end;
     DownloadPage.Show;
     

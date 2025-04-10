@@ -1,6 +1,7 @@
 @echo off
 chcp 65001 > NUL
 set PYTHONUTF8=1
+setlocal enabledelayedexpansion
 set PYTHONIOENCODING="utf8"
 cd "%~dp0"
 if "%1" equ "__start__" (shift & goto main)
@@ -136,7 +137,7 @@ call php ..\..\windows\packages\composer.phar update
 call php artisan key:generate --force
 call php artisan db:seed --class=InitSeeder --force
 call php artisan migrate --force
-
+popd
 :: Check if init.txt exists
 if exist init.txt (
     :: Read init.txt
@@ -162,7 +163,7 @@ if exist init.txt (
 ) else (
     echo init.txt not found. Skipping seeding.
 )
-
+pushd "..\src\multi-chat"
 rmdir /Q /S public\storage
 call php artisan storage:link
 call npm.cmd install
