@@ -1,1 +1,0 @@
-../../../src/tools/sysinfo.py

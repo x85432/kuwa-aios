@@ -1,1 +1,0 @@
-../../../src/tools/construct_vector_db.py

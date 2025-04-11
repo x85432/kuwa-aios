@@ -141,6 +141,10 @@ install_kuwa() {
   db_passwd=$(LC_ALL=C tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' </dev/urandom | head -c 13)
   echo "$db_passwd" >.db-password
   echo "Database password set successfully."
+
+  # Copy bots and tools
+  cp -i ../src/bots/init/*.bot ./root/bootstrap/bot/
+  cp -i ../src/tools/ ./root/bin
   
   # [Optional] Build the docker image from source.
   read -p "Would you like to build the Kuwa Docker image from its source code? [y/N]: " build_docker_image
