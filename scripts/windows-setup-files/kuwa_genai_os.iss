@@ -86,7 +86,7 @@ Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdi
 
 Source: "{tmp}\models\gemma-3-1b-it-Q5_K_M.gguf"; DestDir: "{app}\windows\executors\gemma3-1b\"; Flags: external; Components: "models\gemma3_1b_q5_km"
 
-Source: "{tmp}\models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_S.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: external; Components: "models\llama3_point_1_taide_lx_8_q4_km"
+Source: "{tmp}\models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: external; Components: "models\llama3_point_1_taide_lx_8_q4_km"
 
 Source: "{tmp}\packages\*"; DestDir: "{app}\windows\packages\"; Flags: external; Components: "product\Kuwa"
 

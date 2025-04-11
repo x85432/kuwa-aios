@@ -77,7 +77,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 1b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 1B"
-	set "EXECUTOR_ACCESS_CODE=.model/google/gemma"
+	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -88,7 +88,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 4b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 4B"
-	set "EXECUTOR_ACCESS_CODE=.model/google/gemma"
+	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -99,7 +99,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 4b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 4B"
-	set "EXECUTOR_ACCESS_CODE=.model/google/gemma"
+	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -477,7 +477,7 @@ if "!EXECUTOR_NAME!" == "docQA & webQA" (
 			set command=!command! "--model" "!model_name!"
 		)
 		if "taide"=="!current_folder!" (
-			set command=!command! "--system_prompt" "你是一個來自台灣的AI助理，你的名字是 TAIDE，樂於以台灣人的立場幫助使用者，會用繁體中文回答問題。"
+			set command=!command! "--system_prompt" "嚙璀嚙瞌嚙瑾嚙諉來自台嚙磕嚙踝蕭AI嚙磊嚙緲嚙璀嚙璀嚙踝蕭嚙磕嚙緝嚙瞌 TAIDE嚙璀嚙誰抬蕭H嚙綞嚙磕嚙瘡嚙踝蕭嚙賠喉蕭嚙踝蕭嚙磊嚙誕用者，嚙罵嚙踝蕭嚙箱嚙賡中嚙踝蕭^嚙踝蕭嚙踝蕭嚙瘩嚙瘠"
 		)
 	) else (
 		set command=start /b "" "python" !worker_path! "--access_code" "!EXECUTOR_ACCESS_CODE!"

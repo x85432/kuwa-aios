@@ -9,7 +9,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "Upload Tool"
 KUWABOT description "Augment Kuwa with a new program/tool."
-KUWABOT base "uploader"
+KUWABOT base ".tool/kuwa/uploader"
 PARAMETER uploader_dst_dir "/bin"
 PARAMETER uploader_succeed_message "Success! Your tool is ready to go."
 PARAMETER uploader_chmod "755"

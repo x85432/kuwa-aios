@@ -9,7 +9,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "Media Converter"
 KUWABOT description "Based on ffmpeg, a complete, cross-platform solution to record, convert and stream audio and video."
-KUWABOT base "pipe"
+KUWABOT base ".tool/kuwa/pipe"
 PARAMETER pipe_program 'python'
 PARAMETER pipe_argv 'media_conv.py {{user-args}}'
 

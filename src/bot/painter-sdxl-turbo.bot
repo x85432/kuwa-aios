@@ -9,7 +9,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "Painter (SDXL-turbo)"
 KUWABOT description "Input a text or upload an image, then input how to modify it, to generate an image"
-KUWABOT base "tool/diffuser"
+KUWABOT base ".model/stabilityai/stable-diffusion"
 PARAMETER model_name stabilityai/sdxl-turbo
 PARAMETER imgen_num_inference_steps 1
 PARAMETER imgen_guidance_scale 0.0
