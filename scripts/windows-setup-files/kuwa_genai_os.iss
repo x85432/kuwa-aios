@@ -61,7 +61,7 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 
 [Components]
 Name: "product"; Description: "Product Components"; Types: full compact custom;Flags: fixed;
-Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: fixed; ExtraDiskSpaceRequired:12819344608;
+Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: fixed; ExtraDiskSpaceRequired:9850003637;
 
 //Name: "product\Kuwa\Huggingface"; Description: "Huggingface Executor Runtime"; Types: full compact custom;
 
@@ -73,8 +73,8 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: f
 //Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 
 Name: "models"; Description: "Model Selection"; Types: full custom;Flags: fixed;
-Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: full compact custom;ExtraDiskSpaceRequired:892338176;
-Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom; ExtraDiskSpaceRequired:4294967296;
+Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: full compact custom;ExtraDiskSpaceRequired:851345344;
+Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom; ExtraDiskSpaceRequired:5261727040;
 
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
