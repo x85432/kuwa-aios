@@ -6,6 +6,7 @@ services:
       EXECUTOR_ACCESS_CODE: doc-qa;web-qa;db-qa
       EXECUTOR_NAME: Document QA;Web QA;DB QA
       EXECUTOR_IMAGE: doc-qa.png;web-qa.png;db-qa.png # Refer to src/multi-chat/public/images
+      EXECUTOR_CREATE_BOT: true;true;true
       TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-0} # For embedding model
     depends_on:
       - executor-builder

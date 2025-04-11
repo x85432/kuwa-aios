@@ -43,9 +43,9 @@ EXECUTORS = [
         "class": "ollama_proxy.OllamaExecutor",
     },
     {
-        "name": "nvidia",
+        "name": "nim",
         "description": "[Cloud model] Nvidia NIM. Need API key.",
-        "class": "nvidia_nim.NimExecutor",
+        "class": "nim.NimExecutor",
     },
 ]
 

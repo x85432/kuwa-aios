@@ -11,8 +11,9 @@ logger = logging.getLogger(__name__)
 class NimExecutor(ChatGptExecutor):
     model_name: str = "nvidia/nemotron-4-340b-instruct"
     openai_base_url: str = "https://integrate.api.nvidia.com/v1/"
-    api_token_name: str = "nim_token"
-    token_display_name: str = "Nvidia NIM API"
+    api_token_field_name: str = "nim_token"
+    api_token_prefix: str = "nvapi-"
+    api_token_field_display_name: str = "Nvidia NIM API"
     context_window: int = 131072
 
     def __init__(self):

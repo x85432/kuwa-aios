@@ -100,6 +100,7 @@ import_default_bots() {
     echo "Try to import default bots."
     mkdir -p ${KUWA_ROOT}/bootstrap/bot
     for botfile in ${KUWA_ROOT}/bootstrap/bot/*.bot; do
+    echo $botfile
     # Check if the file exists
     if [ -f "$botfile" ]; then
         php artisan bot:import "$botfile"

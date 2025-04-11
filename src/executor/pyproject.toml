@@ -23,6 +23,7 @@ version-file = "src/kuwa/executor/_version.py"
 "huggingface.py" = "kuwa/executor/example/huggingface.py"
 "llamacpp.py" = "kuwa/executor/example/llamacpp.py"
 "ollama_proxy.py" = "kuwa/executor/example/ollama_proxy.py"
+"nim.py" = "kuwa/executor/example/nim.py"
 
 [project]
 name = "kuwa-executor"

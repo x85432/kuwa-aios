@@ -28,7 +28,7 @@ from kuwa.executor.util import (
 
 logger = logging.getLogger(__name__)
 
-# Updated 2024/05/16
+# Updated 2025/04/11
 CONTEXT_WINDOW = {
     ("gpt-3.5-turbo", "gpt-3.5-turbo-1106", "gpt-3.5-turbo-0125"): 16384,
     ("gpt-3.5-turbo-instruct",): 4096,
@@ -42,10 +42,22 @@ CONTEXT_WINDOW = {
         "gpt-4-1106-vision-preview",
         "gpt-4-turbo",
         "gpt-4-turbo-2024-04-09",
+        "gpt-4.5-preview",
+        "gpt-4.5-preview-2025-02-27",
         "gpt-4o",
         "gpt-4o-2024-05-13",
         "gpt-4o-mini",
         "gpt-4o-mini-2024-07-18",
+        "o1",
+        "o1-2024-12-17",
+        "o1-mini",
+        "o1-mini-2024-09-12",
+        "o1-preview",
+        "o1-preview-2024-09-12",
+        "o1-pro",
+        "o1-pro-2025-03-19",
+        "o3-mini",
+        "o3-mini-2025-01-31",
     ): 128000,
 }
 
@@ -76,8 +88,9 @@ class ChatGptDescParser(DescriptionParser):
 
 class ChatGptExecutor(LLMExecutor):
     model_name: str = "gpt-4o"
-    api_token_name: str = "openai_token"
-    token_display_name: str = "OpenAI API"
+    api_token_field_name: str = "openai_token"
+    api_token_prefix: str = "sk-"
+    api_token_field_display_name: str = "OpenAI API"
     no_system_prompt: bool = False
     openai_base_url: str = "https://api.openai.com/v1"
     use_third_party_api_key: bool = False
@@ -162,9 +175,9 @@ class ChatGptExecutor(LLMExecutor):
         )
         self.api_key = self.args.api_key
         self.no_override_api_key = self.args.no_override_api_key
-        if not (self.api_key or "").startswith("sk-") and not self.no_override_api_key:
+        if not (self.api_key or "").startswith(self.api_token_prefix) and not self.no_override_api_key:
             logger.warning(
-                'By incorporating the "--no_override_api_key" argument, you can prevent overriding of the specified third-party API key by the user\'s OpenAI API key.'
+                f'By incorporating the "--no_override_api_key" argument, you can prevent overriding of the specified third-party API key by the user\'s {self.api_token_field_display_name} key.'
             )
 
         context_window = (
@@ -286,12 +299,12 @@ class ChatGptExecutor(LLMExecutor):
         try:
             openai_token = self.api_key
             if not self.no_override_api_key:
-                token_name = (
-                    self.api_token_name
+                api_token_field_name = (
+                    self.api_token_field_name
                     if not self.use_third_party_api_key
                     else "third_party_token"
                 )
-                openai_token = modelfile.parameters["_"].get(token_name) or self.api_key
+                openai_token = modelfile.parameters["_"].get(api_token_field_name) or self.api_key
             enable_multimodal = modelfile.parameters["llm_"].get(
                 "enable_multimodal", self.args.multimodal
             )
@@ -329,7 +342,7 @@ class ChatGptExecutor(LLMExecutor):
                 else:
                     yield (
                         "[Please enter your "
-                        + self.token_display_name
+                        + self.api_token_field_display_name
                         + " Token in the user settings on the website in order to use the model.]"
                     )
                 return
