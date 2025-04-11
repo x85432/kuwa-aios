@@ -4,6 +4,7 @@ import sys
 import logging
 import time
 import pprint
+import contextlib
 from typing import Optional, List
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -96,6 +97,7 @@ class ReflectiveLlama(Llama):
 
     def __init__(self, *args, **kwargs):
         self.verbose = False
+        self._stack = contextlib.ExitStack()
 
     def tokenize(
         self, text: bytes, add_bos: bool = True, special: bool = False
