@@ -147,6 +147,11 @@ upgrade() {
     kill %1
 }
 
+prune_executors() {
+    echo "Pruning All Executors."
+    php artisan model:prune --force --exclude=""
+}
+
 #=========================================
 
 construct_storage
@@ -160,9 +165,10 @@ then
     upgrade
 fi
 
-if [ "$1" = force-upgrade ]
-then
+if [ "$1" = force-upgrade ]; then
     upgrade
+elif [ "$1" = prune-executors ]; then
+    prune_executors
 else
     exec "$@"
 fi

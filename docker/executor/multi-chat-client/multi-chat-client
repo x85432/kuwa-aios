@@ -7,21 +7,32 @@ from urllib.parse import urlencode
 from fcgi_client import PHPFPMClient
 from retry import retry
 
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+    if v.lower() in ("yes", "true", "t", "y", "1"):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif v.lower() in ("no", "false", "f", "n", "0"):
         return False
     else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+        raise argparse.ArgumentTypeError("Boolean value expected.")
 
-def add_executor(client:PHPFPMClient, access_code:str, name:str, image:str=None, verbose:bool=False, create_bot:bool=True):
+
+def add_executor(
+    client: PHPFPMClient,
+    access_code: str,
+    name: str,
+    image: str = None,
+    verbose: bool = False,
+    order: int = 1000,
+    create_bot: bool = True,
+):
     request = {
         "access_code": access_code,
         "name": name,
-        "create_bot": create_bot
+        "create_bot": create_bot,
+        "order": order,
     }
     if image is not None:
         request["image"] = image
@@ -29,16 +40,19 @@ def add_executor(client:PHPFPMClient, access_code:str, name:str, image:str=None,
     request_data = urlencode(request).encode("utf-8")
     params = {
         "CONTENT_TYPE": "application/x-www-form-urlencoded",
-        "CONTENT_LENGTH": len(request_data)
+        "CONTENT_LENGTH": len(request_data),
     }
-    
-    logging.info(f"Sending add-executor request.")
 
-    @retry(tries=8, delay=5, backoff=2, jitter=(0,1))
+    logging.info(f"Sending add-executor request. {request}")
+
+    @retry(tries=8, delay=5, backoff=2, jitter=(0, 1))
     def request(data, params):
-        response = client.post(file="/app/add-executor.php", post=request_data, options=params)
-        if not response: raise RuntimeError("Request error!")
-        
+        response = client.post(
+            file="/app/app/Console/add-executor.php", post=request_data, options=params
+        )
+        if not response:
+            raise RuntimeError("Request error!")
+
         return response
 
     response = request(request_data, params)
@@ -47,7 +61,8 @@ def add_executor(client:PHPFPMClient, access_code:str, name:str, image:str=None,
 
     sys.exit(0)
 
-def ping(client:PHPFPMClient):
+
+def ping(client: PHPFPMClient):
     try:
         response = client.get(file="/app/public/index.php")
         if not response:
@@ -59,20 +74,46 @@ def ping(client:PHPFPMClient):
         logging.error(f"Failed to connect to multi-chat.")
         sys.exit(1)
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='A utility to invoke multi-chat API.')
-    parser.add_argument('-t', '--target', help='Target to call, host:port or unix://path', default="multi-chat:9000")
-    parser.add_argument('-m', '--timeout', help='Socket timeout in ms', default=3000, type=int)
-    parser.add_argument('-v', '--verbose', help='Verbose output', action="store_true", default=False)
 
-    subparsers = parser.add_subparsers(required=True, dest="subcommand", description="Sub-commands")
-    add_model_parser = subparsers.add_parser('add-executor', help='Add a new executor')
-    add_model_parser.add_argument("access_code", type=str, help="The access code of the executor")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="A utility to invoke multi-chat API.")
+    parser.add_argument(
+        "-t",
+        "--target",
+        help="Target to call, host:port or unix://path",
+        default="multi-chat:9000",
+    )
+    parser.add_argument(
+        "-m", "--timeout", help="Socket timeout in ms", default=3000, type=int
+    )
+    parser.add_argument(
+        "-v", "--verbose", help="Verbose output", action="store_true", default=False
+    )
+
+    subparsers = parser.add_subparsers(
+        required=True, dest="subcommand", description="Sub-commands"
+    )
+    add_model_parser = subparsers.add_parser("add-executor", help="Add a new executor")
+    add_model_parser.add_argument(
+        "access_code", type=str, help="The access code of the executor"
+    )
     add_model_parser.add_argument("name", type=str, help="The name of the executor")
-    add_model_parser.add_argument("--image", type=str, default=None, help="The image of the executor. Reference to the directory \"/app/default-icons/\" on multi-chat.")
-    add_model_parser.add_argument("--create_bot", type=str2bool, default="true", help="Whether create bot.")
-    
-    ping_parser = subparsers.add_parser('ping', help='Probe whether multi-chat is available.')
+    add_model_parser.add_argument(
+        "--image",
+        type=str,
+        default=None,
+        help='The image of the executor. Reference to the directory "/app/default-icons/" on multi-chat.',
+    )
+    add_model_parser.add_argument(
+        "--create_bot", type=str2bool, default="true", help="Whether to create bot."
+    )
+    add_model_parser.add_argument(
+        "--order", type=int, default="1000", help="The order of the executor."
+    )
+
+    ping_parser = subparsers.add_parser(
+        "ping", help="Probe whether multi-chat is available."
+    )
     args = parser.parse_args()
 
     if args.verbose:
@@ -82,10 +123,16 @@ if __name__ == '__main__':
 
     client = PHPFPMClient(args.target, args.timeout)
     if args.subcommand == "add-executor":
-        add_executor(client, access_code=args.access_code, name=args.name, image=args.image, create_bot=args.create_bot)
+        add_executor(
+            client,
+            access_code=args.access_code,
+            name=args.name,
+            image=args.image,
+            order=args.order,
+            create_bot=args.create_bot,
+        )
     elif args.subcommand == "ping":
         ping(client)
     else:
         logging.error(f"Sub-command {args.subcommand} is not supported.")
         sys.exit(1)
-

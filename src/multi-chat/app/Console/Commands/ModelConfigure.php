@@ -24,6 +24,7 @@ class ModelConfigure extends Command
     {
         $accessCode = $this->argument('access_code');
         $name = $this->argument('name');
+        $order = $this->option('order');
         $force = !!$this->option('force');
 
         try {

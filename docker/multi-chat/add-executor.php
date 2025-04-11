@@ -11,12 +11,16 @@ if (isset($_POST["image"])){
     $image = '/app/public/images/' . $_POST["image"];
     $image = "--image=".escapeshellarg($image);
 }
+$order = "";
+if (isset($_POST["order"])){
+    $order = "--order=".escapeshellarg($_POST["order"]);
+}
 $do_not_create_bot = "";
 if (isset($_POST["create_bot"]) && (strtolower($_POST["create_bot"]) == "false")) {
   $do_not_create_bot = "--do_not_create_bot";
 } 
 
-$cmd = sprintf("php /app/artisan model:config %s %s %s %s 2>&1", $access_code, $name, $image, $do_not_create_bot);
+$cmd = sprintf("php /app/artisan model:config %s %s %s %s %s 2>&1", $access_code, $name, $image, $order, $do_not_create_bot);
 exec($cmd, $output, $retval);
 echo "Returned with status $retval and output:\n";
 print_r($output);
