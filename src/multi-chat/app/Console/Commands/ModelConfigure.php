@@ -13,7 +13,7 @@ use DB;
 
 class ModelConfigure extends Command
 {
-    protected $signature = 'model:config {access_code} {name} {--image=} {--do_not_create_bot} {--force}';
+    protected $signature = 'model:config {access_code} {name} {--image=} {--order=} {--do_not_create_bot} {--force}';
     protected $description = 'Quickly configure a model for admins';
     public function __construct()
     {
@@ -46,7 +46,11 @@ class ModelConfigure extends Command
                 if (!$model->exists()){
                     $model = new LLMs();
                 }
-                $model->fill(['name' => $name, 'access_code' => $accessCode, 'image' => $path]);
+                $fillData = ['name' => $name, 'access_code' => $accessCode, 'image' => $path];
+                if ($this->option('order')) {
+                    $fillData['order'] = (int) $this->option('order');
+                }
+                $model->fill($fillData);
                 $model->save();
                 $perm = new Permissions();
                 $perm->fill(['name' => 'model_' . $model->id]);
