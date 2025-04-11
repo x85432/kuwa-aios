@@ -3,9 +3,11 @@ services:
     image: kuwaai/model-executor
     environment:
       CUSTOM_EXECUTOR_PATH: ./speech_recognition/main.py
-      EXECUTOR_ACCESS_CODE: whisper
+      EXECUTOR_ACCESS_CODE: .model/openai/whisper
       EXECUTOR_NAME: Whisper
       EXECUTOR_IMAGE: whisper.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 331000
+      EXECUTOR_CREATE_BOT: false
       HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN}
     depends_on:
       - executor-builder

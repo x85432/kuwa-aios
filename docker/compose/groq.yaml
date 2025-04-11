@@ -6,6 +6,7 @@ services:
       EXECUTOR_ACCESS_CODE: .model.chat/groq/groq
       EXECUTOR_NAME: Groq API
       EXECUTOR_IMAGE: groq.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 401300
       EXECUTOR_CREATE_BOT: false
     depends_on:
       - executor-builder

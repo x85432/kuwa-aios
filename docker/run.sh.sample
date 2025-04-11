@@ -11,9 +11,11 @@ confs=(
   "nim"
   # "ollama"
 
-  "docqa"
-  "searchqa"
+  "sample/gemma3-1b"
   "whisper"
+  
+  "rag"
+  "search"
   
   "copycat"
   "uploader"

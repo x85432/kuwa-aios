@@ -2,10 +2,10 @@ Subject: Exported bot "Llama%204%20Scout%20(Groq%20API)"
 Date: Fri, 11 Apr 2025 17:40:02 +0800
 Content-Type: multipart/related; boundary="kuwaeb70c"; type=application/vnd.kuwabot
 Content-Transfer-Encoding: quoted-printable
-Accept-Language: en-us
 
 --kuwaeb70c
 Content-Type: application/vnd.kuwabot;
+Content-Language: en-us
 
 #!
 KUWABOT version 0.3.3

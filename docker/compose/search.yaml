@@ -1,11 +1,13 @@
 services:
-  searchqa-executor:
+  search-executor:
     image: kuwaai/model-executor
     environment:
       CUSTOM_EXECUTOR_PATH: ./docqa/searchqa.py
-      EXECUTOR_ACCESS_CODE: search-qa
-      EXECUTOR_NAME: SearchQA
+      EXECUTOR_ACCESS_CODE: .tool/kuwa/search
+      EXECUTOR_NAME: Search
       EXECUTOR_IMAGE: search-qa.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 990020
+      EXECUTOR_CREATE_BOT: false
       TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-0} # For embedding model
     depends_on:
       - executor-builder
@@ -14,7 +16,7 @@ services:
     command: [
       "--log", "debug",
       "--api_base_url", "http://web/",
-      "--model", "geminipro",
+      "--model", ".bot/.def",
       "--google_api_key", "<YOUR_GOOGLE_API_KEY>",
       "--google_cse_id", "<YOUR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID>",
       #"--advanced_params", "site:example.tw site:example.com"

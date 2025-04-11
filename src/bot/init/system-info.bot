@@ -1,4 +1,4 @@
-Subject: Exported bot "System Info"
+Subject: Exported bot "|System Info|"
 Content-Type: multipart/related; boundary="kuwahwm4k"; type=application/vnd.kuwabot
 Content-Transfer-Encoding: quoted-printable
 
@@ -7,9 +7,9 @@ Content-Type: application/vnd.kuwabot;
 
 #!
 KUWABOT version 0.3.3
-KUWABOT name "System Info"
+KUWABOT name "|System Info|"
 KUWABOT description "This tool will print the system information for debugging."
-KUWABOT base "pipe"
+KUWABOT base ".tool/kuwa/pipe"
 PARAMETER pipe_program 'python'
 PARAMETER pipe_argv "sysinfo.py"
 

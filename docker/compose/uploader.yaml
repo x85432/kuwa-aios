@@ -3,8 +3,10 @@ services:
     image: kuwaai/model-executor
     environment:
       CUSTOM_EXECUTOR_PATH: ./uploader/main.py
-      EXECUTOR_ACCESS_CODE: uploader
+      EXECUTOR_ACCESS_CODE: .tool/kuwa/uploader
       EXECUTOR_NAME: Uploader
+      EXECUTOR_ORDER: 999020
+      EXECUTOR_CREATE_BOT: false
       EXECUTOR_IMAGE: upload.png # Refer to src/multi-chat/public/images
     depends_on:
       - executor-builder
