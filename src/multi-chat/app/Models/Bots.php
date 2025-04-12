@@ -58,7 +58,7 @@ class Bots extends Model
             ->sortBy('order', SORT_NUMERIC)
             ->groupBy('order')
             ->map(function ($subSet) {
-                return Bots::sortBotsByDate($subSet);
+                return Bots::sortBotsByName($subSet);
             })
             ->collapse();
         return $bots;

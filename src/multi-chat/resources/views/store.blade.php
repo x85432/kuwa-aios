@@ -14,36 +14,6 @@
                         return $item;
                     });
                 }
-                function sortBots($bots)
-                {
-                    $userId = request()->user()->id;
-                    // Filter and sort the bots owned by the current user
-                    $userBots = $bots
-                        ->filter(function ($bot) use ($userId) {
-                            return $bot->owner_id == $userId;
-                        })
-                        ->sortBy('order')
-                        ->groupBy('order')
-                        ->map(function ($subSet) {
-                            return $subSet->sortByDesc('created_at'); // Assuming 'created_at' is the timestamp field
-                        })
-                        ->collapse();
-
-                    // Filter the remaining bots and randomize them
-                    $otherBots = $bots
-                        ->filter(function ($bot) use ($userId) {
-                            return $bot->owner_id != $userId;
-                        })
-                        ->sortBy('order')
-                        ->groupBy('order')
-                        ->map(function ($subSet) {
-                            return $subSet->sortByDesc('created_at');
-                        })
-                        ->collapse();
-
-                    // Merge the sorted user bots with the randomized other bots
-                    return $userBots->merge($otherBots)->values();
-                }
             @endphp
             @if (request()->user()->hasPerm(['tab_Manage', 'Store_create_community_bot', 'Store_create_group_bot', 'Store_create_private_bot']))
                 <x-store.modal.create-bot :result="$result" />
@@ -69,13 +39,13 @@
 
                 // Get sorted system bots if the user has the "Store_read_discover_system_bots" permission
                 if (request()->user()->hasPerm('Store_read_discover_system_bots')) {
-                    $system_bots = sortBots($bots->where('visibility', '=', 0));
+                    $system_bots = App\Models\Bots::sortUserBots($bots->where('visibility', '=', 0));
                     $all = $all->merge($system_bots); // Add system bots to $all
                 }
 
                 // Get sorted community bots if the user has the "Store_read_discover_community_bots" permission
                 if (request()->user()->hasPerm('Store_read_discover_community_bots')) {
-                    $community_bots = sortBots($bots->where('visibility', '=', 1));
+                    $community_bots = App\Models\Bots::sortUserBots($bots->where('visibility', '=', 1));
                     $all = $all->merge($community_bots); // Add community bots to $all
                 }
 
@@ -88,17 +58,17 @@
                         $group_bots = $group_bots->where('group_id', '=', request()->user()->group_id);
                     }
 
-                    $group_bots = sortBots($group_bots);
+                    $group_bots = App\Models\Bots::sortUserBots($group_bots);
                     $all = $all->merge($group_bots); // Add group bots to $all
                 }
 
                 // Get sorted private bots if the user has the "Store_read_discover_private_bots" permission
                 if (request()->user()->hasPerm('Store_read_discover_private_bots')) {
                     $private_bots = $bots->where('visibility', '=', 3)->where('owner_id', '=', request()->user()->id);
-                    $private_bots = sortBots($private_bots);
+                    $private_bots = App\Models\Bots::sortUserBots($private_bots);
                     $all = $all->merge($private_bots); // Add private bots to $all
                 }
-                $all = sortBots($all);
+                $all = App\Models\Bots::sortUserBots($all);
             @endphp
 
             <div class="flex-1 flex overflow-hidden flex-col rounded">
