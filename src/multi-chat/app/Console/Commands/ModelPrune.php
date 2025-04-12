@@ -18,7 +18,8 @@ class ModelPrune extends Command
     }
     public function handle()
     {
-        $models = LLMs::whereNotIn('access_code', $this->option('exclude'))->get();
+        $always_exclude = [".tool/kuwa/weblet"];
+        $models = LLMs::whereNotIn('access_code', array_merge($this->option('exclude'), $always_exclude))->get();
 
         if ($models->isEmpty()) {
             $this->info('No models found for deletion.');

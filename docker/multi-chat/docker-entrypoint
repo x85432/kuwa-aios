@@ -136,12 +136,14 @@ upgrade() {
     seed_kernel || true
     seed_admin || true
 
-    secs=30
-    while [ $secs -gt 0 ]; do
-        echo "Waiting for Executors to become ready... ($secs seconds remaining)"
-        sleep 1
-        : $((secs--))
-    done
+    if [[ "$1" != "force" ]]; then
+        secs=30
+        while [ $secs -gt 0 ]; do
+            echo "Waiting for Executors to become ready... ($secs seconds remaining)"
+            sleep 1
+            : $((secs--))
+        done
+    fi
 
     import_default_bots
     kill %1
@@ -149,7 +151,7 @@ upgrade() {
 
 prune_executors() {
     echo "Pruning All Executors."
-    php artisan model:prune --force --exclude=""
+    php artisan model:prune --exclude=""
 }
 
 #=========================================
@@ -166,7 +168,7 @@ then
 fi
 
 if [ "$1" = force-upgrade ]; then
-    upgrade
+    upgrade force
 elif [ "$1" = prune-executors ]; then
     prune_executors
 else
