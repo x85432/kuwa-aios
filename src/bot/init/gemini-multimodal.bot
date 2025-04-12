@@ -9,8 +9,8 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "Gemini (Multimodal)"
 KUWABOT description "This multimodal model understands and interacts with text, images, audio, and video."
-KUWABOT base ".model.gtg/google/gemini"
-PARAMETER llm_model gemini-1.5-flash
+KUWABOT base ".model/google/gemini"
+PARAMETER llm_model gemini-2.0-flash
 PARAMETER llm_enable_multimodal true
 
 --kuwa28u89--
