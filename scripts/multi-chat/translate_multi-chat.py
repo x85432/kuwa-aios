@@ -26,7 +26,7 @@ def get_key():
     return key
 
 client = KuwaClient(
-    base_url="https://chat.gai.tw",
+    base_url="https://dev.thuniverse.ai",
     model="geminipro",
     auth_token=get_key()
 )

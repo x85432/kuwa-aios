@@ -2,6 +2,7 @@
 
 return [
     'route' => '商店',
+    'hint.must_enter_server_url' => '你必须输入外部应用地址',
     'placeholder.must_select_base_model' => '您必须选择一个基础模型',
     'placeholder.button.system' => '将被标记为系统Bot，且所有人皆可访问',
     'placeholder.button.community' => '任意群组皆可访问',
@@ -22,6 +23,7 @@ return [
     'button.save' => '保存',
     'button.delete' => '删除',
     'button.export' => '导出',
+    'button.explore_more' => '探索更多机器人',
     'bot.system_prompt' => '系统提示词',
     'bot.welcome_message' => '欢迎消息',
     'bot.name' => '应用名称',
@@ -45,4 +47,13 @@ return [
     'bot.before_prompt.label' => '该提示词会在推论期间加在使用者提示词前面',
     'bot.after_prompt.label' => '该提示词会在推论期间加在使用者提示词后面',
     'bot.button.chat' => '聊天',
+    'bot.knowledge' => '知识',
+    'bot.knowledge.label' => '选择知识',
+    'bot.next_bot' => '下一个机器人',
+    'bot.next_bot.label' => '选择下一个机器人',
+    'bot.type' => '类型',
+    'bot.type.desc.prompt' => '提示词机器人：通过提供提示词创建机器人',
+    'bot.type.desc.server' => '服务器机器人：连接现有外部应用',
+    'bot.server_url' => '外部应用地址',
+    'bot.server_url.label' => '外部应用URL',
 ];
