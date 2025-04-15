@@ -176,6 +176,11 @@ pushd "..\src\tools"
 call :install-requirements-txt
 popd
 
+REM Install dependency of Mermaid Tool
+echo "npm install -g '@mermaid-js/mermaid-cli'"
+call npm.cmd install -g "@mermaid-js/mermaid-cli"
+echo done
+
 REM Make sure the windows edition package are still the correct version
 pushd ".\src"
 call :install-requirements-txt
