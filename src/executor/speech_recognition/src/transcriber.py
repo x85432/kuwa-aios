@@ -3,6 +3,7 @@ import logging
 import torch
 import whisper_s2t
 import functools
+import time
 from whisper_s2t.backends.ctranslate2.hf_utils import (
     download_model as whisper_s2t_download_model,
 )
@@ -67,6 +68,7 @@ class WhisperS2tTranscriber:
             device = model_params.pop("device", default_device)
             compute_type = model_params.pop("compute_type", default_compute_type)
             logger.info(f"Using device {device}. And compute type {compute_type}")
+            start_time = time.time()
             model = self.load_model(
                 name=model_name,
                 enable_word_ts=model_params.get("word_timestamps", False),
@@ -75,9 +77,14 @@ class WhisperS2tTranscriber:
                 device=device,
                 compute_type=compute_type,
             )
+            end_time = time.time()
+            logger.debug(f"Model loading time: {end_time-start_time:.4f}")
             if model_params is not None and len(model_params) > 0:
                 model.update_params({"asr_options": model_params})
+            start_time = time.time()
             result = model.transcribe_with_vad(audio_files, **transcribe_kwargs)
+            end_time = time.time()
+            logger.debug(f"Transcribing time: {end_time-start_time:.4f}")
 
         except Exception:
             logger.exception("Error when generating transcription")
