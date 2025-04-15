@@ -75,7 +75,7 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: f
 //Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
-    Excludes: "windows-setup-files\*.exe,windows-setup-files\*.bin"; \
+    Excludes: "*.gguf,windows\packages\*,windows-setup-files\*.exe,windows-setup-files\*.bin,node_modules\*,vendor\*"; \
     Permissions: users-full; Components: "product\Kuwa"
 
 Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdirs createallsubdirs; \

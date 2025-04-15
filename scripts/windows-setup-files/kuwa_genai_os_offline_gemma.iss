@@ -66,7 +66,7 @@ Name: "product\Kuwa"; Description: "Kuwa + Gemma3 1B Q5_KM"; Types:  full compac
 
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
-    Excludes: "Kuwa-GenAI-OS.exe;..\..\src\multi-chat\node_modules\*;..\..\src\multi-chat\vendor\*"; \
+    Excludes: "Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf,package.zip,*.gguf,windows\packages\*,windows-setup-files\*.exe,windows-setup-files\*.bin,node_modules\*,vendor\*"; \
     Permissions: users-full; Components: "product\Kuwa"
 
 Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdirs createallsubdirs; \

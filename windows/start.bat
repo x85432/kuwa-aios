@@ -16,12 +16,12 @@ call src\variables.bat
 cd "%~dp0"
 
 REM Unpack offline resources
-if exist "packages\packages.zip" (
+if exist "../scripts/windows-setup-files/package.zip" (
 	echo Extracting all packages...
-	powershell Expand-Archive -Path packages\packages.zip -DestinationPath "packages\."
+	call ../scripts/windows-setup-files/build.bat restore
 	if exist "packages\composer.phar" (
         echo Unzipping successful.
-		del packages\packages.zip
+		del ../scripts/windows-setup-files/package.zip
     )
 )
 
