@@ -18,11 +18,13 @@ AllowNoIcons=yes
 LicenseFile=../../LICENSE
 PrivilegesRequired=lowest
 OutputDir=.
-OutputBaseFilename=Kuwa-GenAI-OS-TAIDE
+OutputBaseFilename=Kuwa-GenAI-OS-OFFLINE
 SetupIconFile={#MyAppIcon}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+DiskSpanning=yes
+DiskSliceSize="2000000000"
 
 
 [Languages]
@@ -71,10 +73,6 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: f
 
 //Name: "product\n8n"; Description: "n8n"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 //Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
-
-Name: "models"; Description: "Model Selection"; Types: full compact custom;Flags: fixed;
-Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: full compact custom; Flags: fixed;ExtraDiskSpaceRequired:5261727040;
-
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
     Excludes: "Kuwa-GenAI-OS.exe;..\..\src\multi-chat\node_modules\*;..\..\src\multi-chat\vendor\*"; \

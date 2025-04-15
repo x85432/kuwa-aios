@@ -15,6 +15,16 @@ REM Include variables from separate file
 call src\variables.bat
 cd "%~dp0"
 
+REM Unpack offline resources
+if exist "packages\packages.zip" (
+	echo Extracting all packages...
+	powershell Expand-Archive -Path packages\packages.zip -DestinationPath "packages\."
+	if exist "packages\composer.phar" (
+        echo Unzipping successful.
+		del packages\packages.zip
+    )
+)
+
 SET filePath=packages\composer.bat
 
 REM Check if the file exists
@@ -24,6 +34,36 @@ IF NOT EXIST "%filePath%" (
     echo setlocal DISABLEDELAYEDEXPANSION >> "%filePath%"
     echo php "%%~dp0composer.phar" %%* >> "%filePath%"
 )
+
+:: Check if init.txt exists
+if exist init.txt (
+    :: Read init.txt
+    for /f "tokens=1,2 delims==" %%A in (init.txt) do (
+        set "%%A=%%B"
+    )
+
+    :: Extract name from email (username before @)
+    for /f "delims=@ tokens=1" %%E in ("!username!") do (
+        set "name=%%E"
+    )
+
+    pushd "..\src\multi-chat\"
+    php artisan create:admin-user --name=!name! --email=!username! --password=!password!
+    :: Check autologin is true
+	if /i "!autologin!"=="true" (
+		:: Append the line to .env
+		echo. >> ".env"
+		echo APP_AUTO_EMAIL=!username!>> ".env"
+	)
+    popd
+    del init.txt
+) else (
+    echo init.txt not found. Skipping seeding.
+)
+pushd "..\src\multi-chat"
+call php artisan config:cache
+call php artisan config:clear
+popd
 
 REM Redis Server
 pushd packages\%redis_folder%

@@ -18,13 +18,14 @@ AllowNoIcons=yes
 LicenseFile=../../LICENSE
 PrivilegesRequired=lowest
 OutputDir=.
-OutputBaseFilename=Kuwa-GenAI-OS-GEMMA
+OutputBaseFilename=Kuwa-GenAI-OS-OFFLINE
 SetupIconFile={#MyAppIcon}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 DiskSpanning=yes
 DiskSliceSize="2000000000"
+
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -62,11 +63,19 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 
 [Components]
 Name: "product"; Description: "Product Components"; Types: full compact custom;Flags: fixed;
-Name: "product\Kuwa"; Description: "Kuwa + Gemma3 1B Q5_KM"; Types:  full compact custom ;Flags: fixed;
+Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: fixed; ExtraDiskSpaceRequired:9850003637;
 
+//Name: "product\Kuwa\Huggingface"; Description: "Huggingface Executor Runtime"; Types: full compact custom;
+
+//Name: "product\Kuwa\LLaMA_CPP"; Description: "LLaMA_CPP Executor Runtime"; Types: custom;
+//Name: "product\Kuwa\LLaMA_CPP\CPU"; Description: "CPU"; Types: custom; Flags: exclusive;
+//Name: "product\Kuwa\LLaMA_CPP\CUDA_12_4"; Description: "CUDA v12.4 (Default)"; Types: full compact custom; Flags: exclusive;
+
+//Name: "product\n8n"; Description: "n8n"; Types: full custom;ExtraDiskSpaceRequired:536870912;
+//Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
-    Excludes: "Kuwa-GenAI-OS.exe;..\..\src\multi-chat\node_modules\*;..\..\src\multi-chat\vendor\*"; \
+    Excludes: "windows-setup-files\*.exe,windows-setup-files\*.bin"; \
     Permissions: users-full; Components: "product\Kuwa"
 
 Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdirs createallsubdirs; \
