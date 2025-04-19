@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>2024 04 29 migrate to v0.2.1 - Kuwa Help Center</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "2024 04 29 migrate to v0.2.1";
+        var mkdocs_page_input_path = "release\\2024-04-29-migrate-to-v0.2.1.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Kuwa Help Center
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Documentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../community/">Community</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../configuration/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../contribution_guidelines/">Contributing Guidelines</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_installation/">Docker installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_model_setup/">Docker model setup</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_quick_installation/">Docker quick installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequently Asked Questions</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../legal_information/">Legal Information</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../windows_installation/">Windows installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../windows_model_setup/">Windows model setup</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Release</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-08-first-stable-release-v0.1.0/">2024 04 08 first stable release v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-08-migration-from-old-to-v0.1.0/">2024 04 08 migration from old to v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-15-release-v0.2.0-beta/">2024 04 15 release v0.2.0 beta</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-15-release-v0.2.0-taide/">2024 04 15 release v0.2.0 taide</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">2024 04 29 migrate to v0.2.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-29-release-v0.2.1-taide/">Kuwa TAIDE v0.2.1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-07-release-v0.3.0-beta1/">Kuwa TAIDE v0.3.0-beta1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-release-v0.3.0/">2024 05 19 release v0.3.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-relese-v0.3.1/">2024 06 24 relese v0.3.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-05-release-v0.3.2/">2024 07 05 release v0.3.2</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-08-12-release-v0.3.3/">2024 08 12 release v0.3.3</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-04-20-llama3-linux/">2024 04 20 llama3 linux</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-04-20-llama3-windows/">2024 04 20 llama3 windows</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-05-18-bot-system-guide/">2024 05 18 bot system guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-05-19-apply-gemini/">2024 05 19 apply gemini</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-05-19-dbqa-setup/">2024 05 19 dbqa setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-05-19-searchqa-setup/">2024 05 19 searchqa setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-06-24-painter-tutorial/">2024 06 24 painter tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-06-24-vlm-tutorial/">2024 06 24 vlm tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-06-24-whisper-tutorial/">2024 06 24 whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-07-05-rag-param-tutorial/">2024 07 05 rag param tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-07-05-tool-tutorial/">2024 07 05 tool tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/2024-07-18-cool-whisper-tutorial/">2024 07 18 cool whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorial/client_library/">Client library</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Kuwa Help Center</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Release</li>
+      <li class="breadcrumb-item active">2024 04 29 migrate to v0.2.1</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p>This post will guide you to upgrade Kuwa TAIDE’s built-in model from TAIDE-LX-7B-Chat-4bit to Llama3-TAIDE-LX-8B-Chat-Alpha1-4bit.</p>
+<ol>
+<li>
+<p>Go to <code>C:\kuwa\GenAI OS\windows\executors</code>, and duplicate the <code>1_taide</code> directory to <code>1_taide-8b</code>. If you only need to run the new version of TAIDE model, you can delete the <code>run.bat</code> file in <code>1_taide</code>.
+    <img alt="" src="./img/2024-04-29-taide-8b/copy-taide-config.png" /></p>
+</li>
+<li>
+<p>Download <code>taide-8b-a.3-q4_k_m.gguf</code> from the official <a href="https://huggingface.co/taide/Llama3-TAIDE-LX-8B-Chat-Alpha1-4bit">TAIDE HuggingFace Hub</a> to <code>C:\kuwa\GenAI OS\windows\executors\1-taide_8b</code>, and delete the original <code>taide-7b-a.2-q4_k_m.gguf</code> 
+    <img alt="" src="./img/2024-04-29-taide-8b/download-model.png" /></p>
+</li>
+</ol>
+<!-- truncate -->
+
+<ol>
+<li>
+<p>Run init.bat, and use the following settings:</p>
+<ul>
+<li>Enter the option number (1-5): <code>3</code></li>
+<li>Enter the model name: <code>Llama3 TAIDE LX 8B Chat Alpha1 4bit</code></li>
+<li>Enter the access code: <code>taide-8b</code></li>
+<li>Arguments to use (...): <code>--stop "&lt;|eot_id|&gt;"</code>
+<img alt="" src="./img/2024-04-29-taide-8b/config-model.png" /></li>
+</ul>
+</li>
+<li>
+<p>Restart Kuwa GenAI OS and you should see the new version of TAIDE model
+    <img alt="" src="./img/2024-04-29-taide-8b/new-model-added.png" /></p>
+</li>
+<li>
+<p>You can use the multi-chat feature to compare the responses from two TAIDE models at the same time
+    <img alt="" src="./img/2024-04-29-taide-8b/multi-chat-result.png" /></p>
+</li>
+</ol>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../2024-04-15-release-v0.2.0-taide/" class="btn btn-neutral float-left" title="2024 04 15 release v0.2.0 taide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../2024-04-29-release-v0.2.1-taide/" class="btn btn-neutral float-right" title="Kuwa TAIDE v0.2.1 is Released">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../2024-04-15-release-v0.2.0-taide/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../2024-04-29-release-v0.2.1-taide/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

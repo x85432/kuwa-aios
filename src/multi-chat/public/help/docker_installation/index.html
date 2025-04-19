@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Docker installation - Kuwa Help Center</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Docker installation";
+        var mkdocs_page_input_path = "docker_installation.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Kuwa Help Center
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Documentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../community/">Community</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../configuration/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../contribution_guidelines/">Contributing Guidelines</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Docker installation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-install-docker">1. Install Docker</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../docker_model_setup/">Docker model setup</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../docker_quick_installation/">Docker quick installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../faq/">Frequently Asked Questions</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../legal_information/">Legal Information</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../windows_installation/">Windows installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../windows_model_setup/">Windows model setup</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Release</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-04-08-first-stable-release-v0.1.0/">2024 04 08 first stable release v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-04-08-migration-from-old-to-v0.1.0/">2024 04 08 migration from old to v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-04-15-release-v0.2.0-beta/">2024 04 15 release v0.2.0 beta</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-04-15-release-v0.2.0-taide/">2024 04 15 release v0.2.0 taide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-04-29-migrate-to-v0.2.1/">2024 04 29 migrate to v0.2.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-04-29-release-v0.2.1-taide/">Kuwa TAIDE v0.2.1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-05-07-release-v0.3.0-beta1/">Kuwa TAIDE v0.3.0-beta1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-05-19-release-v0.3.0/">2024 05 19 release v0.3.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-06-24-relese-v0.3.1/">2024 06 24 relese v0.3.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-07-05-release-v0.3.2/">2024 07 05 release v0.3.2</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/2024-08-12-release-v0.3.3/">2024 08 12 release v0.3.3</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-04-20-llama3-linux/">2024 04 20 llama3 linux</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-04-20-llama3-windows/">2024 04 20 llama3 windows</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-05-18-bot-system-guide/">2024 05 18 bot system guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-05-19-apply-gemini/">2024 05 19 apply gemini</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-05-19-dbqa-setup/">2024 05 19 dbqa setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-05-19-searchqa-setup/">2024 05 19 searchqa setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-06-24-painter-tutorial/">2024 06 24 painter tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-06-24-vlm-tutorial/">2024 06 24 vlm tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-06-24-whisper-tutorial/">2024 06 24 whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-07-05-rag-param-tutorial/">2024 07 05 rag param tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-07-05-tool-tutorial/">2024 07 05 tool tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/2024-07-18-cool-whisper-tutorial/">2024 07 18 cool whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorial/client_library/">Client library</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Kuwa Help Center</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Docker installation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="kuwa-full-installation-guide-for-linux">Kuwa Full Installation Guide for Linux</h2>
+<ul>
+<li>OS version: Ubuntu 22.04 LTS</li>
+</ul>
+<h3 id="1-install-docker">1. Install Docker</h3>
+<p>Refer to <a href="https://docs.docker.com/engine/install/">Docker official installation documentation</a>.</p>
+<p>```sh=</p>
+<h1 id="uninstall-conflicting-packages">Uninstall conflicting packages</h1>
+<p>for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done</p>
+<h1 id="add-dockers-official-gpg-key">Add docker's official GPG key</h1>
+<p>sudo apt-get update
+sudo apt-get install ca-certificates
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc</p>
+<h1 id="setup-repository">Setup repository</h1>
+<p>echo \
+    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+    "$(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME")" stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+sudo apt-get update</p>
+<h1 id="install-necessary-package">Install necessary package</h1>
+<p>sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</p>
+<h1 id="enable-the-service">Enable the service</h1>
+<p>sudo systemctl --now enable docker</p>
+<h1 id="enable-unattended-update">Enable unattended-update</h1>
+<p>cat &lt;&lt;EOT | tee /etc/apt/apt.conf.d/51unattended-upgrades-docker
+    Unattended-Upgrade::Origins-Pattern {
+        "origin=Docker";
+    };
+EOT</p>
+<pre><code>
+* Use `sudo docker run hello-world` to test if docker is installed successfully.
+
+### 2. (Optional) Install NVIDIA Drivers
+
+```shell=
+# Update and Upgrade
+sudo apt update
+sudo apt upgrade
+
+# Remove previous NVIDIA installation
+sudo apt autoremove nvidia* --purge
+sudo apt autoclean
+
+# Install Ubuntu and NVIDIA drivers
+ubuntu-drivers devices # get the recommended version
+sudo ubuntu-drivers autoinstall
+sudo apt install nvidia-driver-$version
+
+# Reboot
+sudo reboot
+</code></pre>
+<p>If reboot is unsuccessful, hold down <code>shift</code> key, select <code>Advanced options for Ubuntu &gt; recovery mode &gt; dpkg</code>, and follow the instructions to repair broken packages.</p>
+<p>After reboot, use the command <code>nvidia-smi</code> to check if nvidia-driver is installed successfully.</p>
+<p>possible result:</p>
+<p><img alt="" src="../img/docker_installation_1.png" /></p>
+<h3 id="3-optional-install-cuda-toolkits">3. (Optional) Install CUDA Toolkits</h3>
+<p>Refer to <a href="https://docs.nvidia.com/cuda/cuda-installation-guide-linux/">NVIDIA CUDA official installation guide</a>.</p>
+<p>```sh=</p>
+<h1 id="update-and-upgrade">Update and Upgrade</h1>
+<p>sudo apt update
+sudo apt upgrade</p>
+<h1 id="install-cuda-toolkit">Install CUDA toolkit</h1>
+<p>sudo apt install nvidia-cuda-toolkit</p>
+<h1 id="check-cuda-install">Check CUDA install</h1>
+<p>nvcc --version</p>
+<pre><code>![](./img/docker_installation_2.png)
+
+You can test CUDA on Pytorch:
+```sh=
+sudo apt-get install python3-pip
+sudo pip3 install virtualenv 
+virtualenv -p py3.10 venv
+source venv/bin/activate
+
+# Install pytorch
+pip3 install torch torchvision torchaudio
+pip install --upgrade pip
+
+# Test
+python3
+</code></pre>
+<p>(In python):
+```python=
+import torch
+print(torch.cuda.is_available()) # should be True</p>
+<p>t = torch.rand(10, 10).cuda()
+print(t.device) # should be CUDA</p>
+<pre><code>
+expected result:
+
+![](./img/docker_installation_3.png)
+
+### 4. (Optional) Install NVIDIA Container Toolkit
+
+Refer to [NVIDIA Container Toolkit official installation guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+
+```sh=
+# Setup GPG key
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+# Setup the repository
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+# Configure the NVIDIA runtime to be the default docker runtime
+sudo nvidia-ctk runtime configure --runtime=docker --set-as-default
+sudo systemctl restart docker
+</code></pre>
+<h3 id="5-install-kuwa">5. Install Kuwa</h3>
+<ol>
+<li>Download Kuwa Repository</li>
+</ol>
+<p>```sh=
+git clone https://github.com/kuwaai/genai-os/
+cd genai-os/docker</p>
+<pre><code>
+2. Change Configuration Files
+
+Copy `.admin-password.sample`, `.db-password.sample`, `.env.sample`, `run.sh.sample`, remove the `.sample` suffix to setup your own configuration files.
+
+```sh=
+cp .admin-password.sample .admin-password
+cp .db-password.sample .db-password
+cp .env.sample .env
+</code></pre>
+<ul>
+<li><code>.admin-password</code>: default administrator password</li>
+<li><code>.db-password</code>: system built-in database password</li>
+<li><code>.env</code>: environment variables, the default set value is as follows</li>
+</ul>
+<pre><code class="language-tx">DOMAIN_NAME=localhost # Website domain name, if you want to make the service public, please set it to your public domain name
+PUBLIC_BASE_URL=&quot;http://${DOMAIN_NAME}/&quot; # Website base URL
+
+ADMIN_NAME=&quot;Kuwa Admin&quot; # Website default administrator name
+ADMIN_EMAIL=&quot;admin@${DOMAIN_NAME}&quot; # Website default administrator login email, which can be an invalid email
+</code></pre>
+<ul>
+<li>
+<p><code>run.sh</code>: the executable file</p>
+</li>
+<li>
+<p>Start the System</p>
+</li>
+</ul>
+<p>Execute and wait for minutes.</p>
+<pre><code class="language-sh">sudo ./run.sh
+</code></pre>
+<p>By default, Kuwa will be deployed on <code>http://localhost</code>.</p>
+<h3 id="6-optional-building-docker-images-from-source-code">6. (Optional) Building Docker Images from Source Code</h3>
+<p>Since version 0.3.4, Kuwa Docker Images are downloaded pre-built from Docker Hub by default. To build images from source code, follow these steps:</p>
+<ol>
+<li>Ensure the <code>.git</code> directory is present within the <code>genai-os</code> directory.</li>
+<li>
+<p>Enable the containerd image store for <a href="https://docs.docker.com/build/building/multi-platform/#enable-the-containerd-image-store">multi-platform builds</a>
+    Add the following configuration to your <code>/etc/docker/daemon.json</code> file:</p>
+<p><code>json
+{
+  "features": {
+    "containerd-snapshotter": true
+  }
+}</code>
+Restart the Docker daemon after saving the changes:
+<code>sh
+sudo systemctl restart docker</code>
+3. <strong>Build the Kuwa images using the following command:</strong>
+<code>sh
+sudo ./run.sh build</code></p>
+</li>
+</ol>
+<p>This command will create the following images: </p>
+<ul>
+<li><code>kuwaai/model-executor</code></li>
+<li><code>kuwaai/multi-chat</code></li>
+<li><code>kuwaai/kernel</code></li>
+<li><code>kuwaai/multi-chat-web</code></li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../contribution_guidelines/" class="btn btn-neutral float-left" title="Contributing Guidelines"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../docker_model_setup/" class="btn btn-neutral float-right" title="Docker model setup">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../contribution_guidelines/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../docker_model_setup/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
