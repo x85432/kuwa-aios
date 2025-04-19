@@ -18,8 +18,9 @@ return [
     'onedgecloud' => 'Podpora výpočetního prostředí Windows a Linux na hraně sítě a v cloudu',
     'totalsolution' => 'Kompletní řešení pro aplikace generativního AI',
     'opensource' => 'Otevřený kód',
-    'button.information' => 'Další informace',
-    'button.return_home' => 'Zpět na domovskou stránku',
     'under_maintenance.label' => 'Provádíme údržbu webu,<br>Zkuste to prosím později!',
     'under_maintenance.header' => 'Zastavena služba',
+    'button.information' => 'Další informace',
+    'button.return_home' => 'Zpět na domovskou stránku',
+    'button.help' => 'Nápověda',
 ];

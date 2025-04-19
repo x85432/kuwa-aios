@@ -18,8 +18,9 @@ return [
     'onedgecloud' => 'WindowsおよびLinuxのEdgeとクラウドコンピューティングをサポートします',
     'totalsolution' => '生成AIアプリケーションの包括的なソリューション',
     'opensource' => 'オープンソース',
-    'button.information' => '詳細情報',
-    'button.return_home' => 'ホームに戻る',
     'under_maintenance.label' => '現在、ウェブサイトのメンテナンスを行っています。<br>しばらくしてから再度アクセスしてください！',
     'under_maintenance.header' => 'サービス停止中',
+    'button.information' => '詳細情報',
+    'button.return_home' => 'ホームに戻る',
+    'button.help' => '使い方',
 ];
