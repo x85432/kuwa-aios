@@ -1,4 +1,5 @@
 @echo off
+chcp 65001
 setlocal EnableDelayedExpansion
 echo Now in: "%cd%"
 
@@ -454,6 +455,8 @@ if "!EXECUTOR_NAME!" == "docQA & webQA" (
 		set command=!command! --order "130000"
 	) ELSE IF "SearchQA"=="!current_folder!" (
 		set command=!command! --order "990020"
+	) ELSE IF "gemma3-1b" == "!current_folder!" (
+		set command=!command! --order "311003"
 	)
 	echo !command!>> run.bat
 	echo popd>>run.bat
@@ -477,7 +480,7 @@ if "!EXECUTOR_NAME!" == "docQA & webQA" (
 			set command=!command! "--model" "!model_name!"
 		)
 		if "taide"=="!current_folder!" (
-			set command=!command! "--system_prompt" "�A�O�@�ӨӦۥx�W��AI�U�z�A�A���W�r�O TAIDE�A�֩�H�x�W�H���߳����U�ϥΪ̡A�|���c�餤��^�����D�C"
+			set command=!command! "--system_prompt" "你是一個來自台灣的AI助理，你的名字是 TAIDE，樂於以台灣人的立場幫助使用者，會用繁體中文回答問題。"
 		)
 	) else (
 		set command=start /b "" "python" !worker_path! "--access_code" "!EXECUTOR_ACCESS_CODE!"

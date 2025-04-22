@@ -18,10 +18,36 @@ cd "%~dp0"
 REM Unpack offline resources
 if exist "../scripts/windows-setup-files/package.zip" (
 	echo Extracting all packages...
-	call ../scripts/windows-setup-files/build.bat restore
+    pushd "../scripts/windows-setup-files/"
+	call build.bat restore
+    popd
 	if exist "packages\composer.phar" (
         echo Unzipping successful.
 		del ../scripts/windows-setup-files/package.zip
+
+        REM Check if .env file exists
+        if not exist "..\src\multi-chat\.env" (
+            REM Kuwa Chat
+            echo Preparing Kuwa Chat
+            copy ..\src\multi-chat\.env.dev ..\src\multi-chat\.env
+        ) else (
+            echo .env file already exists, skipping copy.
+        )
+        REM Prepare laravel
+        pushd "..\src\multi-chat"
+        call php artisan key:generate --force
+        call php artisan db:seed --class=InitSeeder --force
+        call php artisan migrate --force
+        rmdir /Q /S public\storage
+        call php artisan storage:link
+        call php ..\..\windows\packages\composer.phar dump-autoload --optimize
+        call php artisan route:cache
+        call php artisan view:cache
+        call php artisan optimize
+        call npm.cmd run build
+        call php artisan config:cache
+        call php artisan config:clear
+        popd
     )
 )
 

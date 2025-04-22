@@ -2,23 +2,29 @@
 setlocal
 
 set ARCHIVE_NAME=package.zip
+cd "%~dp0"
 
-REM Paths to include
-set DIR1=..\..\src\multi-chat\node_modules
-set DIR2=..\..\src\multi-chat\vendor
-set DIR3=..\..\windows\packages
+REM Common root directory
+set ROOT_DIR=..\..
+
+REM Paths to include (relative to ROOT_DIR)
+set REL_DIR1=src\multi-chat\node_modules
+set REL_DIR2=src\multi-chat\vendor
+set REL_DIR3=windows\packages
 
 REM Create zip using 7-Zip
 if "%1"=="zip" (
-    echo Creating archive %ARCHIVE_NAME% using 7-Zip...
-    7z a -tzip %ARCHIVE_NAME% "%DIR1%" "%DIR2%" "%DIR3%"
+    echo Creating archive %ARCHIVE_NAME% using 7-Zip from %ROOT_DIR%...
+    pushd %ROOT_DIR%
+    7z a -tzip "scripts/windows-setup-files/%ARCHIVE_NAME%" "%REL_DIR1%" "%REL_DIR2%" "%REL_DIR3%"
+    popd
     goto :eof
 )
 
-REM Extract zip using native tar (Windows 10+)
+REM Restore using native tar to ../../
 if "%1"=="restore" (
-    echo Restoring from archive %ARCHIVE_NAME% using native tar...
-    tar -xf %ARCHIVE_NAME%
+    echo Restoring from archive %ARCHIVE_NAME% to ../../ using native tar...
+    tar -xf "%ARCHIVE_NAME%" -C ..\..
     goto :eof
 )
 
