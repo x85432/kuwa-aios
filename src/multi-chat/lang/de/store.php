@@ -2,6 +2,7 @@
 
 return [
     'route' => 'Shop',
+    'hint.must_enter_server_url' => 'Sie müssen eine externe App-URL eingeben',
     'placeholder.must_select_base_model' => 'Du musst ein Basismodell auswählen',
     'placeholder.button.system' => 'Wird als System-Bot gekennzeichnet und für alle zugänglich sein',
     'placeholder.button.community' => 'Zugänglich für jede Gruppe',
@@ -22,6 +23,7 @@ return [
     'button.save' => 'Speichern',
     'button.delete' => 'Löschen',
     'button.export' => 'Exportieren',
+    'button.explore_more' => 'Mehr Bots entdecken',
     'bot.system_prompt' => 'System-Eingabeaufforderung',
     'bot.welcome_message' => 'Willkommensnachricht',
     'bot.name' => 'Anwendungsname',
@@ -45,4 +47,13 @@ return [
     'bot.before_prompt.label' => 'Diese Eingabeaufforderung wird während der Inferenz vor die Benutzer-Eingabeaufforderung eingefügt',
     'bot.after_prompt.label' => 'Diese Eingabeaufforderung wird während der Inferenz nach die Benutzer-Eingabeaufforderung eingefügt',
     'bot.button.chat' => 'Chat',
+    'bot.knowledge' => 'Wissen',
+    'bot.knowledge.label' => 'Wissen auswählen',
+    'bot.next_bot' => 'Nächster Bot',
+    'bot.next_bot.label' => 'Nächsten Bot auswählen',
+    'bot.type' => 'Typ',
+    'bot.type.desc.prompt' => 'Prompt Bot: Erstellt Bots durch Bereitstellung von Prompts',
+    'bot.type.desc.server' => 'Server Bot: Verbindet mit bestehenden externen Anwendungen',
+    'bot.server_url' => 'Externe App-URL',
+    'bot.server_url.label' => 'Externe App-URL',
 ];

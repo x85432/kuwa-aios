@@ -2,6 +2,7 @@
 
 return [
     'route' => 'ストア',
+    'hint.must_enter_server_url' => '外部アプリケーションのURLを入力する必要があります',
     'placeholder.must_select_base_model' => '基底モデルを選択する必要があります',
     'placeholder.button.system' => 'システムBotとしてマークされ、誰でもアクセスできます',
     'placeholder.button.community' => '任意のグループがアクセスできます',
@@ -22,6 +23,7 @@ return [
     'button.save' => '保存',
     'button.delete' => '削除',
     'button.export' => 'エクスポート',
+    'button.explore_more' => 'もっとBotを探す',
     'bot.system_prompt' => 'システムプロンプト',
     'bot.welcome_message' => 'ウェルカムメッセージ',
     'bot.name' => 'アプリ名',
@@ -45,4 +47,13 @@ return [
     'bot.before_prompt.label' => 'このプロンプトは、推論中にユーザーのプロンプトの前に追加されます',
     'bot.after_prompt.label' => 'このプロンプトは、推論中にユーザーのプロンプトの後に追加されます',
     'bot.button.chat' => 'チャット',
+    'bot.knowledge' => '知識',
+    'bot.knowledge.label' => '知識を選択',
+    'bot.next_bot' => '次のBot',
+    'bot.next_bot.label' => '次のBotを選択',
+    'bot.type' => 'タイプ',
+    'bot.type.desc.prompt' => 'プロンプトBot：プロンプトを提供してBotを作成します',
+    'bot.type.desc.server' => 'サーバーBot：既存の外部アプリケーションと連携します',
+    'bot.server_url' => '外部アプリケーションのURL',
+    'bot.server_url.label' => '外部アプリケーションURL',
 ];

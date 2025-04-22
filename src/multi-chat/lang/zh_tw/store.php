@@ -13,6 +13,7 @@ return [
     'button.save' => '儲存',
     'button.delete' => '刪除',
     'button.export' => '匯出',
+    'button.explore_more' => '發現更多Bot',
 
     'placeholder.must_select_base_model' => '你必須選一個基底模型',
     'hint.must_enter_server_url' => '你必須輸入外部應用位置',

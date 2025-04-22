@@ -2,6 +2,7 @@
 
 return [
     'route' => '상점',
+    'hint.must_enter_server_url' => '외부 앱 위치를 입력해야 합니다',
     'placeholder.must_select_base_model' => '기본 모델을 선택해야 합니다',
     'placeholder.button.system' => '시스템 봇으로 표시되며 모든 사용자가 액세스할 수 있습니다',
     'placeholder.button.community' => '모든 그룹에서 액세스할 수 있습니다',
@@ -22,6 +23,7 @@ return [
     'button.save' => '저장',
     'button.delete' => '삭제',
     'button.export' => '내보내기',
+    'button.explore_more' => '더 많은 Bot 탐색',
     'bot.system_prompt' => '시스템 프롬프트',
     'bot.welcome_message' => '환영 메시지',
     'bot.name' => '애플리케이션 이름',
@@ -45,4 +47,13 @@ return [
     'bot.before_prompt.label' => '이 프롬프트는 추론 중에 사용자 프롬프트 앞에 추가됩니다',
     'bot.after_prompt.label' => '이 프롬프트는 추론 중에 사용자 프롬프트 뒤에 추가됩니다',
     'bot.button.chat' => '채팅',
+    'bot.knowledge' => '지식',
+    'bot.knowledge.label' => '지식 선택',
+    'bot.next_bot' => '다음 Bot',
+    'bot.next_bot.label' => '다음 Bot 선택',
+    'bot.type' => '유형',
+    'bot.type.desc.prompt' => '프롬프트 Bot: 프롬프트를 제공하여 Bot 생성',
+    'bot.type.desc.server' => '서버 Bot: 기존 외부 앱 연결',
+    'bot.server_url' => '외부 앱 위치',
+    'bot.server_url.label' => '외부 앱 URL',
 ];

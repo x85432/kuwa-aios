@@ -162,34 +162,27 @@ class RoomController extends Controller
             }
             if ($historys) {
                 //Permission check
-                $access_codes = [];
+                if ($bot_ids == null){
+                    $bot_ids = [];
+                }
                 foreach ($historys as $message) {
                     if (isset($message->role) && is_string($message->role)) {
-                        $model = isset($message->model) && is_string($message->model) ? $message->model : null;
+                        $model = isset($message->model) && is_string($message->model) && str_starts_with($message->model, \App\Http\Controllers\ProfileController::BOT_PREFIX) ? $message->model : null;
                         if ($message->role === 'assistant') {
-                            if (!is_null($model) && !in_array($model, $access_codes)) {
-                                $access_codes[] = $model;
+                            if (!is_null($model)) {
+                                $bot = Bots::where('name', '=', substr($model, strlen(\App\Http\Controllers\ProfileController::BOT_PREFIX)));
+                                if ($bot->exists()) {
+                                    $bot = $bot->first();
+                                    if (!in_array($model, $bot_ids)) {
+                                        $bot_ids[$model] = $bot->id;
+                                    }
+                                }
                             }
                         }
                     }
                 }
-                if ($access_codes || $bot_ids || $room_id) {
-                    if ($bot_ids) {
-                        $bot_ids = Bots::whereIn('bots.id', $bot_ids)->join('llms', 'bots.model_id', '=', 'llms.id')->select('bots.id', 'access_code')->get();
-                    } else {
-                        $bot_ids = collect([]);
-                    }
-
-                    if ($access_codes) {
-                        $bot_ids = $bot_ids->merge(LLMs::whereIn('access_code', $access_codes)->join('bots', 'bots.model_id', '=', 'llms.id')->where('visibility', '=', 0)->select('bots.id', 'access_code')->get())->unique('id');
-                    }
-
-                    $access_codes = [];
-                    foreach ($bot_ids as $i) {
-                        if (in_array($i->id, $result)) {
-                            $access_codes[] = $i->access_code;
-                        }
-                    }
+                if ( $bot_ids || $room_id) {
+                
                     //Filtering
                     $chainValue = null;
                     $data = [];
@@ -208,8 +201,8 @@ class RoomController extends Controller
                                 if ($chainValue === true) {
                                     $newMessage->chain = true;
                                 }
-                                foreach ($access_codes as $access_code) {
-                                    $newMessage->model = $access_code;
+                                foreach ($bot_ids as $bot_name => $bot_id) {
+                                    $newMessage->model = $bot_name;
 
                                     $data[] = clone $newMessage;
                                 }
@@ -230,16 +223,17 @@ class RoomController extends Controller
                             }
                             if (is_null($model)) {
                                 $flag = false;
-                                foreach ($access_codes as $access_code) {
+                                
+                                foreach ($bot_ids as $bot_name => $bot_id) {
                                     $newMessage = clone $message;
-                                    $newMessage->model = $access_code;
+                                    $newMessage->model = $bot_name;
 
                                     if ($chainValue === true) {
                                         $newMessage->chain = true;
                                     }
                                     $data[] = $newMessage;
                                 }
-                            } elseif (in_array($model, $access_codes)) {
+                            } elseif (in_array($model, array_keys($bot_ids))) {
                                 $flag = false;
                                 $data[] = $message;
                             }
@@ -255,8 +249,8 @@ class RoomController extends Controller
                         if ($chainValue === true) {
                             $newMessage->chain = true;
                         }
-                        foreach ($access_codes as $access_code) {
-                            $newMessage->model = $access_code;
+                        foreach ($bot_ids as $bot_name => $bot_id) {
+                            $newMessage->model = $bot_name;
 
                             $data[] = clone $newMessage;
                         }
@@ -264,26 +258,27 @@ class RoomController extends Controller
                     $historys = $data;
                     if (count($historys) > 0) {
                         //Start loading
+                            $chatIds = [];
                         if ($room_id) {
                             $Room = ChatRoom::findorfail($room_id);
                             $chats = Chats::where('roomID', '=', $room_id);
-                            $chatIds = $chats->pluck('id');
-                            foreach ($bot_ids->pluck('id')->diff($chats->pluck('bot_id')) as $id) {
-                                $chat = new Chats();
-                                $chat->fill(['name' => 'Room Chat', 'bot_id' => $id, 'user_id' => Auth::user()->id, 'roomID' => $Room->id]);
-                                $chat->save();
-                                $chatIds[] = $chat->id;
+                            foreach ($bot_ids as $bot_name => $bot_id) {
+                                if (!$chats->pluck('bot_id')->contains($bot_id)) {
+                                    $chat = new Chats();
+                                    $chat->fill(['name' => 'Room Chat', 'bot_id' => $id, 'user_id' => Auth::user()->id, 'roomID' => $Room->id]);
+                                    $chat->save();
+                                    $chatIds[$bot_name] = $chat->id;
+                                }
                             }
                         } else {
                             $Room = new ChatRoom();
                             $Room->fill(['name' => $filename ?? $historys[0]->content, 'user_id' => $request->user()->id]);
                             $Room->save();
-                            $chatIds = [];
-                            foreach ($bot_ids->pluck('id') as $id) {
+                            foreach ($bot_ids as $bot_name => $bot_id) {
                                 $chat = new Chats();
-                                $chat->fill(['name' => 'Room Chat', 'bot_id' => $id, 'user_id' => Auth::user()->id, 'roomID' => $Room->id]);
+                                $chat->fill(['name' => 'Room Chat', 'bot_id' => $bot_id, 'user_id' => Auth::user()->id, 'roomID' => $Room->id]);
                                 $chat->save();
-                                $chatIds[] = $chat->id;
+                                $chatIds[$bot_name] = $chat->id;
                             }
                         }
                         $flag = true;
@@ -291,7 +286,7 @@ class RoomController extends Controller
                         $appended = [];
                         $ids = [];
                         $deltaTime = count($historys);
-                        $lastCreateAt = Histories::whereIn('chat_id', $chatIds)->latest('created_at')->value('created_at');
+                        $lastCreateAt = Histories::whereIn('chat_id', array_values($chatIds))->latest('created_at')->value('created_at');
 
                         if ($lastCreateAt) {
                             $t = date('Y-m-d H:i:s', strtotime($lastCreateAt . ' +' . $deltaTime . ' second'));
@@ -299,19 +294,18 @@ class RoomController extends Controller
                             $t = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' -' . $deltaTime . ' second'));
                         }
                         if (count($chatIds) > 0) {
-                            $chatIds = Chats::join('bots', 'bots.id', '=', 'chats.bot_id')->join('llms', 'bots.model_id', '=', 'llms.id')->whereIn('chats.id', $chatIds)->select('chats.id', 'llms.access_code')->get();
                             foreach ($historys as $history) {
                                 $history->isbot = $history->role == 'user' ? false : true;
                                 if ($history->isbot) {
                                     if ($user_msg != null && !in_array($history->model, $appended)) {
                                         $record = new Histories();
-                                        $record->fill(['msg' => $user_msg, 'chat_id' => $chatIds->where('access_code', '=', $history->model)->first()->id, 'isbot' => false, 'chained' => $history->chain, 'created_at' => $t, 'updated_at' => $t]);
+                                        $record->fill(['msg' => $user_msg, 'chat_id' => $chatIds[$history->model], 'isbot' => false, 'chained' => $history->chain, 'created_at' => $t, 'updated_at' => $t]);
                                         $record->save();
                                     }
                                     $appended[] = $history->model;
                                     $t2 = date('Y-m-d H:i:s', strtotime($t . ' +' . array_count_values($appended)[$history->model] . ' second'));
                                     $record = new Histories();
-                                    $record->fill(['msg' => $history->content == '' ? '* ...thinking... *' : $history->content, 'chat_id' => $chatIds->where('access_code', '=', $history->model)->first()->id, 'chained' => $history->chain, 'isbot' => true, 'created_at' => $t2, 'updated_at' => $t2]);
+                                    $record->fill(['msg' => $history->content == '' ? '* ...thinking... *' : $history->content, 'chat_id' => $chatIds[$history->model], 'chained' => $history->chain, 'isbot' => true, 'created_at' => $t2, 'updated_at' => $t2]);
                                     $record->save();
                                     if ($history->content == '') {
                                         $ids[] = $record->id;
@@ -325,7 +319,7 @@ class RoomController extends Controller
                                 }
                             }
                             ImportChat::dispatch($ids, Auth::user()->id);
-                            return Redirect::route('room.chat', $Room->id)->with('selLLMs', $bot_ids->pluck('id')->toarray());
+                            return Redirect::route('room.chat', $Room->id)->with('selLLMs', array_values($bot_ids));
                         }
                     }
                 }
@@ -661,7 +655,7 @@ class RoomController extends Controller
                     $prompts = explode("\n", $prependMessage . $prompts);
                     if ($roomId ?? null) {
                         $Room = ChatRoom::findorfail($roomId);
-                        $chat = Chats::where('roomID', '=', $roomId)->where('bot_id',$i)->first();
+                        $chat = Chats::where('roomID', '=', $roomId)->where('bot_id', $i)->first();
                     } else {
                         $Room = new ChatRoom();
                         $Room->fill(['name' => $prompts[0], 'user_id' => Auth::user()->id]);
@@ -676,11 +670,11 @@ class RoomController extends Controller
                     $deltaStart = date('Y-m-d H:i:s', strtotime($start . ' +1 second'));
 
                     $record = new Histories();
-                    $record->fill(['msg' => $prompts[0], 'chat_id' => $chatId, 'isbot' => false, 'chained' =>  Session::get('chained') ?? true, 'created_at' => $start, 'updated_at' => $start]);
+                    $record->fill(['msg' => $prompts[0], 'chat_id' => $chatId, 'isbot' => false, 'chained' => Session::get('chained') ?? true, 'created_at' => $start, 'updated_at' => $start]);
                     $record->save();
 
                     $record = new Histories();
-                    $record->fill(['msg' => '* ...thinking... *', 'chat_id' => $chatId, 'chained' =>  Session::get('chained') ?? true, 'isbot' => true, 'created_at' => $deltaStart, 'updated_at' => $deltaStart]);
+                    $record->fill(['msg' => '* ...thinking... *', 'chat_id' => $chatId, 'chained' => Session::get('chained') ?? true, 'isbot' => true, 'created_at' => $deltaStart, 'updated_at' => $deltaStart]);
                     $record->save();
                     BatchChat::dispatch($prompts, $record->id);
                     Redis::rpush('usertask_' . Auth::user()->id, $record->id);

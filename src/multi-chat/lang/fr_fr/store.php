@@ -2,6 +2,7 @@
 
 return [
     'route' => 'Boutique',
+    'hint.must_enter_server_url' => 'Vous devez entrer l\'URL de l\'application externe',
     'placeholder.must_select_base_model' => 'Vous devez sélectionner un modèle de base',
     'placeholder.button.system' => 'Sera marqué comme un bot système et accessible à tous',
     'placeholder.button.community' => 'Accessible à tous les groupes',
@@ -22,6 +23,7 @@ return [
     'button.save' => 'Enregistrer',
     'button.delete' => 'Supprimer',
     'button.export' => 'Exporter',
+    'button.explore_more' => 'Découvrir plus de Bots',
     'bot.system_prompt' => 'Invite système',
     'bot.welcome_message' => 'Message de bienvenue',
     'bot.name' => 'Nom de lapplication',
@@ -45,4 +47,13 @@ return [
     'bot.before_prompt.label' => 'Cette invite sera ajoutée avant linvite de lutilisateur pendant linférence',
     'bot.after_prompt.label' => 'Cette invite sera ajoutée après linvite de lutilisateur pendant linférence',
     'bot.button.chat' => 'Chat',
+    'bot.knowledge' => 'Connaissance',
+    'bot.knowledge.label' => 'Sélectionner la connaissance',
+    'bot.next_bot' => 'Bot suivant',
+    'bot.next_bot.label' => 'Sélectionner le bot suivant',
+    'bot.type' => 'Type',
+    'bot.type.desc.prompt' => 'Bot à invite : créez un bot en fournissant une invite',
+    'bot.type.desc.server' => 'Bot serveur : connectez une application externe existante',
+    'bot.server_url' => 'URL de l\'application externe',
+    'bot.server_url.label' => 'URL de l\'application externe',
 ];

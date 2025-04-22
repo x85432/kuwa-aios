@@ -3,6 +3,7 @@
 return [
     'button.information' => '更多資訊',
     'button.return_home' => '回首頁',
+    'button.help' => '如何使用',
 
     'translate' => '文本翻譯',
     'composition' => '寫文章',

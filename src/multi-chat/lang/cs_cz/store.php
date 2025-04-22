@@ -2,6 +2,7 @@
 
 return [
     'route' => 'Obchod',
+    'hint.must_enter_server_url' => 'Musíte zadat adresu externí aplikace',
     'placeholder.must_select_base_model' => 'Musíte zvolit základní model',
     'placeholder.button.system' => 'Bude označen jako systémový bot a bude přístupný všem',
     'placeholder.button.community' => 'Přístupný pro jakoukoli skupinu',
@@ -22,6 +23,7 @@ return [
     'button.save' => 'Uložit',
     'button.delete' => 'Smazat',
     'button.export' => 'Exportovat',
+    'button.explore_more' => 'Objevte více Botů',
     'bot.system_prompt' => 'Systémový výzva',
     'bot.welcome_message' => 'Uvítací zpráva',
     'bot.name' => 'Název aplikace',
@@ -45,4 +47,13 @@ return [
     'bot.before_prompt.label' => 'Tato výzva se přidá před uživatelskou výzvu během odvozování',
     'bot.after_prompt.label' => 'Tato výzva se přidá za uživatelskou výzvu během odvozování',
     'bot.button.chat' => 'Chat',
+    'bot.knowledge' => 'Znalosti',
+    'bot.knowledge.label' => 'Vyberte znalosti',
+    'bot.next_bot' => 'Další Bot',
+    'bot.next_bot.label' => 'Vyberte dalšího Bota',
+    'bot.type' => 'Typ',
+    'bot.type.desc.prompt' => 'Bot s výzvami: Vytvořte Bota pomocí zadaných výzev',
+    'bot.type.desc.server' => 'Serverový Bot: Připojte existující externí aplikaci',
+    'bot.server_url' => 'Adresa externí aplikace',
+    'bot.server_url.label' => 'URL externí aplikace',
 ];

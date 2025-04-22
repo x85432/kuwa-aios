@@ -18,8 +18,9 @@ return [
     'onedgecloud' => 'Supports Windows and Linux Edge and Cloud Computing',
     'totalsolution' => 'Complete Solution for Generative AI Applications',
     'opensource' => 'Open Source',
-    'button.information' => 'More Information',
-    'button.return_home' => 'Return Home',
     'under_maintenance.label' => 'We are currently performing website maintenance,<br>Please come back later!',
     'under_maintenance.header' => 'Service Suspended',
+    'button.information' => 'More Information',
+    'button.return_home' => 'Return Home',
+    'button.help' => 'How to use',
 ];

@@ -203,6 +203,8 @@
                         </div>
                     @endif
                 </div>
+
+                <div class="hover:bg-gray-500 m-auto border border-1 px-2 py-1 mb-2 rounded-lg border-black dark:border-white text-black dark:text-white"><a href="https://github.com/kuwaai/user-repository" target="_blank">{{__('store.button.explore_more')}}</a></div>
             </div>
         </div>
     </div>

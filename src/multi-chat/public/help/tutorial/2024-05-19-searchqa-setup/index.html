@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>2024 05 19 searchqa setup - Kuwa Help Center</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "2024 05 19 searchqa setup";
+        var mkdocs_page_input_path = "tutorial\\2024-05-19-searchqa-setup.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Kuwa Help Center
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Documentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../community/">Community</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../configuration/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../contribution_guidelines/">Contributing Guidelines</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_installation/">Docker installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_model_setup/">Docker model setup</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_quick_installation/">Docker quick installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequently Asked Questions</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../legal_information/">Legal Information</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../windows_installation/">Windows installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../windows_model_setup/">Windows model setup</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Release</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-08-first-stable-release-v0.1.0/">2024 04 08 first stable release v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-08-migration-from-old-to-v0.1.0/">2024 04 08 migration from old to v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-15-release-v0.2.0-beta/">2024 04 15 release v0.2.0 beta</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-15-release-v0.2.0-taide/">2024 04 15 release v0.2.0 taide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-29-migrate-to-v0.2.1/">2024 04 29 migrate to v0.2.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-29-release-v0.2.1-taide/">Kuwa TAIDE v0.2.1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-05-07-release-v0.3.0-beta1/">Kuwa TAIDE v0.3.0-beta1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-05-19-release-v0.3.0/">2024 05 19 release v0.3.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-06-24-relese-v0.3.1/">2024 06 24 relese v0.3.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-07-05-release-v0.3.2/">2024 07 05 release v0.3.2</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-08-12-release-v0.3.3/">2024 08 12 release v0.3.3</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-20-llama3-linux/">2024 04 20 llama3 linux</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-20-llama3-windows/">2024 04 20 llama3 windows</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-18-bot-system-guide/">2024 05 18 bot system guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-apply-gemini/">2024 05 19 apply gemini</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-dbqa-setup/">2024 05 19 dbqa setup</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">2024 05 19 searchqa setup</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-painter-tutorial/">2024 06 24 painter tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-vlm-tutorial/">2024 06 24 vlm tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-whisper-tutorial/">2024 06 24 whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-05-rag-param-tutorial/">2024 07 05 rag param tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-05-tool-tutorial/">2024 07 05 tool tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-18-cool-whisper-tutorial/">2024 07 18 cool whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../client_library/">Client library</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Kuwa Help Center</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorial</li>
+      <li class="breadcrumb-item active">2024 05 19 searchqa setup</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p>v0.3.0 added SearchQA, leveraging Google search to provide solutions for organizational QnA. <br />
+This article will provide you steps on how to implement SearchQA.</p>
+<h2 id="google-api-key-application">Google API Key Application</h2>
+<blockquote>
+<p>[!WARNING] 
+Google search API currently has a daily free quota of 100 times, please use it with caution</p>
+</blockquote>
+<ol>
+<li>Go to <a href="https://programmablesearchengine.google.com/controlpanel/create">Google Programmable Search Engine Create Page</a> and fill in the following information to create a custom search engine<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/create_cse.png" /></li>
+</ol>
+<!-- truncate -->
+
+<ol>
+<li>
+<p>Click "Customize" after creating a new search engine to copy the CSE ID (Custom Search Engine ID) and API key<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/done_cse_creation.png" /></p>
+</li>
+<li>
+<p>The Search engine ID can be found under the Overview section, remember this ID, and use CSE ID to represent it later<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/cse_id.png" /></p>
+</li>
+<li>
+<p>Scroll down the page and go to <a href="https://developers.google.com/custom-search/v1/introduction">Custom Search JSON API</a><br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/custom_search_api.png" /></p>
+</li>
+<li>
+<p>Click the "Get a Key" button to get the API key<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/get_a_key.png" /></p>
+</li>
+<li>
+<p>You can use an existing Google cloud project or create a new one<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/create_project1.png" /><br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/create_project2.png" />  </p>
+</li>
+<li>
+<p>Click SHOW KEY to display the API key, remember this key, it will be used later<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/api_key1.png" /><br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/api_key2.png" />  </p>
+</li>
+</ol>
+<h2 id="windows-tutorial">Windows Tutorial</h2>
+<ol>
+<li>
+<p>Execute <code>C:\kuwa\GenAI OS\windows\executors\SearchQA\init.bat</code>, fill in the API key and CSE ID you just applied for,<br />
+   If you want to limit the search results to certain domains, you can fill in <code>restricted sites</code>; if there are multiple domains, please separate them with a semicolon (;)<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/init_searchqa.png" />  </p>
+</li>
+<li>
+<p>Restart Kuwa, or go back to the command line of Kuwa GenAI OS, enter the command "reload" to reload all Executors<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/reload.png" />  </p>
+</li>
+<li>
+<p>You can see SearchQA after reloading, which can be used to answer questions based on information on the Internet<br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/result1.png" /><br />
+<img alt="" src="../img/2024-05-19-searchqa-setup/result2.png" />  </p>
+</li>
+</ol>
+<h2 id="docker-tutorial">Docker Tutorial</h2>
+<ol>
+<li>Please refer to <code>docker/compose/searchqa.yaml</code> to create the SearchQA Executor.<br />
+   Replace <code>&lt;YOUR_GOOGLE_API_KEY&gt;</code> and <code>&lt;YOUR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID&gt;</code> with the API key and CSE ID applied in the previous stage,<br />
+<code>EXECUTOR_NAME</code> can be changed to an easy-to-remember name.<br />
+<code>--restricted_sites</code> can restrict search results to certain domains; if there are multiple domains, please separate them with semicolons (;).<br />
+   The <code>--model</code> parameter can be used to specify a model to answer. If the <code>--model</code> parameter is omitted, the first Executor online in the Kernel (excluding Executors with "-qa" prefixes or suffixes) will be used to answer.</li>
+</ol>
+<p><code>yaml
+   services:
+     searchqa-executor:
+       build:
+         context: ../../
+         dockerfile: docker/executor/Dockerfile
+       image: kuwa-executor
+       environment:
+         CUSTOM_EXECUTOR_PATH: ./docqa/searchqa.py
+         EXECUTOR_ACCESS_CODE: search-qa
+         EXECUTOR_NAME: SearchQA
+       depends_on:
+         - kernel
+         - multi-chat
+       command: [
+         "--api_base_url", "http://web/",
+         "--model", "geminipro",
+         "--google_api_key", "&lt;YOUR_GOOGLE_API_KEY&gt;",
+         "--google_cse_id", "&lt;YOUR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID&gt;",
+         #"--restricted_sites", "example.tw;example.com"
+         ]
+       extra_hosts:
+         - "localhost:host-gateway"
+       restart: unless-stopped
+       networks: ["backend", "frontend"]</code>
+2. Add <code>searchqa</code> to the <code>confs</code> array of <code>docker/run.sh</code> and then re-execute <code>docker/run.sh</code> to start the SearchQA Executor</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../2024-05-19-dbqa-setup/" class="btn btn-neutral float-left" title="2024 05 19 dbqa setup"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../2024-06-24-painter-tutorial/" class="btn btn-neutral float-right" title="2024 06 24 painter tutorial">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../2024-05-19-dbqa-setup/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../2024-06-24-painter-tutorial/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
