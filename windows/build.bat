@@ -177,9 +177,10 @@ call :install-requirements-txt
 popd
 
 REM Install dependency of Mermaid Tool
-echo "npm install -g '@mermaid-js/mermaid-cli'"
 call npm.cmd install -g "@mermaid-js/mermaid-cli"
-echo done
+
+REM Install dependency of n8n
+call npm.cmd install -g "n8n@1.73.1"
 
 REM Make sure the windows edition package are still the correct version
 pushd ".\src"
