@@ -162,11 +162,11 @@ if "%option%"=="1" (
 ) else if "%option%"=="7" (
     :function5
     set userInput=n
-    set /p "userInput=Download gemma-3-1b-it-Q5_K_M.gguf (~2GB)? [y/N] "
+    set /p "userInput=Download gemma-3-1b-it-q4_0.gguf.gguf (~2GB)? [y/N] "
     
     if /I "!userInput!"=="y" (
         echo Downloading model...
-        curl -L -o "gemma-3-1b-it-Q5_K_M.gguf" https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q5_K_M.gguf?download=true
+        curl -L -o "gemma-3-1b-it-q4_0.gguf.gguf" https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-q4_0.gguf.gguf?download=true
         copy gemma3-1b\_run.bat gemma3-1b\run.bat
         echo Model downloaded!
     ) else (

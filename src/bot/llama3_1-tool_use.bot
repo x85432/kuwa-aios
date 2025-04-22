@@ -9,7 +9,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "LLama3.1 Tool Use"
 KUWABOT description "Testing Llama3.1's ability to use tools, inputting any prompt will output the tool used, currently available tools are brave_search, wolfram_alpha, get_boiling_point, trending_songs, see Modelfile for details"
-KUWABOT base "llama3.1-8b-instruct"
+KUWABOT base ".model/meta-llama/llama-3.1-8b"
 SYSTEM """
 Environment: ipython
 Tools: brave_search, wolfram_alpha

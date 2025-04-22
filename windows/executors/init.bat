@@ -36,7 +36,7 @@ set "models[6]=custom"
 
 REM Define an array to store the access codes
 set "access_code[1]=.model/openai/chatgpt"
-set "access_code[2]=.model/google/gemini"
+set "access_code[2]=.model:google/gemini"
 set "access_code[3]=llamacpp"
 set "access_code[4]=huggingface"
 set "access_code[5]=ollama"
@@ -56,7 +56,7 @@ if "taide"=="!current_folder!" (
 ) else if "llama3_1"=="!current_folder!" (
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=LLaMA3.1 8B Instruct"
-	set "EXECUTOR_ACCESS_CODE=llama3.1-8b-instruct"
+	set "EXECUTOR_ACCESS_CODE=.model/meta-llama/llama-3.1-8b"
 	echo Init LLaMA3.1 8B Instruct
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -78,7 +78,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 1b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 1B"
-	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
+	set "EXECUTOR_ACCESS_CODE=.model/google/gemma-3-1b"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -89,7 +89,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 4b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 4B"
-	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
+	set "EXECUTOR_ACCESS_CODE=.model/google/gemma-3-1b"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -100,7 +100,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 4b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 4B"
-	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
+	set "EXECUTOR_ACCESS_CODE=.model/google/gemma-3-1b"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -201,7 +201,7 @@ if "taide"=="!current_folder!" (
 	echo Init Whisper
 	set "EXECUTOR_TYPE=custom"
 	set "EXECUTOR_NAME=Whisper"
-	set "EXECUTOR_ACCESS_CODE=.model/openai/whisper"
+	set "EXECUTOR_ACCESS_CODE=.model:whisper/"
 	
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
