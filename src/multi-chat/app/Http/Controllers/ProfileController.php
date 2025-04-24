@@ -48,6 +48,33 @@ class ProfileController extends Controller
             'user' => $request->user(),
         ]);
     }
+    /**
+ * @OA\Post(
+ *     path="/api/user/upload/file",
+ *     summary="Upload a file",
+ *     tags={"Cloud"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 type="object",
+ *                 required={"file"},
+ *                 @OA\Property(
+ *                     property="file",
+ *                     type="string",
+ *                     format="binary"
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="File uploaded"
+ *     )
+ * )
+ */
     public function api_upload_file(Request $request)
     {
         $result = DB::table('personal_access_tokens')
@@ -311,6 +338,76 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+/**
+ * @OA\Post(
+ *     path="/v1.0/chat/completions",
+ *     summary="Complete a chat (streaming or non-streaming)",
+ *     tags={"Chat"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"model", "messages"},
+ *             @OA\Property(property="model", type="string", example="gpt-4"),
+ *             @OA\Property(
+ *                 property="messages",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     required={"role", "content"},
+ *                     @OA\Property(property="role", type="string", example="user"),
+ *                     @OA\Property(property="content", type="string", example="Hello")
+ *                 )
+ *             ),
+ *             @OA\Property(property="stream", type="boolean", example=false, description="Enable streaming mode"),
+ *             @OA\Property(
+ *                 property="options",
+ *                 type="object",
+ *                 description="Additional options for the completion",
+ *                 additionalProperties={}
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Chat completion response (streamed or full)",
+ *         @OA\JsonContent(
+ *             @OA\Property(
+ *                 property="choices",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     oneOf={
+ *                         @OA\Schema(
+ *                             @OA\Property(
+ *                                 property="delta",
+ *                                 type="object",
+ *                                 @OA\Property(property="content", type="string", example="Hello, how can I assist?")
+ *                             )
+ *                         ),
+ *                         @OA\Schema(
+ *                             @OA\Property(
+ *                                 property="message",
+ *                                 type="object",
+ *                                 @OA\Property(property="role", type="string", example="assistant"),
+ *                                 @OA\Property(property="content", type="string", example="Hello, how can I assist you?")
+ *                             )
+ *                         )
+ *                     }
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Bad request"
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized"
+ *     )
+ * )
+ */
 
     public function api_auth(Request $request)
     {

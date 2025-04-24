@@ -54,6 +54,30 @@ class CloudController extends Controller
         $result = '/' . implode('/', array_filter($pathArray)) . '/';
         return $result === '//' ? '/' : $result;
     }
+/**
+ * @OA\Get(
+ *     path="/api/user/read/cloud/{path}",
+ *     summary="List cloud directory or file",
+ *     tags={"Cloud"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Parameter(
+ *         name="path",
+ *         in="path",
+ *         required=false,
+ *         description="The cloud directory or file path. If not provided, defaults to a single dot.",
+ *         @OA\Schema(
+ *             type="string",
+ *             default="."
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cloud data listed"
+ *     )
+ * )
+ */
+
+
     public function api_read_cloud(Request $request, $paths = null)
     {
         $result = DB::table('personal_access_tokens')
@@ -141,6 +165,25 @@ class CloudController extends Controller
     {
         return view('cloud');
     }
+    /**
+ * @OA\Delete(
+ *     path="/api/user/delete/cloud/{path}",
+ *     summary="Delete cloud file or folder",
+ *     tags={"Cloud"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Parameter(
+ *         name="path",
+ *         in="path",
+ *         required=true,
+ *         description="Path to cloud item to delete",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cloud item deleted"
+ *     )
+ * )
+ */
     public function api_delete_cloud(Request $request, $paths = null)
     {
         $result = DB::table('personal_access_tokens')

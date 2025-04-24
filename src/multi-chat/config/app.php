@@ -220,7 +220,6 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Bepsvpt\SecureHeaders\SecureHeadersServiceProvider::class,
-
     ],
 
     /*
