@@ -1,0 +1,287 @@
+openapi: 3.0.1
+info:
+  title: Kuwa API
+  version: 1.0.0
+  description: API definition for KuwaClient service
+
+servers:
+  - url: http://localhost
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    BaseModel:
+      type: object
+      properties:
+        name:
+          type: string
+        access_code:
+          type: string
+        description:
+          type: string
+        other_field:
+          type: string
+    CreateRoomRequest:
+      type: object
+      properties:
+        llm:
+          type: array
+          items:
+            type: integer
+    CreateUserRequest:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              group:
+                type: string
+              detail:
+                type: string
+              require_change_password:
+                type: boolean
+    CreateBotRequest:
+      type: object
+      properties:
+        llm_access_code:
+          type: string
+        bot_name:
+          type: string
+        visibility:
+          type: integer
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/user/create/base_model:
+    post:
+      summary: Create a base model
+      tags:
+        - Models
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseModel'
+      responses:
+        '200':
+          description: Model created
+      security:
+        - bearerAuth: []
+
+  /api/user/read/models:
+    get:
+      summary: List base models
+      tags:
+        - Models
+      responses:
+        '200':
+          description: List of models
+      security:
+        - bearerAuth: []
+
+  /api/user/read/bots:
+    get:
+      summary: List bots
+      tags:
+        - Bots
+      responses:
+        '200':
+          description: List of bots
+      security:
+        - bearerAuth: []
+
+  /api/user/create/user:
+    post:
+      summary: Create users
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: Users created
+      security:
+        - bearerAuth: []
+
+  /api/user/create/room:
+    post:
+      summary: Create a room with bots
+      tags:
+        - Rooms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+      responses:
+        '200':
+          description: Room created
+      security:
+        - bearerAuth: []
+
+  /api/user/delete/room:
+    delete:
+      summary: Delete a room
+      tags:
+        - Rooms
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Room ID to delete
+      responses:
+        '200':
+          description: Room deleted
+      security:
+        - bearerAuth: []
+
+  /api/user/delete/room/message:
+    delete:
+      summary: Delete a message
+      tags:
+        - Messages
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Message ID to delete
+      responses:
+        '200':
+          description: Message deleted
+      security:
+        - bearerAuth: []
+
+  /api/user/upload/file:
+    post:
+      summary: Upload a file
+      tags:
+        - Upload
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded
+      security:
+        - bearerAuth: []
+
+  /api/user/read/rooms:
+    get:
+      summary: List rooms
+      tags:
+        - Rooms
+      responses:
+        '200':
+          description: List of rooms
+      security:
+        - bearerAuth: []
+
+  /api/user/read/cloud/{path}:
+    get:
+      summary: List cloud directory or file
+      tags:
+        - Cloud
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path of the cloud file/folder
+      responses:
+        '200':
+          description: Cloud data listed
+      security:
+        - bearerAuth: []
+
+  /api/user/delete/cloud/{path}:
+    delete:
+      summary: Delete cloud file or folder
+      tags:
+        - Cloud
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to cloud item to delete
+      responses:
+        '200':
+          description: Cloud item deleted
+      security:
+        - bearerAuth: []
+
+  /api/user/create/bot:
+    post:
+      summary: Create a bot
+      tags:
+        - Bots
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBotRequest'
+      responses:
+        '200':
+          description: Bot created
+      security:
+        - bearerAuth: []
+
+  /v1.0/chat/completions:
+    post:
+      summary: Generate chat completion
+      tags:
+        - Chat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        type: string
+                model:
+                  type: string
+                stream:
+                  type: boolean
+      responses:
+        '200':
+          description: Chat response
+      security:
+        - bearerAuth: []

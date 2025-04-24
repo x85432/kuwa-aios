@@ -9,6 +9,7 @@
         "24slides/laravel-saml2": "^2.4",
         "bepsvpt/secure-headers": "^7.5",
         "carbonphp/carbon-doctrine-types": "2.*",
+        "darkaonline/l5-swagger": "^8.6",
         "directorytree/ldaprecord-laravel": "^3.1",
         "doctrine/dbal": "3.*",
         "dompdf/dompdf": "^3.0",
