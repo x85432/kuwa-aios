@@ -18,7 +18,7 @@ AllowNoIcons=yes
 LicenseFile=../../LICENSE
 PrivilegesRequired=lowest
 OutputDir=.
-OutputBaseFilename=Kuwa-GenAI-OS-GEMMA-TAIDE
+OutputBaseFilename=Kuwa-GenAI-OS-OFFLINE
 SetupIconFile={#MyAppIcon}
 Compression=lzma
 SolidCompression=yes
@@ -73,18 +73,14 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: f
 
 //Name: "product\n8n"; Description: "n8n"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 //Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
-
-Name: "models"; Description: "Model Selection"; Types: full compact custom;Flags: fixed;
-Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: full compact custom;Flags: fixed;ExtraDiskSpaceRequired:851345344;
-Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: full compact custom; Flags: fixed;ExtraDiskSpaceRequired:5261727040;
-
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
-    Excludes: "package.zip,windows\packages\*,windows-setup-files\*.exe,windows-setup-files\*.bin,node_modules\*,vendor\*"; \
+    Excludes: "Kuwa-GenAI-OS.exe;..\..\src\multi-chat\node_modules\*;..\..\src\multi-chat\vendor\*"; \
     Permissions: users-full; Components: "product\Kuwa"
 
 Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdirs createallsubdirs; \
     Permissions: users-full; Components: "product\Kuwa"
+
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"

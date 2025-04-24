@@ -23,7 +23,8 @@ SetupIconFile={#MyAppIcon}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-
+DiskSpanning=yes
+DiskSliceSize="2000000000"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -61,23 +62,11 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 
 [Components]
 Name: "product"; Description: "Product Components"; Types: full compact custom;Flags: fixed;
-Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: fixed; ExtraDiskSpaceRequired:9850003637;
-
-//Name: "product\Kuwa\Huggingface"; Description: "Huggingface Executor Runtime"; Types: full compact custom;
-
-//Name: "product\Kuwa\LLaMA_CPP"; Description: "LLaMA_CPP Executor Runtime"; Types: custom;
-//Name: "product\Kuwa\LLaMA_CPP\CPU"; Description: "CPU"; Types: custom; Flags: exclusive;
-//Name: "product\Kuwa\LLaMA_CPP\CUDA_12_4"; Description: "CUDA v12.4 (Default)"; Types: full compact custom; Flags: exclusive;
-
-//Name: "product\n8n"; Description: "n8n"; Types: full custom;ExtraDiskSpaceRequired:536870912;
-//Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
-
-Name: "models"; Description: "Model Selection"; Types: full compact custom;Flags: fixed;
-Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: full compact custom;Flags: fixed;ExtraDiskSpaceRequired:851345344;
+Name: "product\Kuwa"; Description: "Kuwa + Gemma3 1B Q5_KM"; Types:  full compact custom ;Flags: fixed;
 
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
-    Excludes: "Kuwa-GenAI-OS.exe;..\..\src\multi-chat\node_modules\*;..\..\src\multi-chat\vendor\*"; \
+    Excludes: "Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf,package.zip,*.gguf,windows\packages\*,windows-setup-files\*.exe,windows-setup-files\*.bin,node_modules\*,vendor\*"; \
     Permissions: users-full; Components: "product\Kuwa"
 
 Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdirs createallsubdirs; \

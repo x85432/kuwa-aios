@@ -1,4 +1,5 @@
 @echo off
+chcp 65001
 setlocal EnableDelayedExpansion
 echo Now in: "%cd%"
 
@@ -35,7 +36,7 @@ set "models[6]=custom"
 
 REM Define an array to store the access codes
 set "access_code[1]=.model/openai/chatgpt"
-set "access_code[2]=.model/google/gemini"
+set "access_code[2]=.model:google/gemini"
 set "access_code[3]=llamacpp"
 set "access_code[4]=huggingface"
 set "access_code[5]=ollama"
@@ -55,7 +56,7 @@ if "taide"=="!current_folder!" (
 ) else if "llama3_1"=="!current_folder!" (
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=LLaMA3.1 8B Instruct"
-	set "EXECUTOR_ACCESS_CODE=llama3.1-8b-instruct"
+	set "EXECUTOR_ACCESS_CODE=.model/meta-llama/llama-3.1-8b"
 	echo Init LLaMA3.1 8B Instruct
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -77,7 +78,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 1b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 1B"
-	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
+	set "EXECUTOR_ACCESS_CODE=.model/google/gemma-3-1b"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -88,7 +89,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 4b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 4B"
-	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
+	set "EXECUTOR_ACCESS_CODE=.model/google/gemma-3-1b"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -99,7 +100,7 @@ if "taide"=="!current_folder!" (
 	echo Init Gemma3 4b
 	set "EXECUTOR_TYPE=llamacpp"
 	set "EXECUTOR_NAME=Gemma 3 4B"
-	set "EXECUTOR_ACCESS_CODE=.model.gtg/google/gemini"
+	set "EXECUTOR_ACCESS_CODE=.model/google/gemma-3-1b"
 
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -200,7 +201,7 @@ if "taide"=="!current_folder!" (
 	echo Init Whisper
 	set "EXECUTOR_TYPE=custom"
 	set "EXECUTOR_NAME=Whisper"
-	set "EXECUTOR_ACCESS_CODE=.model/openai/whisper"
+	set "EXECUTOR_ACCESS_CODE=.model:whisper/"
 	
 	echo EXECUTOR_TYPE=!EXECUTOR_TYPE!
 	echo EXECUTOR_NAME=!EXECUTOR_NAME!
@@ -454,6 +455,8 @@ if "!EXECUTOR_NAME!" == "docQA & webQA" (
 		set command=!command! --order "130000"
 	) ELSE IF "SearchQA"=="!current_folder!" (
 		set command=!command! --order "990020"
+	) ELSE IF "gemma3-1b" == "!current_folder!" (
+		set command=!command! --order "311003"
 	)
 	echo !command!>> run.bat
 	echo popd>>run.bat
@@ -477,7 +480,7 @@ if "!EXECUTOR_NAME!" == "docQA & webQA" (
 			set command=!command! "--model" "!model_name!"
 		)
 		if "taide"=="!current_folder!" (
-			set command=!command! "--system_prompt" "�A�O�@�ӨӦۥx�W��AI�U�z�A�A���W�r�O TAIDE�A�֩�H�x�W�H���߳����U�ϥΪ̡A�|���c�餤��^�����D�C"
+			set command=!command! "--system_prompt" "你是一個來自台灣的AI助理，你的名字是 TAIDE，樂於以台灣人的立場幫助使用者，會用繁體中文回答問題。"
 		)
 	) else (
 		set command=start /b "" "python" !worker_path! "--access_code" "!EXECUTOR_ACCESS_CODE!"

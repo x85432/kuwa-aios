@@ -73,18 +73,18 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: f
 //Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 
 Name: "models"; Description: "Model Selection"; Types: full custom;Flags: fixed;
-Name: "models\gemma3_1b_q5_km"; Description: "Gemma3 1B Q5_KM"; Types: full compact custom;ExtraDiskSpaceRequired:851345344;
+Name: "models\gemma_3_1b_it_q4_0"; Description: "Gemma3 1B QAT Q4"; Types: full compact custom;ExtraDiskSpaceRequired:851345344;
 Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom; ExtraDiskSpaceRequired:5261727040;
 
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
-    Excludes: "Kuwa-GenAI-OS.exe;..\..\src\multi-chat\node_modules\*;..\..\src\multi-chat\vendor\*"; \
+    Excludes: "package.zip,*.gguf,windows\packages\*,windows-setup-files\*.exe,windows-setup-files\*.bin,node_modules\*,vendor\*"; \
     Permissions: users-full; Components: "product\Kuwa"
 
 Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdirs createallsubdirs; \
     Permissions: users-full; Components: "product\Kuwa"
 
-Source: "{tmp}\models\gemma-3-1b-it-Q5_K_M.gguf"; DestDir: "{app}\windows\executors\gemma3-1b\"; Flags: external; Components: "models\gemma3_1b_q5_km"
+Source: "{tmp}\models\gemma-3-1b-it-q4_0.gguf.gguf"; DestDir: "{app}\windows\executors\gemma3-1b\"; Flags: external; Components: "models\gemma_3_1b_it_q4_0"
 
 Source: "{tmp}\models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: external; Components: "models\llama3_point_1_taide_lx_8_q4_km"
 
@@ -211,8 +211,8 @@ begin
     DownloadPage.Add('https://github.com/git-for-windows/git/releases/download/v2.45.1.windows.1/PortableGit-2.45.1-64-bit.7z.exe', 'packages\gitbash.7z.exe', '');
     DownloadPage.Add('https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-7.0.2-essentials_build.zip', 'packages\ffmpeg.zip', '');
 
-    if WizardIsComponentSelected('models\gemma3_1b_q5_km') then begin
-      DownloadPage.Add('https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q5_K_M.gguf?download=true', 'models\gemma-3-1b-it-Q5_K_M.gguf', '');
+    if WizardIsComponentSelected('models\gemma_3_1b_it_q4_0') then begin
+      DownloadPage.Add('https://huggingface.co/tetf/gemma-3-1b-it-qat-q4_0-GGUF/resolve/main/gemma-3-1b-it-q4_0.gguf?download=true', 'models\gemma-3-1b-it-q4_0.gguf.gguf', '');
     end;
     if WizardIsComponentSelected('models\llama3_point_1_taide_lx_8_q4_km') then begin
       DownloadPage.Add('https://huggingface.co/tetf/Llama-3.1-TAIDE-LX-8B-Chat-GGUF/resolve/main/Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf?download=true', 'models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf', '');

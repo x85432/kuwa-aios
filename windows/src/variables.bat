@@ -1,4 +1,5 @@
 @echo off
+chcp 65001
 cd "%~dp0.."
 
 if "%KUWA_ENV_INIT%" neq "" (exit /b)
