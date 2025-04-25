@@ -9,7 +9,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "DocumentQA (TAIDE)"
 KUWABOT description "Upload a file or paste a URL for Q&A."
-KUWABOT base ".tool/kuwa/doc-qa"
+KUWABOT base "doc-qa"
 PARAMETER generator_model taide
 PARAMETER generator_limit 7168
 PARAMETER retriever_mmr_k 14
