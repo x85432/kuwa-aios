@@ -2,10 +2,11 @@
 
 return [
     'route' => 'Chat',
-    'hint.prompt_area' => 'Zadejte zde zprávu',
     'tooltip.json_btn' => 'JSON ve formátu bez úniků',
     'tooltip.TSV' => 'Oddělené tabulátory, lze importovat z Excelu',
+    'hint.prompt_area' => 'Zadejte zde zprávu',
     'hint.copied' => 'Zkopírováno',
+    'hint.confirm_go_to' => 'Potvrdit přechod',
     'header.new_chat' => 'Aktuálně vybraný chatovací model',
     'header.export' => 'Exportovat chatovou historii',
     'header.import' => 'Importovat chatovou historii',

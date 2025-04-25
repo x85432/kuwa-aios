@@ -2,10 +2,11 @@
 
 return [
     'route' => 'Chat',
-    'hint.prompt_area' => 'Veuillez saisir votre message ici',
     'tooltip.json_btn' => 'Format JSON sans échappement',
     'tooltip.TSV' => 'Séparé par des tabulations, peut être lu par Excel',
+    'hint.prompt_area' => 'Veuillez saisir votre message ici',
     'hint.copied' => 'Copié',
+    'hint.confirm_go_to' => 'Confirmer pour accéder',
     'header.new_chat' => 'Modèle de conversation actuellement sélectionné',
     'header.export' => 'Exporter l’historique des conversations',
     'header.import' => 'Importer l’historique des conversations',

@@ -2,10 +2,11 @@
 
 return [
     'route' => 'チャット',
-    'hint.prompt_area' => 'ここにメッセージを入力してください',
     'tooltip.json_btn' => 'エスケープされていないJSON形式',
     'tooltip.TSV' => 'タブ区切り、Excelで読み込み可能',
+    'hint.prompt_area' => 'ここにメッセージを入力してください',
     'hint.copied' => 'コピーされました',
+    'hint.confirm_go_to' => '移動してもよろしいですか？',
     'header.new_chat' => '現在指定されたチャットモデル',
     'header.export' => 'チャットログのエクスポート',
     'header.import' => 'チャットログのインポート',

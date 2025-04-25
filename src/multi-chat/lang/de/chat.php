@@ -2,10 +2,11 @@
 
 return [
     'route' => 'Chat',
-    'hint.prompt_area' => 'Geben Sie hier Ihre Nachricht ein',
     'tooltip.json_btn' => 'JSON-Format ohne Escape-Sequenzen',
     'tooltip.TSV' => 'Tabulator-getrennt, kann von Excel gelesen werden',
+    'hint.prompt_area' => 'Geben Sie hier Ihre Nachricht ein',
     'hint.copied' => 'Kopiert',
+    'hint.confirm_go_to' => 'Weiterleitung bestätigen',
     'header.new_chat' => 'Aktuell ausgewähltes Chat-Modell',
     'header.export' => 'Chat-Protokoll exportieren',
     'header.import' => 'Chat-Protokoll importieren',
