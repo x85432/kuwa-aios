@@ -8,7 +8,7 @@ use App\Http\Controllers\ManageController;
 use App\Http\Controllers\BotController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CloudController;
-use App\Http\Controllers\AppProxyController;
+use App\Http\Controllers\AppGatewayController;
 use App\Http\Controllers\KernelController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Middleware\AdminMiddleware;
@@ -55,7 +55,6 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
     Route::get('/storage/homes/{any}', function ($any) {
         return redirect("/storage/root/homes/{$any}");
     })->where('any', '.*');
-
     Route::post('/api/register', [ProfileController::class, 'api_register'])->name('api.register');
 
     Route::middleware('ipCheck')->group(function () {
@@ -72,9 +71,11 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
             });
 
             Route::prefix('create')->group(function () {
-                Route::post('/base_model', [ManageController::class, 'api_create_base_model'])->name('api.user.create.base_model');
                 Route::post('/bot', [BotController::class, 'api_create_bot'])->name('api.user.create.bot');
                 Route::post('/room', [RoomController::class, 'api_create_room'])->name('api.user.create.room');
+                // Manage api
+                Route::post('/base_model', [ManageController::class, 'api_create_base_model'])->name('api.user.create.base_model');
+                Route::post('/user', [ManageController::class, 'api_create_user'])->name('api.user.create.user');
             });
 
             Route::prefix('read')->group(function () {
@@ -158,6 +159,9 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
                             ->patch('/google/api', [ProfileController::class, 'google_update'])
                             ->name('profile.google.api.update');
                         Route::middleware(AdminMiddleware::class . ':Profile_update_external_api_token')
+                            ->patch('/nim/api', [ProfileController::class, 'nim_update'])
+                            ->name('profile.nim.api.update');
+                        Route::middleware(AdminMiddleware::class . ':Profile_update_external_api_token')
                             ->patch('/third-party/api', [ProfileController::class, 'third_party_update'])
                             ->name('profile.third_party.api.update');
 
@@ -220,8 +224,7 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
                         Route::middleware(AdminMiddleware::class . ':Store_delete_delete_bot')
                             ->delete('/delete', [BotController::class, 'delete'])
                             ->name('store.delete');
-                        Route::get('/knowledge', [BotController::class, 'listKnowledge'])
-                            ->name('store.list_knowledge');
+                        Route::get('/knowledge', [BotController::class, 'listKnowledge'])->name('store.list_knowledge');
                         Route::get('/bots', [BotController::class, 'listBots'])->name('store.bots');
                     })
                     ->name('store');
@@ -231,6 +234,7 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
                     ->group(function () {
                         Route::get('/', [CloudController::class, 'home'])->name('cloud.home');
                     });
+
                 #---Manage
                 Route::middleware(AdminMiddleware::class . ':tab_Manage')
                     ->prefix('manage')
@@ -308,7 +312,7 @@ Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function
                     });
 
                 # Third-party app proxy route.
-                Route::any('/app/{app_name}/{app_path_segment?}', [AppProxyController::class, 'proxy'])
+                Route::any('/app/{app_name}/{app_path_segment?}', [AppGatewayController::class, 'gateway'])
                     ->where(['app_name' => '[^/\?]+', 'app_path_segment' => '.*']);
             });
         });

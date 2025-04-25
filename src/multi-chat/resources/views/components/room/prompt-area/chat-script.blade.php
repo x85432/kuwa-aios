@@ -6,7 +6,7 @@
     <div class="w-64 hidden sm:block"></div>
     <div class="flex flex-col pb-20">
         <div class="flex justify-center items-center"><i
-                class="fas fa-wifi text-white animate-pulse bg-green-500 rounded-full p-4"></i></div>
+                class="fas fa-hourglass-end animate-spin text-white animate-pulse bg-green-500 rounded-full p-4"></i></div>
         <span class="text-black dark:text-white animate-bounce pt-2">{{ __('room.placeholder.connecting') }}</span>
     </div>
 </div>
@@ -115,7 +115,7 @@
                 $("#submit_msg").hide()
                 if ($("#upload_btn")) $("#upload_btn").hide()
                 if (!isMac) {
-                    $("#chat_input").val("訊息處理中...請稍後...")
+                    $("#chat_input").val("{{__('chat.placeholder.processing')}}")
                 }
                 $("#chat_input").prop("readonly", true)
             } else if ($("#upload")[0].files.length > 0) {

@@ -454,7 +454,7 @@
     function checkCreateBotForm() {
         let error_messages = {
             bot_name: "{{ __('You must name your bot') }}",
-            llm_name: "{{ __('store.hint.must_select_base_model') }}",
+            llm_name: "{{ __('store.placeholder.must_select_base_model') }}",
         }
         if ($("#bot_type").val() === "server") {
             $("#llm_name").val("Weblet");

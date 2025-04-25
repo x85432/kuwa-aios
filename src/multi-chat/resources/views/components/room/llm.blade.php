@@ -48,21 +48,27 @@
                             class: 'relative mx-1 flex-shrink-0 h-5 w-5 rounded-full bg-black flex items-center justify-center'
                         }).append(
                             $('<div>', {
+                                'data-tooltip-target': `llm_${id}_dropdown`,
+                                'data-tooltip-placement': 'top',
                                 class: 'flex justify-center items-center h-full'
                             }).append(
                                 $('<img>', {
-                                    'data-tooltip-target': `llm_${id}_dropdown`,
-                                    'data-tooltip-placement': 'top',
                                     class: 'rounded-full bg-black w-full h-full',
                                     src: item.image || item.base_image || '/{{ config('app.LLM_DEFAULT_IMG') }}'
-                                })
+                                }),
+                                $('<div>', {
+                                    class: `absolute bottom-0 right-0 z-2 opacity-90 ${item.healthy ? 'hidden' : ''}`
+                                }).append($('<div>', {
+                                    class: 'bg-red-500 rounded-full w-2 h-2',
+                                    'data-updated-at': item.updated_at
+                                }))
                             ),
                             $('<div>', {
                                 id: `llm_${id}_dropdown`,
                                 role: 'tooltip',
                                 class: 'absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-500',
                                 text: item.name
-                            })
+                            }),
                         ))
                     ),
                     $('<li>').append($('<a>', {
@@ -84,7 +90,7 @@
             $('body').append(dropdownDiv);
             $('#chatroom_info_dropdown [data-tooltip-target]').each(function() {
                 new Tooltip($('#' + $(this).attr('data-tooltip-target'))[0], $('#' + $(this).attr(
-                    'data-tooltip-target')).prev().children()[0]).init()
+                    'data-tooltip-target')).prev()[0]).init()
             });
         }
 
@@ -105,7 +111,7 @@
 
             const $ids = $button.attr('identifier').match(/\d+/g).map(Number);
             const targetSelector = $ids.map(id => `[data-tooltip-target="llm_${id}_dropdown"]`).join(',');
-            $menu.find(`>ul >li:first >div >div >img${targetSelector}`).parent().parent().show();
+            $menu.find(`>ul >li:first >div >div${targetSelector}`).parent().show();
 
             const buttonRect = this.getBoundingClientRect();
             const translateX = buttonRect.right;
@@ -250,15 +256,15 @@
 
         function createRoomClone(roomIdx, id) {
             const clonedElement = $(
-                    `#chatroom_info_dropdown >ul >li:first >div >div >img[data-tooltip-target="llm_${id}_dropdown"]`)
-                .parent().parent().clone();
+                    `#chatroom_info_dropdown >ul >li:first >div >div[data-tooltip-target="llm_${id}_dropdown"]`)
+                .parent().clone();
             clonedElement.each(function() {
                 $(this).attr('class',
-                    'mx-1 flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 dark:border-gray-900 bg-black flex items-center justify-center overflow-hidden'
+                    'mx-1 flex-shrink-0 h-5 w-5 rounded-full border border-gray-400 dark:border-gray-900 bg-black flex items-center justify-center'
                 ).show();
                 const base = clonedElement.find(`#llm_${id}_dropdown`);
                 base.attr('id', `${roomIdx}-llm_${id}`);
-                const trigger = base.prev().children(0);
+                const trigger = base.prev().addClass('relative');
                 trigger.attr('data-tooltip-target', `${roomIdx}-llm_${id}`);
                 new Tooltip(base[0], trigger[0]).init();
             });
