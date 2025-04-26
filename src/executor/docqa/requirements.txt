@@ -1,7 +1,9 @@
 langchain
 langchain-community
+langchain-huggingface
 accelerate
 sentence-transformers
+pyarrow
 markitdown[pdf, docx, pptx, xlsx, xls]
 bs4
 # faiss-gpu # Since the count of fetched document is relatively small, CPU is enough.

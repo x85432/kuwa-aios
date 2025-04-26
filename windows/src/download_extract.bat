@@ -10,7 +10,7 @@ set "archive_name=%4"
 
 if not exist "%check_location%" (
     if not exist "packages\%archive_name%" (
-        echo File does not exist. Downloading now.
+        echo File "packages\%archive_name%" does not exist. Downloading now.
         curl -L -# -o "packages\%archive_name%" %url%
     )
 
@@ -26,17 +26,21 @@ if not exist "%check_location%" (
         powershell Expand-Archive -Path packages\%archive_name% -DestinationPath "%folder_name%"
     )
     
-	echo Cleaning up...
-	del packages\%archive_name%
     REM Check if the folder is not empty
-	if exist "%check_location%" (
+    for /F %%i in ('dir /b /a "%check_location%"') do (
         echo Unzipping successful.
-        EXIT /B
+        goto :cleanup
     )
 	echo Can't find %check_location%
-    echo Unzipping failed. Cleaning up...
-    RD /Q /S "packages\%check_location%"
-    exit /b 0
+    echo Unzipping failed.
+    RD /Q /S "%check_location%"
 ) else (
     echo "packages\%check_location%" already exists, skipping download and extraction.
+    goto :eof
 )
+
+:cleanup
+echo Cleaning up...
+del packages\%archive_name%
+exit /b
+goto :eof

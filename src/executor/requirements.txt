@@ -1,4 +1,4 @@
-./ # kuwa-executor
+./
 
 # Gemini-Pro
 google-generativeai >= 0.6.0
