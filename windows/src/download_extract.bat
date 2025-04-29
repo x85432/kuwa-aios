@@ -9,10 +9,8 @@ set "folder_name=%3"
 set "archive_name=%4"
 
 if not exist "%check_location%" (
-    if not exist "packages\%archive_name%" (
-        echo File "packages\%archive_name%" does not exist. Downloading now.
-        curl -L -# -o "packages\%archive_name%" %url%
-    )
+    echo Downloading "packages\%archive_name%"
+    curl -L -# -o "packages\%archive_name%" %url%
 
     :: Check if the file is a tar.xz archive
     if "%archive_name:~-7%"==".tar.xz" (
@@ -41,6 +39,6 @@ if not exist "%check_location%" (
 
 :cleanup
 echo Cleaning up...
-del packages\%archive_name%
+del /q "packages\%archive_name%"
 exit /b
 goto :eof

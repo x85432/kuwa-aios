@@ -27,6 +27,8 @@ pause
 :found_vcredist
 echo Visual C++ Redistributable found.
 
+if not exist "packages" mkdir packages
+
 REM Download and extract RunHiddenConsole if not exists
 call src\download_extract.bat %url_RunHiddenConsole% packages\%RunHiddenConsole_folder% packages\%RunHiddenConsole_folder% RunHiddenConsole.zip
 
@@ -36,8 +38,8 @@ call src\download_extract.bat %url_NodeJS% packages\%node_folder% packages\. nod
 REM Download and extract PHP if not exists
 call src\download_extract.bat %url_PHP% packages\%php_folder% packages\%php_folder% php.zip
 
+REM Download and extract fallback version of PHP if the latest release not found
 if not exist "packages\%php_folder%" (
-    REM Download and extract fallback version of PHP if the latest release not found
     echo Downloading fallback version of PHP
     call src\download_extract.bat %url_PHP_Fallback% packages\%php_folder_Fallback% packages\%php_folder_Fallback% php.zip
     set "php_folder=%php_folder_Fallback%"
@@ -46,10 +48,10 @@ if not exist "packages\%php_folder%" (
 REM Download and extract git bash if not exists
 call src\download_extract.bat %url_gitbash% packages\%gitbash_folder% packages\%gitbash_folder% gitbash.7z.exe
 
+REM Download and extract Python if not exists
 IF EXIST packages\%python_folder% (
     echo Python folder already exists.
 ) ELSE (
-    REM Download and extract Python if not exists
     call src\download_extract.bat %url_Python% packages\%python_folder% packages\%python_folder% python.zip
     REM Overwrite the python310._pth file
     echo Overwrite the python310._pth file.
@@ -165,7 +167,7 @@ pushd "..\src\library\client"
 uv pip install --system --force-reinstall .
 popd
 pushd "..\src\library\rag"
-uv pip install --default-timeout=1000 --force-reinstall .
+uv pip install --system --force-reinstall .
 popd
 
 REM Install Executors
@@ -179,8 +181,18 @@ popd
 pushd "uploader"
 call :install-requirements-txt
 popd
+pushd "speech_recognition"
+uv pip install --system https://www.piwheels.org/simple/docopt/docopt-0.6.2-py2.py3-none-any.whl#sha256=15fde8252aa9f2804171014d50d069ffbf42c7a50b7d74bcbb82bfd5700fcfc2
+call :install-requirements-txt
 popd
+pushd "image_generation"
+call :install-requirements-txt
+popd
+popd
+REM Install dependency of whisper
+call src\download_extract.bat %url_ffmpeg% packages\%ffmpeg_folder% packages\. ffmpeg.zip
 REM Install dependency of n8n
+echo Installing n8n
 call npm.cmd install -g "n8n@1.73.1"
 
 REM Install Toolchain and Tools
@@ -229,6 +241,7 @@ goto :eof
 :: Install each dependency in requirements.txt under current working directory to
 :: prevent cascading failure.
 :install-requirements-txt
+echo Installing requirements.txt in %cd%
 for /f "tokens=*" %%a in ('findstr /v /r /c:"^#" requirements.txt') do (
   echo Installing "%%a"...
   uv pip install --system "%%a"
