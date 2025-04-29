@@ -10,6 +10,9 @@ source = "vcs"
 raw-options = {root = "../../"}
 fallback-version = "0.1.0"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.build.hooks.vcs]
 version-file = "src/kuwa/kernel/_version.py"
 
@@ -30,12 +33,14 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies=[
-  'click',
-  'requests',
-  'flask',
-  'flask_sse',
-  'APScheduler',
-  'uvicorn'
+  "aiohttp>=3.11.18",
+  "apscheduler>=3.11.0",
+  "click>=8.1.8",
+  "flask>=3.1.0",
+  "flask-sse>=1.0.0",
+  "huggingface-hub[cli]>=0.30.2",
+  "requests>=2.32.3",
+  "uvicorn~=0.29.0",
 ]
 
 [project.urls]

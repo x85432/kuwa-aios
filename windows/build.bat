@@ -10,9 +10,14 @@ cmd /s /c "%0 __start__ %* 2>&1 | src\bin\tee.exe logs\build.log"
 exit /b
 
 :main
-REM Initialize everything
+REM Initialize global configurations
+pushd "%~dp0"
 call src\variables.bat
-cd "%~dp0"
+call src\switch.bat
+popd
+
+echo PWD: %cd%
+
 
 REM Check if VCredist is installed
 
@@ -150,66 +155,41 @@ call php artisan config:cache
 call php artisan config:clear
 popd
 
-REM Install Windows-specified dependency
-echo Installing the Python packages for the Windows version of Kuwa.
+REM Sync locked Python dependencies
+echo Syncing Python dependencies
 pushd ".\src"
-call :install-requirements-txt
+uv pip sync --system requirements.txt.lock
 popd
 
-REM Install Kernel and library
+REM Install Kernel, Library and Executor
 echo Installing the Kernel of Kuwa.
 pushd "..\src\kernel"
-uv pip install --system --force-reinstall .
-call :install-requirements-txt
+uv pip install --system --force-reinstall --no-deps .
 popd
 echo Installing the internal library of Kuwa.
 pushd "..\src\library\client"
-uv pip install --system --force-reinstall .
+uv pip install --system --force-reinstall --no-deps .
 popd
 pushd "..\src\library\rag"
-uv pip install --system --force-reinstall .
+uv pip install --system --force-reinstall --no-deps .
 popd
-
-REM Install Executors
 echo Installing the Executors of Kuwa.
 pushd "..\src\executor"
-uv pip install --system --force-reinstall .
-call :install-requirements-txt
-pushd "docqa"
-call :install-requirements-txt
+uv pip install --system --force-reinstall --no-deps .
 popd
-pushd "uploader"
-call :install-requirements-txt
-popd
-pushd "speech_recognition"
-uv pip install --system https://www.piwheels.org/simple/docopt/docopt-0.6.2-py2.py3-none-any.whl#sha256=15fde8252aa9f2804171014d50d069ffbf42c7a50b7d74bcbb82bfd5700fcfc2
-call :install-requirements-txt
-popd
-pushd "image_generation"
-call :install-requirements-txt
-popd
-popd
+
 REM Install dependency of whisper
 call src\download_extract.bat %url_ffmpeg% packages\%ffmpeg_folder% packages\. ffmpeg.zip
 REM Install dependency of n8n
 echo Installing n8n
 call npm.cmd install -g "n8n@1.73.1"
 
-REM Install Toolchain and Tools
-echo Installing the Toolchain of Kuwa.
-pushd "..\src\toolchain"
-call :install-requirements-txt
-popd
-echo Installing the Tools of Kuwa.
-pushd "..\src\tools"
-call :install-requirements-txt
-popd
 REM Install dependency of Mermaid Tool
 call npm.cmd install -g "@mermaid-js/mermaid-cli"
 
-REM Make sure the windows edition package are still the correct version
+REM Re-align windows-specified package version
 pushd ".\src"
-call :install-requirements-txt
+uv pip install --system -r requirements.txt.lock
 popd
 
 REM Download Embedding Model

@@ -28,19 +28,24 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies=[
-  'requests ~= 2.32.3',
-  'selenium ~= 4.23.1',
-  'bs4 ~= 0.0.2',
-  'markitdown[pdf, docx, pptx, xlsx, xls] ~= 0.1.1',
+  "requests~=2.32.3",
+  "selenium~=4.23.1",
+  "bs4~=0.0.2",
+  "markitdown[docx,pdf,pptx,xls,xlsx]~=0.1.1",
   'pdfminer.six >= 20250327',
-  'trafilatura ~= 1.9.0',
-  'magika ~= 0.6.1',
-  'langchain ~= 0.2.12',
-  'langchain-community ~= 0.2.11',
-  'langchain-huggingface ~= 0.0.3',
-  'sentence-transformers ~= 3.0.1',
-  'faiss-cpu ~= 1.8.0.post1', # Since the count of documents is relatively small, CPU is enough.
+  "trafilatura~=1.9.0",
+  "magika~=0.6.1",
+  "langchain~=0.3.24",
+  "langchain-community~=0.3.23",
+  'langchain-huggingface ~= 0.1.2',
+  "sentence-transformers~=3.0.1",
+  "faiss-cpu~=1.11.0", # Since the count of documents is relatively small, CPU is enough.
   'rank_bm25',
+  "lxml-html-clean>=0.4.2",
+  "python-i18n[yaml]>=0.3.9",
+  "tqdm>=4.67.1",
+  "python-dotenv>=1.1.0",
+  "simsimd==3.7.7",
 ]
 
 [project.urls]
