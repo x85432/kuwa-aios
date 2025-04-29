@@ -367,7 +367,7 @@
                         </div>
                     </div>
 
-                    <!-- <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
                         id="knowledge">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -379,7 +379,7 @@
                                     placeholder="{{ __('store.bot.knowledge.label') }}">
                             </div>
                         </div>
-                    </div> --> 
+                    </div> 
                     <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
                         <div class="w-full">
                             <label
@@ -630,7 +630,7 @@
         }
     }
     updateDataListFromAPI("store/bots", "bots-list");
-    //updateDataListFromAPI("store/knowledge", "knowledge-list");
+    updateDataListFromAPI("store/knowledge", "knowledge-list");
 
     var editor = ace.edit($('#bot-modelfile-editor')[0], {
         mode: "ace/mode/dockerfile",
