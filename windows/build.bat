@@ -25,7 +25,7 @@ echo Press any key to continue building...
 pause
 
 :found_vcredist
-echo "Visual C++ Redistributable found.
+echo Visual C++ Redistributable found.
 
 REM Download and extract RunHiddenConsole if not exists
 call src\download_extract.bat %url_RunHiddenConsole% packages\%RunHiddenConsole_folder% packages\%RunHiddenConsole_folder% RunHiddenConsole.zip
