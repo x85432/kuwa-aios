@@ -12,6 +12,7 @@ KUWABOT description "This tool will print the system information for debugging."
 KUWABOT base ".tool/kuwa/pipe"
 PARAMETER pipe_program 'python'
 PARAMETER pipe_argv "sysinfo.py"
+START-PROMPTS system info
 
 --kuwahwm4k
 Content-Type: image/png

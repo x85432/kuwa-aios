@@ -68,7 +68,9 @@ def get_env_var():
     env = dict(os.environ)
     env["KUWA_API_KEY"] = "******"
     env = dict(sorted(env.items()))
+    result.append("```shell")
     result.extend([f'{k}={v}' for k,v in env.items()])
+    result.append("```")
 
     return result
 

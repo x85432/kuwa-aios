@@ -161,12 +161,17 @@ class PipeExecutor(LLMExecutor):
 
         cmd = [program] + argv
         env = os.environ.copy()
-        env["KUWA_BASE_URL"] = self.args.api_base_url
+        env["KUWA_BASE_URL"] = (
+            modelfile.parameters["_"]["kuwa_api_base_urls"][0]
+            if self.args.api_base_url is None
+            else self.args.api_base_url
+        )
         env["KUWA_KERNEL_BASE_URL"] = urljoin(
             self.kernel_url, f"{self.executor_iface_version}/"
         )
         env["KUWA_API_KEY"] = modelfile.parameters["_"]["user_token"]
         env["KUWA_VERSION"] = version("kuwa-executor")
+        env["KUWA_LANGUAGE"] = modelfile.parameters["_"]["lang"]
         logger.info(f"Cmd: {cmd}")
         logger.debug(f"Env: {env}")
         generator = self.run_cmd(cmd, env, sub_proc_input, encoding)
