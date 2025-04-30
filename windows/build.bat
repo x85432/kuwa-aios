@@ -139,20 +139,20 @@ REM Production update
 echo Initializing multi-chat
 SET HTTP_PROXY_REQUEST_FULLURI=0
 pushd "..\src\multi-chat"
-call php ..\..\windows\packages\composer.phar update
+call php ..\..\windows\packages\composer.phar install --no-dev --optimize-autoloader --no-interaction
 call php artisan key:generate --force
 call php artisan db:seed --class=InitSeeder --force
 call php artisan migrate --force
 rmdir /Q /S public\storage
 call php artisan storage:link
 call npm.cmd install
-call php ..\..\windows\packages\composer.phar dump-autoload --optimize
+call npm.cmd audit fix
+call npm.cmd ci --no-audit --no-progress
+call npm.cmd run build
+call php artisan optimize
 call php artisan route:cache
 call php artisan view:cache
-call php artisan optimize
-call npm.cmd run build
 call php artisan config:cache
-call php artisan config:clear
 popd
 
 REM Sync locked Python dependencies
