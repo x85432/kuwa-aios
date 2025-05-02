@@ -11,7 +11,6 @@ antlr4-python3-runtime==4.9.3  # via omegaconf
 anyio==4.9.0              # via gradio, httpx, openai, starlette, watchfiles
 apscheduler==3.11.0       # via kuwa-kernel (src/kernel/pyproject.toml)
 asteroid-filterbanks==0.4.0  # via pyannote-audio
-async-timeout==4.0.3      # via aiohttp, langchain, redis
 attrs==25.3.0             # via aiohttp, kittycad, outcome, trio
 babel==2.17.0             # via courlan
 beautifulsoup4==4.13.4    # via bs4, markdownify, markitdown
@@ -43,7 +42,6 @@ dnspython==2.7.0          # via pymongo
 docopt @ https://www.piwheels.org/simple/docopt/docopt-0.6.2-py2.py3-none-any.whl#sha256=15fde8252aa9f2804171014d50d069ffbf42c7a50b7d74bcbb82bfd5700fcfc2  # via pyannote-metrics, pyannote-pipeline, -r windows/src/version_patch/cpu/windows/src/requirements.in
 einops==0.8.1             # via pyannote-audio
 et-xmlfile==2.0.0         # via openpyxl
-exceptiongroup==1.2.2     # via anyio, trio, trio-websocket
 faiss-cpu==1.11.0         # via -r src/executor/docqa/requirements.in, -r src/toolchain/requirements.in, kuwa-rag (src/library/rag/pyproject.toml)
 fastapi==0.115.12         # via gradio, kuwa-executor (src/executor/pyproject.toml)
 ffmpy==0.5.0              # via gradio
@@ -226,7 +224,6 @@ threadpoolctl==3.6.0      # via scikit-learn
 tiktoken==0.9.0           # via openai-whisper, kuwa-executor (src/executor/pyproject.toml)
 tld==0.13                 # via courlan
 tokenizers==0.21.1        # via langchain-huggingface, transformers, whisper-s2t
-tomli==2.2.1              # via hatchling, setuptools-scm
 tomlkit==0.13.2           # via gradio
 torch @ https://download.pytorch.org/whl/cu121/torch-2.3.0%2Bcu121-cp310-cp310-win_amd64.whl#sha256=002027d18a9c054f08fe9cf7a729e041229e783e065a71349015dcccc9a7137e  # via accelerate, asteroid-filterbanks, julius, lightning, openai-whisper, optimum, pyannote-audio, pytorch-lightning, pytorch-metric-learning, sentence-transformers, speechbrain, torch-audiomentations, torch-pitch-shift, torchaudio, torchmetrics, torchvision, whisper-s2t, -r src/toolchain/requirements.in, -r windows/src/version_patch/cpu/windows/src/requirements.in, kuwa-executor (src/executor/pyproject.toml)
 torch-audiomentations==0.12.0  # via pyannote-audio
@@ -241,7 +238,7 @@ trio==0.24.0              # via selenium, trio-websocket, -r windows/src/version
 trio-websocket==0.12.2    # via selenium
 trove-classifiers==2025.4.28.22  # via hatchling
 typer==0.15.3             # via gradio, pyannote-database
-typing-extensions==4.13.2  # via alembic, anyio, asteroid-filterbanks, beautifulsoup4, fastapi, google-generativeai, gradio, gradio-client, huggingface-hub, langchain-core, lightning, lightning-utilities, llama-cpp-python, multidict, openai, pyannote-core, pydantic, pydantic-core, pydantic-extra-types, python-pptx, pytorch-lightning, rich, selenium, sqlalchemy, torch, typer, typing-inspect, typing-inspection, uvicorn
+typing-extensions==4.13.2  # via alembic, anyio, asteroid-filterbanks, beautifulsoup4, fastapi, google-generativeai, gradio, gradio-client, huggingface-hub, langchain-core, lightning, lightning-utilities, llama-cpp-python, openai, pyannote-core, pydantic, pydantic-core, pydantic-extra-types, python-pptx, pytorch-lightning, selenium, sqlalchemy, torch, typer, typing-inspect, typing-inspection
 typing-inspect==0.9.0     # via dataclasses-json
 typing-inspection==0.4.0  # via pydantic, pydantic-settings
 tzdata==2025.2            # via pandas, tzlocal
