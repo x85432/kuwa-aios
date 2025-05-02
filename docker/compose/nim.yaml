@@ -3,7 +3,7 @@ services:
     image: kuwaai/model-executor
     environment:
       EXECUTOR_TYPE: nim
-      EXECUTOR_ACCESS_CODE: .model.chat/nvidia/nim
+      EXECUTOR_ACCESS_CODE: .model:nim/
       EXECUTOR_NAME: NIM API
       EXECUTOR_IMAGE: nim.png # Refer to src/multi-chat/public/images
       EXECUTOR_ORDER: 401200
