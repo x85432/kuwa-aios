@@ -9,7 +9,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "ChatGPT (Multimodal)"
 KUWABOT description "This multimodal model understands and interacts with text and images."
-KUWABOT base ".model.chat/openai/chatgpt"
+KUWABOT base ".model:openai/gpt"
 PARAMETER llm_model gpt-4o-mini
 PARAMETER llm_enable_multimodal true
 

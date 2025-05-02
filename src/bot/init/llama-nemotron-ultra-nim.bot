@@ -11,7 +11,7 @@ Content-Language: en-us
 KUWABOT version 0.3.3
 KUWABOT name "Llama Nemotron Ultra 253B (NIM API)"
 KUWABOT description "Reasoning model developed by NVIDIA"
-KUWABOT base ".model.chat/nvidia/nim"
+KUWABOT base ".model:nim/"
 SYSTEM "detailed thinking on" # change "on" to "off" to disable reasoning
 PARAMETER llm_model "nvidia/llama-3.1-nemotron-ultra-253b-v1"
 PARAMETER llm_temperature 0.6
