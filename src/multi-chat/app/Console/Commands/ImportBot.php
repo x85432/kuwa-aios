@@ -50,9 +50,14 @@ class ImportBot extends Command
         $config = json_encode($config);
 
         $bot = Bots::where([['name', '=', $botfile['name']], ['visibility', '=', 0]])->first() ?? new Bots();
+        $type = match ($botfile['base']) {
+            '.tool/kuwa/weblet' => 'server',
+            '.tool/kuwa/agent' => 'agent',
+            default => 'prompt',
+        };
         $bot->fill([
             'name' => $botfile['name'],
-            'type' => 'prompt',
+            'type' => $type,
             'visibility' => $visibility,
             'description' => $botfile['description'],
             'model_id' => $model_id,
