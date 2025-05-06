@@ -204,9 +204,13 @@ class McpClientExecutor(LLMExecutor):
                 raise
             user_query = history[-1]["content"].strip()
             tools = await server.list_tools()
-            if user_query == "/list":
+            list_cmd = "/list"
+            if user_query.startswith(list_cmd):
+                user_query = user_query[len(list_cmd):].strip()
                 for tool in tools:
                     yield tool.format_for_llm() + "\n\n"
+                if user_query != "":
+                    yield user_query
                 return
 
             tool_call = self.parse_tool_call(user_query)
