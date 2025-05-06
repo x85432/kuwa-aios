@@ -15,7 +15,13 @@ from kuwa.client import KuwaClient
 
 logger = logging.getLogger(__name__)
 
-def parse_flow(modelfile: Modelfile, show_step_log: bool, default_bot=".bot/copycat"):
+
+def parse_flow(
+    modelfile: Modelfile,
+    show_step_log: bool,
+    append_history: bool,
+    default_bot=".bot/copycat",
+):
     if modelfile.input_bot is None:
         logger.info('No "INPUT-BOT" instruction found in the Botfile.')
     if modelfile.process_bot is None:
@@ -24,8 +30,16 @@ def parse_flow(modelfile: Modelfile, show_step_log: bool, default_bot=".bot/copy
         logger.info('No "OUTPUT-BOT" instruction found in the Botfile.')
 
     bot_list = [modelfile.input_bot, modelfile.process_bot, modelfile.output_bot]
-    prefix_list = [modelfile.input_prefix, modelfile.before_prompt, modelfile.output_prefix]
-    suffix_list = [modelfile.input_suffix, modelfile.after_prompt, modelfile.output_suffix]
+    prefix_list = [
+        modelfile.input_prefix,
+        modelfile.before_prompt,
+        modelfile.output_prefix,
+    ]
+    suffix_list = [
+        modelfile.input_suffix,
+        modelfile.after_prompt,
+        modelfile.output_suffix,
+    ]
 
     reversed_flow = []
     last_bot = True
@@ -38,6 +52,7 @@ def parse_flow(modelfile: Modelfile, show_step_log: bool, default_bot=".bot/copy
                 prompt_prefix=str(prefix or ""),
                 prompt_suffix=str(suffix or ""),
                 show_response=bool(show_step_log or last_bot),
+                append_history=append_history,
             )
         )
         last_bot = False
@@ -53,6 +68,8 @@ def parse_flow(modelfile: Modelfile, show_step_log: bool, default_bot=".bot/copy
             )
         )
     return flow
+
+
 class AgentState(Enum):
     IDLE = 0
     RUNNING = 1
@@ -64,6 +81,7 @@ class BotNode(pydantic.BaseModel):
     prompt_prefix: str
     prompt_suffix: str
     show_response: bool
+    append_history: bool
 
 
 class AgentRunner:
@@ -125,7 +143,21 @@ class AgentRunner:
             if node.show_response:
                 yield "\n"
 
-            memory = [{"role": "user", "content": response}]
+            response_record = {"role": "user", "content": response}
+            if node.append_history:
+                # Invert user and assistant
+                memory = [
+                    dict(
+                        i,
+                        role=dict(user="assistant", assistant="user").get(
+                            i["role"], i["role"]
+                        ),
+                    )
+                    for i in memory
+                ]
+                memory.append(response_record)
+            else:
+                memory = [response_record]
 
     async def abort(self):
         self.state = AgentState.ABORTING
@@ -173,11 +205,13 @@ class AgentExecutor(LLMExecutor):
             "_kuwa_api_base_urls", [self.args.api_base_url]
         )[0]
         show_step_log = modelfile.parameters["agent_"].get("show_step_log", False)
-        # next_full_history = modelfile.parameters["agent_"].get(
-        #     "next_full_history", False
-        # )
+        append_history = modelfile.parameters["agent_"].get("append_history", False)
 
-        flow = parse_flow(modelfile=modelfile, show_step_log=show_step_log)
+        flow = parse_flow(
+            modelfile=modelfile,
+            show_step_log=show_step_log,
+            append_history=append_history,
+        )
         if len(flow) == 0:
             yield i18n.t("agent.no_input_bot")
             return
