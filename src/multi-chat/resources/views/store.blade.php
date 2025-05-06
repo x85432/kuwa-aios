@@ -21,7 +21,7 @@
             <x-store.modal.bot-detail :result="$result" />
             @if (request()->user()->hasPerm(['tab_Manage', 'Store_create_community_bot', 'Store_create_group_bot', 'Store_create_private_bot']))
                 <div class="create-bot-btn mb-2 mt-8 mx-auto h-[50px] flex">
-                    <a href="https://github.com/kuwaai/user-repository" target="_blank"
+                    <a href="https://repository.kuwaai.org" target="_blank"
                         class="flex menu-btn flex items-center p-3 justify-center text-green-500 h-12 dark:hover:bg-gray-700 border border-green-500 border-1 rounded-l-lg hover:bg-gray-300 transition duration-300 overflow-hidden"><i
                             class="fas fa-globe"></i></a>
                     <button data-modal-target="create-bot-modal" data-modal-toggle="create-bot-modal"
