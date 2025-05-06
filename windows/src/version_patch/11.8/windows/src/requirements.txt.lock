@@ -128,7 +128,7 @@ numpy==1.26.4             # via accelerate, asteroid-filterbanks, contourpy, ctr
 nvidia-ml-py==12.570.86   # via whisper-s2t
 ollama==0.4.8             # via kuwa-executor (src/executor/pyproject.toml)
 omegaconf==2.3.0          # via pyannote-audio
-onnxruntime==1.21.1       # via magika
+onnxruntime==1.20.1       # via magika, -r windows/src/version_patch/11.8/windows/src/requirements.in
 openai==1.76.0            # via kuwa-executor (src/executor/pyproject.toml)
 openai-whisper==20240930  # via whisper-s2t
 opencc==1.1.9             # via -r src/tools/requirements.in

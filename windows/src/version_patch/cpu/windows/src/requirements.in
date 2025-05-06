@@ -5,3 +5,4 @@ https://www.piwheels.org/simple/compressed-rtf/compressed_rtf-1.0.6-py3-none-any
 https://download.pytorch.org/whl/cu121/torch-2.3.0%2Bcu121-cp310-cp310-win_amd64.whl#sha256=002027d18a9c054f08fe9cf7a729e041229e783e065a71349015dcccc9a7137e
 trio==0.24.0
 https://www.piwheels.org/simple/docopt/docopt-0.6.2-py2.py3-none-any.whl#sha256=15fde8252aa9f2804171014d50d069ffbf42c7a50b7d74bcbb82bfd5700fcfc2
+onnxruntime==1.20.1
