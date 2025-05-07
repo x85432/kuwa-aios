@@ -11,6 +11,11 @@ from typing import List
 logger = logging.getLogger(__name__)
 
 
+class StopAsyncGenerator(Exception):
+    def __init__(self, value):
+        self.value = value
+
+
 class KuwaClient:
     def __init__(
         self,
@@ -150,6 +155,33 @@ class KuwaClient:
         streaming=True,
         botfile=None,
     ):
+        generator = self.chat_complete_with_exit_code(
+            auth_token=auth_token,
+            messages=messages,
+            timeout=timeout,
+            streaming=streaming,
+            botfile=botfile,
+        )
+
+        try:
+            async for chunk in generator:
+                yield chunk
+        except StopAsyncGenerator:
+            pass  # Omit the exit code
+
+    async def chat_complete_with_exit_code(
+        self,
+        auth_token: str = None,
+        messages: list = [],
+        timeout=120,
+        streaming=True,
+        botfile=None,
+    ):
+        """
+        Chat completion API with the exit code of bot.
+        Since asynchronous generators does not allow "return" statement,
+        the exit code will be throw as the value of StopAsyncGenerator exception.
+        """
         url = urljoin(self.base_url, "/v1.0/chat/completions")
         auth_token = self.auth_token if self.auth_token is not None else auth_token
         headers = {
@@ -169,23 +201,30 @@ class KuwaClient:
             response.raise_for_status()
 
             job_id = response.headers.get("x-request-id")
+            exit_code = 0
             logger.debug(f"Job ID: {job_id}")
             self.running_jobs.append(job_id)
 
             async for line in response.aiter_lines():
                 logger.debug(line)
                 if not streaming:
-                    yield json.loads(line)["choices"][0]["message"]["content"]
+                    result = json.loads(line)
+                    yield result["choices"][0]["message"]["content"]
+                    exit_code = result["choices"][0]["exit_code"]
                     continue
 
                 if line == "data: [DONE]":
                     break
                 elif line.startswith("data: "):
-                    chunk = json.loads(line[len("data: ") :])["choices"][0]["delta"]
-                    if not chunk:
+                    chunk = json.loads(line[len("data: ") :])["choices"][0]
+                    chunk_exit_code = chunk["exit_code"]
+                    if chunk_exit_code is not None:
+                        exit_code = chunk_exit_code
+                    if not chunk["delta"]:
                         continue
-                    yield chunk["content"]
+                    yield chunk["delta"]["content"]
             self.running_jobs.remove(job_id)
+            raise StopAsyncGenerator(exit_code)
 
     async def abort(self, job_ids: List[str] | None = None, auth_token: str = None):
         if job_ids is None:

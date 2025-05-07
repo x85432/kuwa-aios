@@ -513,13 +513,17 @@ class ProfileController extends Controller
     private function nonstreaming_response(&$user, &$history, &$llm){
 
         $bot_output = "";
-        $backend_callback = function ($event, $message) use (&$history, &$llm, &$bot_output){
+        $executor_exit_code = null;
+        $backend_callback = function ($event, $chunk) use (&$history, &$llm, &$bot_output, &$executor_exit_code){
             
             if ($event == 'Error') {
-                throw new \Exception($message);
+                throw new \Exception($chunk);
             }
             if ($event == 'New') {
-                $bot_output .= $message;
+                $bot_output .= $chunk->msg;
+                if(isset($chunk->exit_code)){
+                    $executor_exit_code = $chunk->exit_code;
+                }
             }
             $history->fill(['output' => $bot_output]);
             $history->save();
@@ -539,7 +543,8 @@ class ProfileController extends Controller
                         "content" => $bot_output,
                     ],
                     "logprobs" => null,
-                    "finish_reason" => "stop"
+                    "finish_reason" => "stop",
+                    "exit_code" => $executor_exit_code,
                 ]
             ],
             'created' => time(),
@@ -564,9 +569,10 @@ class ProfileController extends Controller
         
         $response->setCallback(function() use (&$user, &$history, &$llm) {
             $bot_output = "";
-            $backend_callback = function ($event, $message) use (&$history, &$llm, &$bot_output){
+            $executor_exit_code = null;
+            $backend_callback = function ($event, $chunk) use (&$history, &$llm, &$bot_output, &$executor_exit_code){
                 if ($event == 'Error') {
-                    throw new \Exception($message);
+                    throw new \Exception($chunk);
                 }
 
                 $resp = [
@@ -577,7 +583,8 @@ class ProfileController extends Controller
                                 'role' => "assistant",
                             ],
                             'logprobs' => null,
-                            'finish_reason' => null
+                            'finish_reason' => null,
+                            'exit_code' => null,
                         ],
                     ],
                     'created' => time(),
@@ -586,22 +593,32 @@ class ProfileController extends Controller
                     'object' => 'chat.completion.chunk',
                 ];
                 
+                $sendNewChunk = false;
                 if ($event == 'Ended') {
-                    $message = "";
                     $resp['choices'][0]['delta'] = (object) null;
                     $resp['choices'][0]['finish_reason'] = 'stop';
+                    $resp['choices'][0]['exit_code'] = $executor_exit_code;
+                    $sendNewChunk = true;
                 } elseif ($event == 'New') {
-                    $resp['choices'][0]['delta']['content'] = $message;
+                    if (!empty($chunk->msg)){
+                        $resp['choices'][0]['delta']['content'] = $chunk->msg;
+                        $bot_output .= $chunk->msg;
+                        $sendNewChunk = true;
+                    }
+                    if(isset($chunk->exit_code)){
+                        $executor_exit_code = $chunk->exit_code;
+                    }
                 }
-                echo 'data: ' . json_encode($resp) . "\n\n";
-                
+                if($sendNewChunk){
+                    echo 'data: ' . json_encode($resp) . "\n\n";
+                }
+
                 if ($event == 'Ended') {
                     echo "data: [DONE]\n\n";
                 }
                 ob_flush();
                 flush();
 
-                $bot_output .= $message;
                 $history->fill(['output' => $bot_output]);
                 $history->save();
             };
@@ -693,17 +710,17 @@ class ProfileController extends Controller
         $response->headers->set('Connection', 'close');
         
         $response->setCallback(function() use (&$request) {
-            $backend_callback = function ($event, $message){
+            $backend_callback = function ($event, $chunk){
                 if ($event == 'Ended') {
                     echo "event: close\n\n";
                     ob_flush();
                     flush();
                 } elseif ($event == 'New') {
-                    echo 'data: ' . $message . "\n";
+                    echo 'data: ' . $chunk->msg . "\n";
                     ob_flush();
                     flush();
                 } elseif ($event == 'Error') {
-                    throw new \Exception($message);
+                    throw new \Exception($chunk);
                 }
             };
             $this->read_backend_stream(
@@ -740,11 +757,11 @@ class ProfileController extends Controller
             $channel = 'api_' . $history_id;
             // The subscribe loop will block until the channel is unsubscribed or the client is disconnected.
             $client->subscribe($channel, function ($message, $channel) use (&$client, &$callback) {
-                [$event, $msg] = explode(' ', $message, 2);
+                [$event, $chunk] = explode(' ', $message, 2);
                 if ($event == 'New') {
-                    $msg = json_decode($msg, false, JSON_INVALID_UTF8_IGNORE)->msg;
+                    $chunk = json_decode($chunk, false, JSON_INVALID_UTF8_IGNORE);
                 }
-                $callback($event, $msg);
+                $callback($event, $chunk);
                 if ($event == 'Ended') {
                     // Terminate the subscribe loop
                     $client->disconnect();

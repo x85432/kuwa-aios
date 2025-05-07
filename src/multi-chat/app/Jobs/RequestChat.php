@@ -155,6 +155,7 @@ class RequestChat implements ShouldQueue
         Log::channel('analyze')->Info('In:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input) . '|' . $this->lang . '|' . $this->modelfile);
         $start = microtime(true);
         $chatroomProcessor = new ChatroomProcessor();
+        $executorExitCode = null;
         try {
             $schedulingResult = $this->tryScheduleJob();
             if ($schedulingResult == JobScheduleResult::BUSY) {
@@ -213,6 +214,9 @@ class RequestChat implements ShouldQueue
                             case 'log':
                                 $chunk .= "\n[" . ($resp_chunk["log"]["level"] ?? '') . "] " . ($resp_chunk["log"]["text"] ?? '');
                                 break;
+                            case 'exit_code':
+                                $executorExitCode = $resp_chunk["exit_code"];
+                                break;
                             default:
                                 break;
                         }
@@ -244,7 +248,7 @@ class RequestChat implements ShouldQueue
             if ($this->app_type == AppType::CHATROOM) {
                 $finalOutput = $fullOutput;
             }
-            $this->endStreamWithMessage($finalOutput);
+            $this->endStreamWithMessage(msg: $finalOutput, exitCode: $executorExitCode);
         }
     }
     public function failed(\Throwable $exception)
@@ -254,24 +258,26 @@ class RequestChat implements ShouldQueue
         $this->endStreamWithMessage(WarningMessages::DEFAULT_ERROR);
     }
 
-    private function endStreamWithMessage($msg)
+    private function endStreamWithMessage($msg, $exitCode = null)
     {
-        if ($msg != null && $msg != "") {
+        if (!empty($msg)) {
             $history = Histories::find($this->history_id);
             if ($history != null) {
                 $history->fill(['msg' => $msg]);
                 $history->save();
             }
-            $msgTimeInSeconds = Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->timestamp;
-            $currentTimeInSeconds = Carbon::now()->timestamp;
-            $ExecutionTime = $currentTimeInSeconds - $msgTimeInSeconds;
+        }
+        $msgTimeInSeconds = Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->timestamp;
+        $currentTimeInSeconds = Carbon::now()->timestamp;
+        $ExecutionTime = $currentTimeInSeconds - $msgTimeInSeconds;
 
+        if (!empty($msg) || !is_null($exitCode)) {
             $sseGuardingTimeInSeconds = 5;
-            if ($ExecutionTime < $sseGuardingTimeInSeconds) {
+            if ($ExecutionTime < $sseGuardingTimeInSeconds && $this->app_type == AppType::CHATROOM) {
                 sleep($sseGuardingTimeInSeconds - $ExecutionTime);
             }
 
-            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $msg]));
+            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $msg, 'exit_code' => $exitCode]));
         }
         if ($this->exit_when_finish) {
             Redis::publish($this->channel, 'Ended Ended');
