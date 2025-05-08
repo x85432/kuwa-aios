@@ -11,7 +11,7 @@ Content-Language: en-us
 KUWABOT version 0.3.3
 KUWABOT name "Llama 4 Scout (Groq API)"
 KUWABOT description "Multimodal model developed by Meta."
-KUWABOT base ".model.chat/groq/groq"
+KUWABOT base ".model:groq/"
 PARAMETER llm_model "meta-llama/llama-4-scout-17b-16e-instruct"
 PARAMETER llm_enable_multimodal True
 
