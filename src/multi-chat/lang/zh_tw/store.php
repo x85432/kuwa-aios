@@ -74,4 +74,6 @@ return [
     'bot.type.desc.agent' => '代理式 Bot: 串接多步驟應用流程',
     'bot.server_url' => '外部應用位置',
     'bot.server_url.label' => '外部應用URL',
+    'bot.script' => '工作流程腳本',
+    'bot.script.label' => '自訂工作流程',
 ];

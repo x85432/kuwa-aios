@@ -61,6 +61,7 @@ return [
     'bot.type' => 'Type',
     'bot.type.desc.prompt' => 'Bot à invite : créez un bot en fournissant une invite',
     'bot.type.desc.server' => 'Bot serveur : connectez une application externe existante',
+    'bot.type.desc.agent' => 'Bot agent : enchaîne plusieurs étapes de processus applicatif',
     'bot.server_url' => 'URL de l\'application externe',
     'bot.server_url.label' => 'URL de l\'application externe',
     'bot.output_bot' => 'Bot de sortie',
@@ -69,5 +70,6 @@ return [
     'bot.input_bot.label' => 'Sélectionnez le Bot d’entrée, chargé de traiter les entrées utilisateur',
     'bot.process_bot' => 'Robot de traitement/Modèle de base',
     'bot.process_bot.label' => 'Choisissez le modèle de base',
-    'bot.type.desc.agent' => 'Bot agent : enchaîne plusieurs étapes de processus applicatif',
+    'bot.script' => 'Script de workflow',
+    'bot.script.label' => 'Personnaliser le workflow',
 ];

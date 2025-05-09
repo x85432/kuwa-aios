@@ -53,7 +53,8 @@ class BotController extends Controller
                 'FROM', 'PROCESS-BOT', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE',
                 'BEFORE-PROMPT', 'AFTER-PROMPT', 'PROMPTS', 'AUTO-PROMPTS', 'START-PROMPTS', 'WELCOME', 'NEXT', 'BEFORE-RESPONSE', 'AFTER-RESPONSE',
                 'INPUT-BOT', 'INPUT-PREFIX', 'INPUT-SUFFIX',
-                'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX'
+                'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX',
+                'SCRIPT'
             ];
 
             // Check if the line starts with a command keyword

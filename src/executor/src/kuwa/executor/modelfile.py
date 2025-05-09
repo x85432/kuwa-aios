@@ -4,6 +4,7 @@ import re
 import json
 import logging
 from dataclasses import dataclass, field
+from collections import Counter
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,75 @@ class ParameterDict(dict):
         return prefix_dict
 
 
+class ScriptSyntaxError(BaseException):
+    message = ""
+
+    def __init__(self, message):
+        self.message = message
+
+
+class Script:
+    VERSION_MAGIC = "000"
+    INPUT_BOT_SYMBOL = "I"
+    PROCESS_BOT_SYMBOL = "P"
+    OUTPUT_BOT_SYMBOL = "O"
+    IDENTITY_BOT_SYMBOL = ";"
+    CONDITIONAL_FORWARD_JUMP_SYMBOL = "["
+    CONDITIONAL_BACKWARD_JUMP_SYMBOL = "]"
+    VALID_SYMBOLS = {
+        INPUT_BOT_SYMBOL,
+        PROCESS_BOT_SYMBOL,
+        OUTPUT_BOT_SYMBOL,
+        IDENTITY_BOT_SYMBOL,
+        CONDITIONAL_FORWARD_JUMP_SYMBOL,
+        CONDITIONAL_BACKWARD_JUMP_SYMBOL,
+    }
+    DEFAULT_CONTENT = INPUT_BOT_SYMBOL + PROCESS_BOT_SYMBOL + OUTPUT_BOT_SYMBOL
+    DEFAULT = f"000{DEFAULT_CONTENT}"
+
+    @staticmethod
+    def validate_syntax(script: str) -> bool:
+        """
+        Validate the syntax of the given script.
+        """
+        script = script.strip()
+        try:
+            if not isinstance(script, str):
+                raise ScriptSyntaxError("Type of script is not string.")
+
+            version_magic = script[: len(Script.VERSION_MAGIC)]
+            if version_magic != Script.VERSION_MAGIC:
+                raise ScriptSyntaxError(
+                    f"Script version mismatch. Except {Script.VERSION_MAGIC}, got {version_magic}"
+                )
+
+            script = script[len(Script.VERSION_MAGIC) :]
+            if len(set(script).difference(Script.VALID_SYMBOLS)) != 0:
+                raise ScriptSyntaxError(
+                    f"Got unexpected symbol in script. Valid symbols are: {Script.VALID_SYMBOLS}"
+                )
+
+            count = Counter(script)
+            if count[Script.CONDITIONAL_FORWARD_JUMP_SYMBOL] != count[Script.CONDITIONAL_BACKWARD_JUMP_SYMBOL]:
+                raise ScriptSyntaxError("Unmatched parentheses")
+
+            return True
+        except ScriptSyntaxError as e:
+            logger.debug(f"Script syntax error: {e.message}")
+            return False
+        except Exception:
+            logger.exception("Unknown error occur when parsing script.")
+            return False
+
+    @staticmethod
+    def get_content(script: str):
+        script = script.strip()
+        if not Script.validate_syntax(script):
+            logger.error("Error parsing script.")
+            return None
+        return script[len(Script.VERSION_MAGIC) :]
+
+
 @dataclass
 class Modelfile:
     override_system_prompt: str = None
@@ -85,6 +155,7 @@ class Modelfile:
     output_bot: str = None
     output_prefix: str = ""
     output_suffix: str = ""
+    script: str = Script.DEFAULT_CONTENT
     parameters: ParameterDict = field(default_factory=ParameterDict)
 
     @staticmethod
@@ -102,6 +173,7 @@ class Modelfile:
             "output-bot",
             "output-prefix",
             "output-suffix",
+            "script",
         )
         if name in single_arg_cmd:
             args = extract_text_from_quotes(args)
@@ -143,9 +215,16 @@ class Modelfile:
                 modelfile.input_bot = args
             case "output-bot":
                 modelfile.output_bot = args
-
             case "from" | "process-bot":
                 modelfile.process_bot = args
+
+            case "script":
+                script_content = Script.get_content(args)
+                modelfile.script = (
+                    script_content
+                    if script_content is not None
+                    else Script.DEFAULT_CONTENT
+                )
 
             case _:
                 raise ValueError(f'Unknown command "{name}"')

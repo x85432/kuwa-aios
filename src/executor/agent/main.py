@@ -11,64 +11,11 @@ from enum import Enum
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from kuwa.executor import LLMExecutor, Modelfile
+from kuwa.executor.modelfile import Script
 from kuwa.client import KuwaClient
+from kuwa.client.base import StopAsyncGenerator
 
 logger = logging.getLogger(__name__)
-
-
-def parse_flow(
-    modelfile: Modelfile,
-    show_step_log: bool,
-    append_history: bool,
-    default_bot=".bot/copycat",
-):
-    if modelfile.input_bot is None:
-        logger.info('No "INPUT-BOT" instruction found in the Botfile.')
-    if modelfile.process_bot is None:
-        logger.info('No "PROCESS-BOT" or "FROM" instruction found in the Botfile.')
-    if modelfile.output_bot is None:
-        logger.info('No "OUTPUT-BOT" instruction found in the Botfile.')
-
-    bot_list = [modelfile.input_bot, modelfile.process_bot, modelfile.output_bot]
-    prefix_list = [
-        modelfile.input_prefix,
-        modelfile.before_prompt,
-        modelfile.output_prefix,
-    ]
-    suffix_list = [
-        modelfile.input_suffix,
-        modelfile.after_prompt,
-        modelfile.output_suffix,
-    ]
-
-    reversed_flow = []
-    last_bot = True
-    for bot, prefix, suffix in list(zip(bot_list, prefix_list, suffix_list))[::-1]:
-        if bot is None:
-            continue
-        reversed_flow.append(
-            BotNode(
-                bot_name=str(bot),
-                prompt_prefix=str(prefix or ""),
-                prompt_suffix=str(suffix or ""),
-                show_response=bool(show_step_log or last_bot),
-                append_history=append_history,
-            )
-        )
-        last_bot = False
-
-    flow = list(reversed(reversed_flow))
-    if len(flow) == 0:
-        flow.append(
-            BotNode(
-                bot_name=str(default_bot),
-                prompt_prefix="",
-                prompt_suffix="",
-                show_response=True,
-            )
-        )
-    return flow
-
 
 class AgentState(Enum):
     IDLE = 0
@@ -80,9 +27,95 @@ class BotNode(pydantic.BaseModel):
     bot_name: str
     prompt_prefix: str
     prompt_suffix: str
-    show_response: bool
     append_history: bool
 
+class IdentityBotNode(pydantic.BaseModel):
+    pass
+
+class FlowControlNode(pydantic.BaseModel):
+    next_index_on_zero: int
+    next_index_on_nonzero: int
+
+def parse_flow(
+    modelfile: Modelfile,
+    append_history: bool,
+    default_bot=".bot/copycat",
+):
+    if modelfile.input_bot is None:
+        logger.info('No "INPUT-BOT" instruction found in the Botfile.')
+    if modelfile.process_bot is None:
+        logger.info('No "PROCESS-BOT" or "FROM" instruction found in the Botfile.')
+    if modelfile.output_bot is None:
+        logger.info('No "OUTPUT-BOT" instruction found in the Botfile.')
+
+    bot_list = {
+        Script.INPUT_BOT_SYMBOL: modelfile.input_bot,
+        Script.PROCESS_BOT_SYMBOL: modelfile.process_bot,
+        Script.OUTPUT_BOT_SYMBOL: modelfile.output_bot
+    }
+    prefix_list = {
+        Script.INPUT_BOT_SYMBOL: modelfile.input_prefix,
+        Script.PROCESS_BOT_SYMBOL: modelfile.before_prompt,
+        Script.OUTPUT_BOT_SYMBOL: modelfile.output_prefix,
+    }
+    suffix_list = {
+        Script.INPUT_BOT_SYMBOL: modelfile.input_suffix,
+        Script.PROCESS_BOT_SYMBOL: modelfile.after_prompt,
+        Script.OUTPUT_BOT_SYMBOL: modelfile.output_suffix,
+    }
+    script = modelfile.script
+    
+    # Match the parentheses
+    matched_parentheses_index = {}
+    forward_jumps = []
+    for index, command_symbol in enumerate(script):
+        if command_symbol == Script.CONDITIONAL_FORWARD_JUMP_SYMBOL:
+            forward_jumps.append(index)
+        if command_symbol == Script.CONDITIONAL_BACKWARD_JUMP_SYMBOL:
+            matched_forward_jump = forward_jumps.pop()
+            if matched_forward_jump == index+1:
+                raise RuntimeError("Infinity loop detected.")
+            matched_parentheses_index[index] = matched_forward_jump
+            matched_parentheses_index[matched_forward_jump] = index
+    
+    flow = []
+    for index, command_symbol in enumerate(script):
+        if command_symbol in (Script.INPUT_BOT_SYMBOL, Script.PROCESS_BOT_SYMBOL, Script.OUTPUT_BOT_SYMBOL):
+            if bot_list[command_symbol] is None:
+                continue
+            flow.append(
+                BotNode(
+                    bot_name=str(bot_list[command_symbol]),
+                    prompt_prefix=str(prefix_list[command_symbol] or ""),
+                    prompt_suffix=str(suffix_list[command_symbol] or ""),
+                    append_history=append_history,
+                )
+            )
+        if command_symbol == Script.IDENTITY_BOT_SYMBOL:
+            flow.append(IdentityBotNode)
+        
+        if command_symbol == Script.CONDITIONAL_FORWARD_JUMP_SYMBOL:
+            flow.append(FlowControlNode(
+                next_index_on_zero=matched_parentheses_index[index]+1,
+                next_index_on_nonzero=index+1,
+            ))
+            
+        if command_symbol == Script.CONDITIONAL_BACKWARD_JUMP_SYMBOL:
+            flow.append(FlowControlNode(
+                next_index_on_zero=index+1,
+                next_index_on_nonzero=matched_parentheses_index[index]+1,
+            ))
+
+    if len(flow) == 0:
+        flow.append(
+            BotNode(
+                bot_name=str(default_bot),
+                prompt_prefix="",
+                prompt_suffix="",
+            )
+        )
+    logger.debug(f"Parsed flow: {flow}")
+    return flow
 
 class AgentRunner:
     api_base_url: str = ""
@@ -105,13 +138,16 @@ class AgentRunner:
         )
 
         try:
-            generator = client.chat_complete(messages=history)
+            generator = client.chat_complete_with_exit_code(messages=history)
             async for chunk in generator:
                 if self.state == AgentState.ABORTING:
                     await client.abort()
                     self.state = AgentState.IDLE
                     return
                 yield chunk
+        except StopAsyncGenerator as e:
+            logger.debug(f"Exit code: {e.value}")
+            raise
         except HTTPStatusError as e:
             if e.response.status_code == 404:
                 yield i18n.t("agent.bot_not_found") + bot_name
@@ -119,12 +155,40 @@ class AgentRunner:
             else:
                 raise
 
-    async def run_flow(self, history: List[Dict], flow: List[BotNode]):
+    async def run_flow(
+        self, history: List[Dict], flow: List[BotNode], show_step_log: bool = False, max_steps = 10
+    ):
         self.state = AgentState.RUNNING
 
         memory = history.copy()
+        response = ""
+        exit_code = 0
+        index = 0
+        step_count = 0
+        while index < len(flow):
+            node = flow[index]
+            index += 1
+            if isinstance(node, IdentityBotNode):
+                exit_code = 0
+                continue
+            if isinstance(node, FlowControlNode):
+                if exit_code == 0:
+                    index = node.next_index_on_zero
+                else:
+                    index = node.next_index_on_nonzero
+                continue
 
-        for node in flow:
+            # Normal BotNode
+            assert(isinstance(node, BotNode))
+
+            step_count += 1
+            if step_count > max_steps:
+                yield "Max step limit exceeded. Abort the workflow."
+                break
+
+            if show_step_log:
+                yield f"---[Step {step_count}]---\n\n"
+
             prompt = node.prompt_prefix + memory[-1]["content"] + node.prompt_suffix
             memory[-1]["content"] = prompt
             generator = self._invoke_bot(
@@ -132,16 +196,16 @@ class AgentRunner:
                 history=memory,
             )
             response = ""
-            async for chunk in generator:
-                response += chunk
-                if node.show_response:
-                    yield chunk
-
+            try:
+                async for chunk in generator:
+                    response += chunk
+                    if show_step_log:
+                        yield chunk
+            except StopAsyncGenerator as e:
+                exit_code = e.value
+            
             if self.state != AgentState.RUNNING:
                 return
-
-            if node.show_response:
-                yield "\n"
 
             response_record = {"role": "user", "content": response}
             if node.append_history:
@@ -158,6 +222,11 @@ class AgentRunner:
                 memory.append(response_record)
             else:
                 memory = [response_record]
+            
+            if show_step_log:
+                yield "\n"
+
+        yield response
 
     async def abort(self):
         self.state = AgentState.ABORTING
@@ -209,7 +278,6 @@ class AgentExecutor(LLMExecutor):
 
         flow = parse_flow(
             modelfile=modelfile,
-            show_step_log=show_step_log,
             append_history=append_history,
         )
         if len(flow) == 0:
@@ -220,8 +288,11 @@ class AgentExecutor(LLMExecutor):
             api_base_url=api_base_url, kernel_url=self.kernel_url, api_key=api_key
         )
         try:
-            generator = self.runner.run_flow(history=history, flow=flow)
-
+            generator = self.runner.run_flow(
+                history=history,
+                flow=flow,
+                show_step_log=show_step_log,
+            )
             async for chunk in generator:
                 yield chunk
         finally:

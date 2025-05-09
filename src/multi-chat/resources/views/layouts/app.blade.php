@@ -114,7 +114,8 @@
                     'FROM', 'PROCESS-BOT', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM', 'PARAMETER', 'MESSAGE',
                     'BEFORE-PROMPT', 'AFTER-PROMPT', 'KUWABOT', 'KUWAPARAM', 'WELCOME', 'PROMPTS', 'WELCOME', 'AUTO-PROMPTS', 'START-PROMPTS',
                     'INPUT-BOT', 'INPUT-PREFIX', 'INPUT-SUFFIX',
-                    'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX'
+                    'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX',
+                    'SCRIPT'
                 ];
 
                 // Check if the line starts with a command keyword
@@ -200,7 +201,8 @@
                 'FROM', 'PROCESS-BOT', 'ADAPTER', 'LICENSE', 'TEMPLATE', 'SYSTEM',
                 'BEFORE-PROMPT', 'AFTER-PROMPT',
                 'INPUT-BOT', 'INPUT-PREFIX', 'INPUT-SUFFIX',
-                'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX'
+                'OUTPUT-BOT', 'OUTPUT-PREFIX', 'OUTPUT-SUFFIX',
+                'SCRIPT'
             ];
 
             return array.map(item => {

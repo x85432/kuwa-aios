@@ -311,27 +311,28 @@ class McpClientExecutor(LLMExecutor):
             if type(tool_call.get("arguments")) is str:
                 tool_call["arguments"] = json.loads(tool_call["arguments"])
         except Exception:
-            """
-            Parses a command string like 'get_weather --location="Paris, France"'
-            into a dictionary.
-            """
+            pass
+            # """
+            # Parses a command string like 'get_weather --location="Paris, France"'
+            # into a dictionary.
+            # """
 
-            match = re.match(r"(\w+)(.*)", query)
+            # match = re.match(r"(\w+)(.*)", query)
 
-            if not match:
-                return None
+            # if not match:
+            #     return None
 
-            tool = match.group(1)
-            arguments_string = match.group(2).strip()
+            # tool = match.group(1)
+            # arguments_string = match.group(2).strip()
 
-            # Parse arguments.  We'll assume arguments are in the format --key="value"
-            arguments = {}
-            for arg_match in re.findall(r"--(\w+)=\"([^\"]+)\"", arguments_string):
-                key = arg_match[0]
-                value = arg_match[1]
-                arguments[key] = value
+            # # Parse arguments.  We'll assume arguments are in the format --key="value"
+            # arguments = {}
+            # for arg_match in re.findall(r"--(\w+)=\"([^\"]+)\"", arguments_string):
+            #     key = arg_match[0]
+            #     value = arg_match[1]
+            #     arguments[key] = value
 
-            tool_call = {"tool": tool, "arguments": arguments}
+            # tool_call = {"tool": tool, "arguments": arguments}
         finally:
             return tool_call
 

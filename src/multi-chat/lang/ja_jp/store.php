@@ -61,6 +61,7 @@ return [
     'bot.type' => 'タイプ',
     'bot.type.desc.prompt' => 'プロンプトBot：プロンプトを提供してBotを作成します',
     'bot.type.desc.server' => 'サーバーBot：既存の外部アプリケーションと連携します',
+    'bot.type.desc.agent' => 'エージェント型Bot：複数ステップのアプリケーションワークフローを接続',
     'bot.server_url' => '外部アプリケーションのURL',
     'bot.server_url.label' => '外部アプリケーションURL',
     'bot.output_bot' => '出力Bot',
@@ -69,5 +70,6 @@ return [
     'bot.input_bot.label' => 'ユーザー入力を処理する入力Botを選択してください',
     'bot.process_bot' => '処理Bot/基盤モデル',
     'bot.process_bot.label' => '基盤モデルを選択してください',
-    'bot.type.desc.agent' => 'エージェント型Bot：複数ステップのアプリケーションワークフローを接続',
+    'bot.script' => 'ワークフロースクリプト',
+    'bot.script.label' => 'ワークフローをカスタマイズします',
 ];

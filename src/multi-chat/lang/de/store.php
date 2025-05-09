@@ -61,6 +61,7 @@ return [
     'bot.type' => 'Typ',
     'bot.type.desc.prompt' => 'Prompt Bot: Erstellt Bots durch Bereitstellung von Prompts',
     'bot.type.desc.server' => 'Server Bot: Verbindet mit bestehenden externen Anwendungen',
+    'bot.type.desc.agent' => 'Agenten-Bot: Verkettet mehrstufige Anwendungsprozesse',
     'bot.server_url' => 'Externe App-URL',
     'bot.server_url.label' => 'Externe App-URL',
     'bot.output_bot' => 'Ausgabe-Bot',
@@ -69,5 +70,6 @@ return [
     'bot.input_bot.label' => 'Wähle den Eingabe-Bot zur Verarbeitung der Benutzereingabe',
     'bot.process_bot' => 'Verarbeitungsroboter/Basismodell',
     'bot.process_bot.label' => 'Wähle das Basismodell',
-    'bot.type.desc.agent' => 'Agenten-Bot: Verkettet mehrstufige Anwendungsprozesse',
+    'bot.script' => 'Workflow-Skript',
+    'bot.script.label' => 'Workflow anpassen',
 ];
