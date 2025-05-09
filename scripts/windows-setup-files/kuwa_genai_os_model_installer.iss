@@ -84,10 +84,6 @@ Name: "{userdesktop}\Construct RAG"; Filename: "{app}\windows\construct_rag.bat"
 [Code]
 var
   DownloadPage: TDownloadWizardPage;
-  AccountPage: TInputQueryWizardPage;
-  AutoLoginCheckBox: TNewCheckBox;
-  Username, Password, ConfirmPass: String;
-  AutoLoginValue: String;
 
 function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
 begin
@@ -96,101 +92,23 @@ begin
   Result := True;
 end;
 
-procedure InitializeWizard;
-begin
-  AccountPage := CreateInputQueryPage(wpUserInfo,
-    'Create Root Account',
-    'Please enter account details',
-    'Enter an email address and password to create the root account.');
-
-  AccountPage.Add('Email:', False); 
-  AccountPage.Add('Password:', True); 
-  AccountPage.Add('Confirm Password:', True); 
-
-  AutoLoginCheckBox := TNewCheckBox.Create(WizardForm);
-  AutoLoginCheckBox.Parent := AccountPage.Surface;
-  AutoLoginCheckBox.Top := AccountPage.Edits[2].Top + AccountPage.Edits[2].Height + 12;
-  AutoLoginCheckBox.Left := AccountPage.Edits[2].Left;
-  AutoLoginCheckBox.Width := 300;
-  AutoLoginCheckBox.Caption := 'Single User Mode';
-  AutoLoginCheckBox.Checked := False; 
-  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
-  DownloadPage.ShowBaseNameInsteadOfUrl := True;
-end;
-procedure CurStepChanged(CurStep: TSetupStep);
-var
-  InitFile: String;
-  InitContent: String;
-  Email: String;
-begin
-  if CurStep = ssPostInstall then
-  begin
-    Email := AccountPage.Values[0];
-    Password := AccountPage.Values[1];
-    ConfirmPass := AccountPage.Values[2];
-
-    if (Email = '') or (Password = '') or (ConfirmPass = '') then
-    begin
-      Abort;
-    end;
-    
-    if not (Password = ConfirmPass) then
-    begin
-      Abort;
-    end;
-
-    if AutoLoginCheckBox.Checked then
-      AutoLoginValue := 'autologin=true' + #13#10
-    else
-      AutoLoginValue := 'autologin=false' + #13#10;
-
-    InitContent := 'username=' + Email + #13#10 +
-                   'password=' + Password + #13#10 +
-                   AutoLoginValue;
-
-    InitFile := ExpandConstant('{app}\windows\init.txt');
-
-    SaveStringToFile(InitFile, InitContent, False);
-  end;
-end;
-function IsValidEmail(strEmail : String) : boolean;
-var
-    strTemp  : String;
-    nSpace   : Integer;
-    nAt      : Integer;
-    nDot     : Integer;
-begin
-    strEmail := Trim(strEmail);
-    nSpace := Pos(' ', strEmail);
-    nAt := Pos('@', strEmail);
-    strTemp := Copy(strEmail, nAt + 1, Length(strEmail) - nAt + 1);
-    nDot := Pos('.', strTemp) + nAt;
-    Result := ((nSpace = 0) and (1 < nAt) and (nAt + 1 < nDot) and (nDot < Length(strEmail)));
-end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
-  if CurPageID = wpReady then begin
-    if not WizardIsComponentSelected('product\Kuwa') then begin
-      Log('Skipping download because "product\Kuwa" was not selected.');
-      Result := True; 
-      Exit; 
-    end;
-
+  if CurPageID = wpReady then
+  begin
     DownloadPage.Clear;
-    DownloadPage.Add('https://github.com/wenshui2008/RunHiddenConsole/releases/download/1.0/RunHiddenConsole.zip', 'packages\RunHiddenConsole.zip', '');
-    DownloadPage.Add('https://nodejs.org/dist/v20.11.1/node-v20.11.1-win-x64.zip', 'packages\node.zip', '');
-    DownloadPage.Add('https://windows.php.net/downloads/releases/archives/php-8.1.31-Win32-vs16-x64.zip', 'packages\php.zip', '');
-    DownloadPage.Add('https://nginx.org/download/nginx-1.26.3.zip', 'packages\nginx.zip', '');
-    DownloadPage.Add('https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip', 'packages\python.zip', '');
-    DownloadPage.Add('https://github.com/redis-windows/redis-windows/releases/download/6.0.20/Redis-6.0.20-Windows-x64-msys2.zip', 'packages\redis.zip', '');
-    DownloadPage.Add('https://github.com/git-for-windows/git/releases/download/v2.45.1.windows.1/PortableGit-2.45.1-64-bit.7z.exe', 'packages\gitbash.7z.exe', '');
-    DownloadPage.Add('https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-7.0.2-essentials_build.zip', 'packages\ffmpeg.zip', '');
 
-    if WizardIsComponentSelected('models\llama3_point_1_taide_lx_8_q4_km') then begin
-      DownloadPage.Add('https://huggingface.co/tetf/Llama-3.1-TAIDE-LX-8B-Chat-GGUF/resolve/main/Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf?download=true', 'models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf', '');
+    if WizardIsComponentSelected('models\llama3_point_1_taide_lx_8_q4_km') then
+    begin
+      DownloadPage.Add(
+        'https://huggingface.co/tetf/Llama-3.1-TAIDE-LX-8B-Chat-GGUF/resolve/main/Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf?download=true',
+        'models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf',
+        ''
+      );
     end;
+
     DownloadPage.Show;
-    
+
     try
       try
         DownloadPage.Download;
@@ -204,37 +122,6 @@ begin
       end;
     finally
       DownloadPage.Hide;
-    end;
-  end else if CurPageID = AccountPage.ID then
-  begin
-    Username := AccountPage.Values[0];
-    Password := AccountPage.Values[1];
-    ConfirmPass := AccountPage.Values[2];
-
-    Result := True; // Default result is True, but will be set to False if any validation fails
-
-    if (Username = '') or (Password = '') then
-    begin
-      MsgBox('Both username and password are required.', mbError, MB_OK);
-      Result := False;
-    end;
-
-    if not (ConfirmPass = Password) then
-    begin
-      MsgBox('Password mismatch!', mbError, MB_OK);
-      Result := False;
-    end;
-
-    if (ConfirmPass = '') then
-    begin
-      MsgBox('Please repeat your password to confirm', mbError, MB_OK);
-      Result := False;
-    end;
-
-    if not IsValidEmail(Username) then
-    begin
-      MsgBox('Please enter a valid email address.', mbError, MB_OK);
-      Result := False;
     end;
   end
   else
