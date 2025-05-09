@@ -23,7 +23,8 @@ SetupIconFile={#MyAppIcon}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-
+DiskSpanning=yes
+DiskSliceSize="2000000000"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -79,9 +80,6 @@ Name: "{group}\Maintenance Tool"; Filename: "{app}\windows\tool.bat"; IconFilena
 Name: "{group}\Upgrade Kuwa"; Filename: "{app}\windows\update.bat"; IconFilename: "{app}\src\multi-chat\public\images\kuwa-logo.ico"
 Name: "{userdesktop}\Kuwa GenAI OS"; Filename: "{app}\windows\start.bat"; WorkingDir: "{app}\windows"; IconFilename: "{app}\src\multi-chat\public\images\kuwa-logo.ico"
 Name: "{userdesktop}\Construct RAG"; Filename: "{app}\windows\construct_rag.bat"; WorkingDir: "{app}\windows"; IconFilename: "{app}\src\multi-chat\public\images\kuwa-logo.ico"
-
-[Run]
-Filename: "{app}\windows\start.bat"; Flags: shellexec; Components: "product\Kuwa"
 
 [Code]
 var
