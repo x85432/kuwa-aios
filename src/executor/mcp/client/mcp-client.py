@@ -8,7 +8,9 @@ import shlex
 from typing import Optional, Any
 from contextlib import AsyncExitStack
 from textwrap import dedent
+from functools import lru_cache
 
+from async_lru import alru_cache
 from mcp import ClientSession, StdioServerParameters
 from mcp.types import TextContent, CallToolResult
 from mcp.client.stdio import stdio_client
@@ -16,6 +18,7 @@ from mcp.client.stdio import stdio_client
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from kuwa.executor import LLMExecutor, Modelfile
+from kuwa.executor.message import ExitCodeChunk
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +55,7 @@ class Server:
             await self.cleanup()
             raise
 
+    @alru_cache
     async def list_tools(self) -> list[Any]:
         """List available tools from the server.
 
@@ -167,6 +171,30 @@ class Tool:
         )
 
 
+def RawJSONDecoder(index):
+    class _RawJSONDecoder(json.JSONDecoder):
+        end = None
+
+        def decode(self, s, *_):
+            data, self.__class__.end = self.raw_decode(s, index)
+            return data
+
+    return _RawJSONDecoder
+
+
+def extract_json(s, index=0):
+    """
+    Extract json object from string with mixed content.
+    Ref: https://stackoverflow.com/a/55525704
+    """
+    while (index := s.find("{", index)) != -1:
+        try:
+            yield json.loads(s, cls=(decoder := RawJSONDecoder(index)))
+            index = decoder.end
+        except json.JSONDecodeError:
+            index += 1
+
+
 class McpClientExecutor(LLMExecutor):
     def __init__(self):
         super().__init__()
@@ -196,6 +224,7 @@ class McpClientExecutor(LLMExecutor):
         )
         server_name = modelfile.parameters["mcp_"].get("server_name", "default_server")
         server = Server(name=server_name, command=server_cmd, cmd_args=server_args)
+        is_bypassed = False
         try:
             try:
                 await server.initialize()
@@ -203,61 +232,78 @@ class McpClientExecutor(LLMExecutor):
                 logger.exception("Failed to initialize MCP server.")
                 raise
             user_query = history[-1]["content"].strip()
-            tools = await server.list_tools()
             list_cmd = "/list"
             if user_query.startswith(list_cmd):
-                user_query = user_query[len(list_cmd):].strip()
-                for tool in tools:
-                    yield tool.format_for_llm() + "\n\n"
-                if user_query != "":
-                    yield user_query
+                user_query = user_query[len(list_cmd) :].strip()
+                async for c in self.list_tool(server, user_query):
+                    yield c
                 return
 
             tool_call = self.parse_tool_call(user_query)
             logger.debug(f"Parsed tool_call: {tool_call}")
             if tool_call is None:
-                yield "Invalid tool calling request"
+                yield user_query
+                is_bypassed = True
                 return
 
-            if not any(tool.name == tool_call["tool"] for tool in tools):
-                raise Exception(
-                    f'No tool named {tool_call["tool"]} found in server. Use "/list" to list available tools.'
-                )
-            logger.info(f"Executing tool: {tool_call['tool']}")
-            logger.info(f"With arguments: {tool_call['arguments']}")
-            try:
-                result = await server.execute_tool(
-                    tool_call["tool"], tool_call["arguments"]
-                )
-
-                if isinstance(result, dict) and "progress" in result:
-                    progress = result["progress"]
-                    total = result["total"]
-                    percentage = (progress / total) * 100
-                    logging.info(f"Progress: {progress}/{total} ({percentage:.1f}%)")
-                logger.debug(type(result))
-                if isinstance(result, CallToolResult):
-                    result = "\n".join(
-                        [c.text for c in result.content if isinstance(c, TextContent)]
-                    )
-
-                logger.info(f"Tool execution result: {result}")
-                yield f"Tool execution result: {result}"
-            except Exception as e:
-                error_msg = f"Error executing tool: {str(e)}"
-                logging.exception(error_msg)
-                yield error_msg
+            async for c in self.exec_tool(server, tool_call):
+                yield c
 
         except Exception:
             raise
         finally:
+            # Ues exit code to direct Agent workflow
+            exit_code=ExitCodeChunk.COMPLETE if is_bypassed else ExitCodeChunk.INCOMPLETE
+            logger.debug(f"Exit code: {exit_code}")
+            yield ExitCodeChunk(exit_code=exit_code)
             await server.cleanup()
             logger.debug("finished")
+
+    async def list_tool(self, server, user_query):
+        tools = await server.list_tools()
+        for tool in tools:
+            yield tool.format_for_llm() + "\n\n"
+        if user_query != "":
+            yield user_query
+
+    async def exec_tool(self, server, tool_call):
+        tools = await server.list_tools()
+        if not any(tool.name == tool_call["tool"] for tool in tools):
+            raise Exception(
+                f'No tool named {tool_call["tool"]} found in server. Use "/list" to list available tools.'
+            )
+        logger.info(f"Executing tool: {tool_call['tool']}")
+        logger.info(f"With arguments: {tool_call['arguments']}")
+        try:
+            result = await server.execute_tool(
+                tool_call["tool"], tool_call["arguments"]
+            )
+
+            if isinstance(result, dict) and "progress" in result:
+                progress = result["progress"]
+                total = result["total"]
+                percentage = (progress / total) * 100
+                logger.info(f"Progress: {progress}/{total} ({percentage:.1f}%)")
+            logger.debug(type(result))
+            if isinstance(result, CallToolResult):
+                result = "\n".join(
+                    [c.text for c in result.content if isinstance(c, TextContent)]
+                )
+
+            logger.info(f"Tool execution result: {result}")
+            yield f"Tool execution result: {result}"
+        except Exception as e:
+            error_msg = f"Error executing tool: {str(e)}"
+            logger.exception(error_msg)
+            yield error_msg
 
     def parse_tool_call(self, query: str):
         tool_call = None
         try:
-            parsed_json = json.loads(query)
+            json_candidates = list(extract_json(query))
+            if len(json_candidates) == 0:
+                raise RuntimeError("There's not JSON string in user's query.")
+            parsed_json = json_candidates[-1]
             tool_call = {
                 "tool": parsed_json.get("tool", parsed_json.get("name")),
                 "arguments": parsed_json.get("arguments", parsed_json.get("args")),

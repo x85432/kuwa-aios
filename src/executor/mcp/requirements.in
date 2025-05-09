@@ -2,3 +2,4 @@ mcp[cli]
 starlette<0.38
 # mcp-openai
 mcp-server-time
+async-lru
