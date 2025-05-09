@@ -49,10 +49,10 @@ if exist "../scripts/windows-setup-files/package.zip" (
         call npm.cmd run build
         call php artisan config:cache
         call php artisan config:clear
+        if exist "..\..\.git\test_pack_perm.priv" (
+            call php artisan web:config --settings="updateweb_git_ssh_command=ssh -i .git/test_pack_perm.priv -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
+        )
         popd
-		if exist "..\.git\test_pack_perm.priv" (
-			call php artisan web:config --settings="updateweb_git_ssh_command=ssh -i .git/test_pack_perm.priv -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
-		)
     )
 )
 
@@ -207,7 +207,7 @@ if /I "%userInput%"=="stop" (
 	call src\stop.bat
 ) else if /I "%userInput%"=="seed" (
     echo Running seed command...
-    call src\migration\20240402_seed_admin.bat
+    call src\multi-chat\executables\bat\AdminSeeder.bat
     goto loop
 ) else if /I "%userInput%"=="hf login" (
     echo Running huggingface login command...

@@ -153,11 +153,11 @@ call php artisan optimize
 call php artisan route:cache
 call php artisan view:cache
 call php artisan config:cache
-popd
-
-if exist "..\.git\test_pack_perm.priv" (
+if exist "..\..\.git\test_pack_perm.priv" (
 	call php artisan web:config --settings="updateweb_git_ssh_command=ssh -i .git/test_pack_perm.priv -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
 )
+popd
+
 
 REM Sync locked Python dependencies
 echo Syncing Python dependencies

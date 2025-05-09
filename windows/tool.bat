@@ -20,7 +20,7 @@ if /I "%userInput%"=="quit" (
 	echo Quit.
 ) else if /I "%userInput%"=="seed" (
     echo Running seed command...
-    call src\migration\20240402_seed_admin.bat
+    call src\multi-chat\executables\bat\AdminSeeder.bat
     goto loop
 ) else if /I "%userInput%"=="hf login" (
     echo Running huggingface login command...
