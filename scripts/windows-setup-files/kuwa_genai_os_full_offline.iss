@@ -18,13 +18,11 @@ AllowNoIcons=yes
 LicenseFile=../../LICENSE
 PrivilegesRequired=lowest
 OutputDir=.
-OutputBaseFilename=Kuwa-GenAI-OS-OFFLINE
+OutputBaseFilename=Kuwa-GenAI-OS
 SetupIconFile={#MyAppIcon}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-DiskSpanning=yes
-DiskSliceSize="2000000000"
 
 
 [Languages]
@@ -63,7 +61,7 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 
 [Components]
 Name: "product"; Description: "Product Components"; Types: full compact custom;Flags: fixed;
-Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: fixed; ExtraDiskSpaceRequired:9850003637;
+Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: fixed;
 
 //Name: "product\Kuwa\Huggingface"; Description: "Huggingface Executor Runtime"; Types: full compact custom;
 
@@ -73,13 +71,22 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: f
 
 //Name: "product\n8n"; Description: "n8n"; Types: full custom;ExtraDiskSpaceRequired:536870912;
 //Name: "product\langflow"; Description: "Langflow"; Types: full custom;ExtraDiskSpaceRequired:536870912;
+
+Name: "models"; Description: "Model Selection"; Types: full custom;Flags: fixed;
+Name: "models\gemma_3_1b_it_q4_0"; Description: "Gemma3 1B QAT Q4"; Types: full compact custom;
+Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom; ExtraDiskSpaceRequired:5261727040;
+
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
-    Excludes: "Kuwa-GenAI-OS.exe;..\..\src\multi-chat\node_modules\*;..\..\src\multi-chat\vendor\*"; \
+    Excludes: "*.gguf,windows-setup-files\*.exe,windows\packages\*,windows-setup-files\*.bin,node_modules\*,vendor\*"; \
     Permissions: users-full; Components: "product\Kuwa"
 
 Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdirs createallsubdirs; \
     Permissions: users-full; Components: "product\Kuwa"
+
+Source: "..\..\windows\executors\gemma3-1b\gemma-3-1b-it-q4_0.gguf"; DestDir: "{app}\windows\executors\gemma3-1b\"; Flags: ignoreversion; Components: "models\gemma_3_1b_it_q4_0"
+
+Source: "..\..\windows\executors\taide\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_S.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: ignoreversion; Components: "models\llama3_point_1_taide_lx_8_q4_km"
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}"
@@ -96,11 +103,20 @@ Name: "{userdesktop}\Construct RAG"; Filename: "{app}\windows\construct_rag.bat"
 Filename: "{app}\windows\start.bat"; Flags: shellexec; Components: "product\Kuwa"
 
 [Code]
-var 
+var
+  DownloadPage: TDownloadWizardPage;
   AccountPage: TInputQueryWizardPage;
   AutoLoginCheckBox: TNewCheckBox;
   Username, Password, ConfirmPass: String;
   AutoLoginValue: String;
+
+function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
+begin
+  if Progress = ProgressMax then
+    Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
+  Result := True;
+end;
+
 procedure InitializeWizard;
 begin
   AccountPage := CreateInputQueryPage(wpUserInfo,
@@ -119,6 +135,8 @@ begin
   AutoLoginCheckBox.Width := 300;
   AutoLoginCheckBox.Caption := 'Single User Mode';
   AutoLoginCheckBox.Checked := False; 
+  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
+  DownloadPage.ShowBaseNameInsteadOfUrl := True;
 end;
 procedure CurStepChanged(CurStep: TSetupStep);
 var
