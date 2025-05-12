@@ -1,18 +1,23 @@
 import os
 import sys
+import gc
 import logging
-import subprocess
-import tempfile
+import contextlib
 from pathlib import Path
-from enum import Enum
 from transformers import AutoTokenizer
 from functools import lru_cache
+import multiprocessing as mp
+from dataclasses import dataclass
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.abspath(Path(__file__).parent)))
 
-from pipe.main import PipeExecutor
 from kuwa.executor import LLMExecutor, Modelfile
+from qai_appbuilder.geniecontext import GenieContext
+from huggingface_hub import snapshot_download
+
+sys.stdin.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +60,91 @@ class DecodeBuffer:
         return self.buffer.decode(self.coding, "replace")
 
 
-class OutputState(Enum):
-    PROMPT_PROCESSING = 0
-    TOKEN_GENERATION = 1
-    POST_GENERATION = 2
+@contextlib.contextmanager
+# temporarily change to a different working directory
+def temporaryWorkingDirectory(path):
+    old_wd = os.getcwd()
+    os.chdir(os.path.abspath(path))
+    try:
+        yield
+    finally:
+        os.chdir(old_wd)
+
+
+class ModelLoader:
+    """
+    Model loader with LRU cache and memory release management.
+    """
+
+    def __init__(self, cache_size=1):
+        self.cached_model = {}
+        self.cache_size = cache_size
+
+    def load_model(self, model_path_or_id):
+        if os.path.exists(model_path_or_id):
+            model_dir = model_path_or_id
+        else:
+            print(
+                f"Model path {model_path_or_id} not found. Trying download it from HF Hub.",
+                flush=True,
+            )
+            model_dir = snapshot_download(repo_id=model_path_or_id)
+
+        model = self.cached_model.pop(model_dir, None)
+        if model is None:
+            if len(self.cached_model) >= self.cache_size:
+                self._unload_least_used_model()
+
+            with temporaryWorkingDirectory(model_dir):
+                model = GenieContext("genie_config.json")
+
+        self.cached_model[model_dir] = model
+
+        return model
+
+    def _unload_least_used_model(self):
+        least_use_model_id = next(iter(self.cached_model))
+        model_to_free = self.cached_model.pop(least_use_model_id)
+        model_to_free.Release()
+        del model_to_free
+        gc.collect()
+        print(f"Unloaded {least_use_model_id}", flush=True)
+
+
+@dataclass
+class Work:
+    model_id: str = ""
+    prompt: str = ""
+
+
+def producer_process(
+    work_queue: mp.Queue,
+    resp_queue: mp.Queue,
+    stop: mp.Event,
+    debug: bool,
+    cache_size: int,
+):
+    model_loader = ModelLoader(cache_size=cache_size)
+
+    def genie_callback(result):
+        nonlocal resp_queue
+        if debug:
+            print(result, end="", flush=True)
+        resp_queue.put_nowait(result)
+        return bool(stop.is_set())
+
+    while True:
+        work = work_queue.get()
+        print(f"producer_process(): Got work: {str(work)}", flush=True)
+        model_id = work.model_id
+        prompt = work.prompt
+        model = model_loader.load_model(model_id)
+        if prompt == "":
+            continue
+        model.Query(prompt=prompt, callback=genie_callback)
+        resp_queue.put_nowait("")  # EOF
+        stop.clear()
+        print("producer_process(): Done", flush=True)
 
 
 class QnnGenieExecutor(LLMExecutor):
@@ -69,115 +155,61 @@ class QnnGenieExecutor(LLMExecutor):
         parser.add_argument(
             "--tokenizer",
             type=str,
-            default="meta-llama/Llama-3.2-3B-Instruct",
-            help="HF repository ID of the tokenizer.",
+            default="thuniverse-ai/Llama-v3.2-3B-Chat-GENIE",
+            help="HF repository ID of the default tokenizer.",
         )
         parser.add_argument(
-            "--model", type=str, default="llama-v3_2-3b-chat", help="Model ID"
+            "--model",
+            type=str,
+            default="thuniverse-ai/Llama-v3.2-3B-Chat-GENIE",
+            help="Path or HF repository ID of default model",
         )
-        pass
+        parser.add_argument(
+            "--cache_size",
+            type=int,
+            default=1,
+            help="How many models can be loaded to memory simultaneously.",
+        )
 
     def setup(self):
         self.model_id = self.args.model
         self.hf_hub_model_id = self.args.tokenizer
-        self.stop = False
+        self.stop = mp.Event()
         self.tokenizer = self.get_tokenizer(self.hf_hub_model_id)
-        self.pipe = None
+        self.cmd_queue = mp.Queue()
+        self.resp_queue = mp.Queue()
+        self.producer_proc = mp.Process(
+            target=producer_process,
+            args=(
+                self.cmd_queue,
+                self.resp_queue,
+                self.stop,
+                self.in_debug(),
+                self.args.cache_size,
+            ),
+        )
+        self.producer_proc.start()
+        work = Work(model_id=self.model_id, prompt="")
+        logger.info(f"Put work: {str(work)}")
+        self.cmd_queue.put_nowait(work)
 
     @lru_cache
     def get_tokenizer(self, hf_hub_model_id):
         tokenizer = AutoTokenizer.from_pretrained(hf_hub_model_id)
         return tokenizer
 
-    async def run_genie_t2t(
-        self, prompt: str, model_id: str, print_debug: bool = False
-    ):
-        # prompt = prompt.replace('\n', '\\n')
-        # qai_hub_model_id = model_id.replace("-", "_") + "_quantized"
-        working_dir = str((Path.cwd() / model_id).resolve())
-        prompt_fd, prompt_file_path = tempfile.mkstemp()
-        with os.fdopen(prompt_fd, "w+", encoding="utf-8") as f:
-            f.write(prompt)
-            f.seek(0)
-            logger.debug(f"[prompt] {f.read()}")
-
-        qnn_binary_path = (Path.cwd() / "QNN_binaries-2.31").resolve()
-        genie_t2t_run_paths = list(qnn_binary_path.glob("genie-t2t-run*"))
-        genie_config_path = "genie_config.json"
-        if len(genie_t2t_run_paths) == 0:
-            raise RuntimeError(
-                f'Could not find "genie_t2t_run" executable in directory "{qnn_binary_path}"'
-            )
-        cmd = [
-            genie_t2t_run_paths[0],
-            "-c",
-            genie_config_path,
-            "--prompt_file",
-            prompt_file_path,
-        ]
-        cmd = [str(arg) for arg in cmd]
-
-        try:
-            self.pipe = PipeExecutor()
-
-            generator = self.pipe.run_cmd(cmd, cwd=working_dir, shell=False)
-            # p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=working_dir, shell=False)
-            # decode_buffer = DecodeBuffer()
-            begin_keyword = "[BEGIN]:"  # [TODO] Remove llama header
-            end_keyword = "[END]"
-            output_buffer = ""
-            output_state = OutputState.PROMPT_PROCESSING
-            async for stream_name, chunk in generator:
-                # for chunk in iter(lambda: p.stdout.read(1), b''):
-                #     decoded_string = decode_buffer.push(chunk)
-
-                if self.in_debug():
-                    print(chunk, end="", flush=True)
-
-                if print_debug:
-                    yield chunk
-                    continue
-
-                output_buffer += chunk
-
-                if (
-                    output_state == OutputState.PROMPT_PROCESSING
-                    and begin_keyword in output_buffer
-                ):
-                    output_state = OutputState.TOKEN_GENERATION
-                    output_buffer = output_buffer[
-                        output_buffer.index(begin_keyword) + len(begin_keyword) :
-                    ].lstrip()
-
-                if output_state == OutputState.TOKEN_GENERATION:
-                    if len(output_buffer) < len(end_keyword):
-                        continue
-                    if output_buffer.endswith(end_keyword):
-                        output_state = OutputState.POST_GENERATION
-                        output_buffer = output_buffer.replace(end_keyword, "")
-                        yield output_buffer
-                    else:
-                        output_length = len(output_buffer) - len(end_keyword)
-                        output_chunk = output_buffer[:output_length]
-                        output_buffer = output_buffer[output_length:]
-                        yield output_chunk
-
-        except subprocess.CalledProcessError as e:
-            logger.exception(e.output.decode())
-        finally:
-            os.remove(prompt_file_path)
-
     async def llm_compute(self, history: list[dict], modelfile: Modelfile):
         model_id = modelfile.parameters["llm_"].get("model", self.model_id)
         tokenizer_id = modelfile.parameters["llm_"].get(
             "tokenizer", self.hf_hub_model_id
         )
-        print_debug = modelfile.parameters["llm_"].get("debug", False)
-            
+
         # Apply modelfile
         msg = modelfile.messages + history
         if modelfile.override_system_prompt is not None:
-            msg = [{"content": modelfile.override_system_prompt, "role": "system"}] + msg
+            msg = [
+                {"content": modelfile.override_system_prompt, "role": "system"}
+            ] + msg
 
         msg[-1]["content"] = (
             modelfile.before_prompt + msg[-1]["content"] + modelfile.after_prompt
@@ -188,21 +220,27 @@ class QnnGenieExecutor(LLMExecutor):
             msg, tokenize=False, add_generation_prompt=True
         )
 
-        response_generator = self.run_genie_t2t(
-            prompt=prompt, model_id=model_id, print_debug=print_debug
-        )
+        # Clear queue and event
+        while not self.resp_queue.empty():
+            self.resp_queue.get(False, 0)
+        self.stop.clear()
 
-        self.stop = False
-        async for reply in response_generator:
-            if self.stop:
-                await response_generator.aclose()
-            yield reply
+        # Put work
+        work = Work(model_id=model_id, prompt=prompt)
+        logger.info(f"Put work: {str(work)}")
+        self.cmd_queue.put(work)
+
+        # Get result
+        while not self.stop.is_set():
+            resp = self.resp_queue.get()
+            if resp == "":
+                break
+            yield resp
+
         logger.info("Done")
 
     async def abort(self):
-        self.stop = True
-        if self.pipe:
-            await self.pipe.abort()
+        self.stop.set()
         logger.debug("aborted")
         return "Aborted"
 
