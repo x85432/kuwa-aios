@@ -1,0 +1,17 @@
+Subject: Exported bot "Llama%203.2"
+Date: Tue, 13 May 2025 05:53:57 +0800
+Content-Type: multipart/related; boundary="kuwaaqotm"; type=application/vnd.kuwabot
+Content-Transfer-Encoding: quoted-printable
+
+--kuwaaqotm
+Content-Type: application/vnd.kuwabot;
+Content-Language: en-us
+
+#!
+KUWABOT version 0.3.3
+KUWABOT name "Llama 3.2"
+KUWABOT description "Running on Ollama"
+KUWABOT base ".model:ollama"
+PARAMETER llm_model "llama3.2"
+
+--kuwaaqotm--
