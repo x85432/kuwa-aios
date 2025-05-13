@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List
 
 # Define source files and output paths based on platform (relative to project root).
-platforms = ["windows", "windows-cu118", "windows-ipex-llm", "docker", "docker-cu118"]
+platforms = ["windows", "windows-cu118", "windows-ipex-llm", "windows-qnn", "docker", "docker-cu118"]
 common_sources = [
     "src/executor/agent/requirements.in",
     "src/executor/docqa/requirements.in",
@@ -27,6 +27,10 @@ platform_sources = {
     "windows-ipex-llm": [
         "windows/src/version_patch/ipex-llm/windows/src/requirements.in",
     ],
+    "windows-qnn": [
+        "src/executor/qnn_genie/requirements.in",
+        "src/executor/speech_recognition/requirements-onnx.in",
+    ],
     "docker": [],
     "docker-cu118": [],
 }
@@ -34,6 +38,7 @@ output_paths = {
     "windows": "windows/src/version_patch/cpu/windows/src/requirements.txt.lock",
     "windows-cu118": "windows/src/version_patch/cu118/windows/src/requirements.txt.lock",
     "windows-ipex-llm": "windows/src/version_patch/ipex-llm/windows/src/requirements.txt.lock",
+    "windows-qnn": "windows/src/version_patch/qnn/windows/src/requirements.txt.lock",
     "docker": "/dev/null",
     "docker-cu118": "/dev/null",
 }
