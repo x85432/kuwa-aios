@@ -20,15 +20,15 @@
             @endif
             <x-store.modal.bot-detail :result="$result" />
             @if (request()->user()->hasPerm(['tab_Manage', 'Store_create_community_bot', 'Store_create_group_bot', 'Store_create_private_bot']))
-                <div class="create-bot-btn mb-2 mt-8 mx-auto h-[50px] flex">
+                <div class=" mb-2 mt-8 mx-auto h-[50px] flex">
                     <a href="https://repository.kuwaai.org" target="_blank"
                         class="flex menu-btn flex items-center px-4 py-3 justify-center text-green-500 h-12 dark:hover:bg-gray-700 border border-green-500 border-1 rounded-l-lg hover:bg-gray-300 transition duration-300 overflow-hidden"><i
                             class="fas fa-globe"></i></a>
                     <button data-modal-target="create-bot-modal" data-modal-toggle="create-bot-modal"
-                        class="bg-green-500 hover:bg-green-600 flex menu-btn flex items-center justify-center w-auto px-3 h-12 transition duration-300 overflow-hidden">
+                        class="create-bot-btn bg-green-500 hover:bg-green-600 flex menu-btn flex items-center justify-center w-auto px-3 h-12 transition duration-300 overflow-hidden">
                         <p class="flex-1 text-center text-white">{{ __('store.button.create') }}</p>
                     </button>
-                    <label for="upload_bot_modelfile"
+                    <label for="upload_bot_modelfile" 
                         class="text-green-500 cursor-pointer h-12 font-bold py-3 px-4 rounded-r-lg flex items-center dark:hover:bg-gray-700 border border-green-500 border-1 justify-center hover:bg-gray-300 transition duration-300">
                         <i class="fas fa-file-import"></i>
                     </label>

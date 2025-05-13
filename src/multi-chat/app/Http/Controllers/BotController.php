@@ -480,7 +480,7 @@ class BotController extends Controller
 
         // Check if the directory exists
         if (!is_dir($directory)) {
-            return response()->json(['error' => 'Directory not found'], 404);
+            return response()->json(['error' => 'Directory ' . $directory . ' not found'], 404);
         }
 
         // Get the files in the directory

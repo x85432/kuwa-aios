@@ -513,15 +513,23 @@
             args = [args];
         }
 
-        parsed_modelfile = modelfile_parse(ace.edit('bot-modelfile-editor').getValue());
-        new_modelfile = parsed_modelfile.filter((item) => item.name.toLowerCase() !== inst.toLowerCase());
-        let argsString = args.join(' ').trim(); 
-        if (argsString) { 
-            new_modelfile.push({
-                name: inst,
-                args: argsString
-            });
+        
+        let is_parameter = inst.toLowerCase() === "parameter";
+        if (args.join(' ').trim() === "" || (is_parameter && args.slice(1).join(' ').trim() === "")){
+            return;
         }
+        
+      
+        parsed_modelfile = modelfile_parse(ace.edit('bot-modelfile-editor').getValue());
+        new_modelfile = parsed_modelfile.filter(
+            (item) =>
+                item.name.toLowerCase() !== inst.toLowerCase() ||
+                (is_parameter && item.args.toLowerCase().split(' ').find(e => true) !== args.find(e => true).toLowerCase())
+        );
+        new_modelfile.push({
+            name: inst,
+            args: args.join(' ').trim()
+        });
         ace.edit('bot-modelfile-editor').setValue(modelfile_to_string(new_modelfile));
         ace.edit('modelfile-editor').gotoLine(0);
     }
@@ -608,8 +616,8 @@
                 importBotAvatar(avatar_type, avatar_base64_data)
             }
 
-
-            $(".create-bot-btn").click();
+            const create_bot_modal = FlowbiteInstances.getInstance('Modal', 'create-bot-modal');
+            create_bot_modal.show();
         }
 
         reader.onload = handleFileLoad;
@@ -637,7 +645,7 @@
                 dataListElement.appendChild(listItem);
             });
 
-            dataListElement.focus();
+            // dataListElement.focus();
 
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -647,6 +655,17 @@
     updateDataListFromAPI("store/bots", "bots-list");
     updateDataListFromAPI("store/knowledge", "knowledge-list");
 
+    window.addEventListener('load', function() {
+        // To prevent "Blocked aria-hidden on an element because its descendant retained focus."
+        initFlowbite();
+        const create_bot_modal = FlowbiteInstances.getInstance('Modal', 'create-bot-modal');
+        create_bot_modal.updateOnHide(function(e){
+            console.log("model hidden")
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        })
+    })
     var editor = ace.edit($('#bot-modelfile-editor')[0], {
         mode: "ace/mode/dockerfile",
         selectionStyle: "text"
