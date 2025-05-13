@@ -87,7 +87,7 @@ Source: "..\..\.git\*"; DestDir: "{app}\.git"; Flags: ignoreversion recursesubdi
 
 Source: "..\..\windows\executors\gemma3-1b\gemma-3-1b-it-q4_0.gguf"; DestDir: "{app}\windows\executors\gemma3-1b\"; Flags: ignoreversion; Components: "models\gemma_3_1b_it_q4_0"
 
-Source: "..\..\windows\executors\taide\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_S.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: ignoreversion; Components: "models\llama3_point_1_taide_lx_8_q4_km"
+Source: "..\..\windows\executors\taide\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: ignoreversion; Components: "models\llama3_point_1_taide_lx_8_q4_km"
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}"
