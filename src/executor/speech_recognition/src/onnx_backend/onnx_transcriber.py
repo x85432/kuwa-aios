@@ -3,6 +3,7 @@
 # Copyright (c) 2025 Yung-Hsiang Hu. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 # ---------------------------------------------------------------------
+import os, sys
 import onnxruntime
 import argparse
 import time
@@ -10,7 +11,7 @@ import logging
 import functools
 import numpy as np
 from datetime import datetime
-import os, sys
+from pathlib import Path
 
 from qai_hub_models.models._shared.whisper.app import WhisperApp
 
@@ -23,7 +24,9 @@ def load_audio_file(filepath: str) -> tuple[np.array, int]:
     import audio2numpy as a2n  # import here, as this requires ffmpeg to be installed on host machine
 
     audio, audio_sample_rate = a2n.audio_from_file(filepath)
-    audio = np.mean(audio, axis=1)
+    logger.debug(f"{audio.shape}, {audio_sample_rate}")
+    if audio.ndim > 1:
+        audio = np.mean(audio, axis=1)
 
     return audio, audio_sample_rate
 
@@ -53,6 +56,8 @@ class OnnxTranscriber:
         # Load whisper model
         logger.debug("Loading model...")
         start_time = time.time()
+        logger.debug(f"Encoder path: {Path(self.encoder_path).resolve()}")
+        logger.debug(f"Decoder path: {Path(self.decoder_path).resolve()}")
         whisper = WhisperApp(WhisperBaseONNX(self.encoder_path, self.decoder_path))
         end_time = time.time()
         logger.debug(f"Model {self.encoder_path}; {self.decoder_path} loaded")
