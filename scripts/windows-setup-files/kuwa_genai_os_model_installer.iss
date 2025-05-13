@@ -23,8 +23,6 @@ SetupIconFile={#MyAppIcon}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-DiskSpanning=yes
-DiskSliceSize="2000000000"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
