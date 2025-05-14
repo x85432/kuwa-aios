@@ -446,13 +446,13 @@ if "!EXECUTOR_NAME!" == "docQA & webQA" (
 	IF "taide"=="!current_folder!" (
 		set command=!command! --order "100001"
 	) ELSE IF "geminipro"=="!current_folder!" (
-		set command=!command! --order "210000"
+		set command=!command! --order "401000"
 	) ELSE IF "chatgpt"=="!current_folder!" (
-		set command=!command! --order "210001"
-	) ELSE IF "nemotron-4-340b-nim"=="!current_folder!" (
-		set command=!command! --order "210002"
+		set command=!command! --order "401100"
+	) ELSE IF "nim"=="!current_folder!" (
+		set command=!command! --order "401200"
 	) ELSE IF "whisper"=="!current_folder!" (
-		set command=!command! --order "130000"
+		set command=!command! --order "331000"
 	) ELSE IF "SearchQA"=="!current_folder!" (
 		set command=!command! --order "990020"
 	) ELSE IF "gemma3-1b" == "!current_folder!" (
