@@ -158,3 +158,19 @@ class RefusalChunk(BaseChunk):
 
     def calculate_cost(self):
         return 0
+
+
+class ExitCodeChunk(BaseChunk):
+    OK = 0
+    COMPLETE = 0
+    INCOMPLETE = 1
+    FAILURE = 1024
+    def __init__(self, exit_code: int, cost: int | None = None):
+        super().__init__(cost)
+        self.exit_code = exit_code
+
+    def __jsonencode__(self):
+        return {"type": "exit_code", "exit_code": self.exit_code}
+
+    def calculate_cost(self):
+        return 0

@@ -22,7 +22,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from .metrics import ExecutorMetrics
 from .logger import ExecutorLoggerFactory
-from .message import BaseChunk, TextChunk, LogChunk, LogLevel
+from .message import BaseChunk, TextChunk, LogChunk, ExitCodeChunk, LogLevel
 
 logger = logging.getLogger(__name__)
 
@@ -296,6 +296,7 @@ class BaseExecutor:
         try:
             start_time = time.time()
             total_output_length = 0
+            exit_code_chunks = [ExitCodeChunk(exit_code=ExitCodeChunk.OK)]
 
             async for chunks in self.serve(header=header, content=content):
                 if isinstance(chunks, str):
@@ -307,6 +308,7 @@ class BaseExecutor:
                     raise RuntimeError(
                         f"Unsupported chunk type: {[type(x) for x in compress(chunks, unsupported_chunk)]}"
                     )
+                exit_code_chunks += list(filter(lambda x: isinstance(x, ExitCodeChunk), chunks))
                 total_output_length += reduce(lambda x, y: x + len(y), chunks, 0)
                 yield self._format_sse({"finish_reason": None, "delta": chunks})
 
@@ -320,6 +322,7 @@ class BaseExecutor:
             yield self._format_sse(
                 {
                     "finish_reason": "stop",
+                    "delta": exit_code_chunks[-1:],
                     "usage": {
                         "prompt_tokens": 0,  # [TODO]
                         "completion_tokens": total_output_length,
@@ -334,7 +337,8 @@ class BaseExecutor:
             display_messages = [
                 LogChunk(
                     "Error occurred. Please consult support.", level=LogLevel.ERROR
-                )
+                ),
+                ExitCodeChunk(exit_code=ExitCodeChunk.FAILURE)
             ]
             if self.in_debug():
                 display_messages.append(

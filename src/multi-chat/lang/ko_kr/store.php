@@ -61,6 +61,7 @@ return [
     'bot.type' => '유형',
     'bot.type.desc.prompt' => '프롬프트 Bot: 프롬프트를 제공하여 Bot 생성',
     'bot.type.desc.server' => '서버 Bot: 기존 외부 앱 연결',
+    'bot.type.desc.agent' => '에이전트 방식 Bot: 다단계 애플리케이션 흐름 연결',
     'bot.server_url' => '외부 앱 위치',
     'bot.server_url.label' => '외부 앱 URL',
     'bot.output_bot' => '출력 Bot',
@@ -69,5 +70,6 @@ return [
     'bot.input_bot.label' => '사용자 입력을 처리할 입력 Bot을 선택하세요',
     'bot.process_bot' => '처리 Bot/기본 모델',
     'bot.process_bot.label' => '기본 모델을 선택하세요',
-    'bot.type.desc.agent' => '에이전트 방식 Bot: 다단계 애플리케이션 흐름 연결',
+    'bot.script' => '워크플로 스크립트',
+    'bot.script.label' => '워크플로우를 사용자 지정합니다',
 ];

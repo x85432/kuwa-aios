@@ -61,6 +61,7 @@ return [
     'bot.type' => 'Typ',
     'bot.type.desc.prompt' => 'Bot s výzvami: Vytvořte Bota pomocí zadaných výzev',
     'bot.type.desc.server' => 'Serverový Bot: Připojte existující externí aplikaci',
+    'bot.type.desc.agent' => 'Agentní Bot: propojení vícestupňového aplikačního procesu',
     'bot.server_url' => 'Adresa externí aplikace',
     'bot.server_url.label' => 'URL externí aplikace',
     'bot.output_bot' => 'Výstupní Bot',
@@ -69,5 +70,6 @@ return [
     'bot.input_bot.label' => 'Vyberte vstupní Bot, který bude zpracovávat vstup uživatele',
     'bot.process_bot' => 'Zpracování robota/základního modelu',
     'bot.process_bot.label' => 'Vyberte základní model',
-    'bot.type.desc.agent' => 'Agentní Bot: propojení vícestupňového aplikačního procesu',
+    'bot.script' => 'Skript pracovního postupu',
+    'bot.script.label' => 'Přizpůsobte pracovní postup',
 ];

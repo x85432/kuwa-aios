@@ -55,6 +55,7 @@ return [
     'bot.type' => 'Type',
     'bot.type.desc.prompt' => 'Prompt Bot: Create a bot by giving it instructions',
     'bot.type.desc.server' => 'Server Bot: Integrating with existing external applications',
+    'bot.type.desc.agent' => 'Agent Bot: Chains together multi-step workflows',
     'bot.server_url' => 'External Application Location',
     'bot.server_url.label' => 'External Application URL',
     'bot.output_prefix' => 'User prompt prefix for Output Bot',
@@ -69,5 +70,6 @@ return [
     'bot.output_bot.label' => 'Select the Output Bot to handle bot output',
     'bot.process_bot' => 'Processing Bot/Base Model',
     'bot.process_bot.label' => 'Select the base model',
-    'bot.type.desc.agent' => 'Agent Bot: Chains together multi-step workflows',
+    'bot.script' => 'Workflow Script',
+    'bot.script.label' => 'Customize the workflow'
 ];

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Jobs;
+
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -14,15 +15,54 @@ use App\Events\RequestStatus;
 use App\Models\Histories;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
+
+enum JobScheduleResult
+{
+    case BUSY; // The executor is current busy.
+    case NOMACHINE; // There's no executor to serve the request.
+    case READY; // The executor is allocated and ready to process the request.
+    case UNKNOWN;
+}
+
+enum AppType
+{
+    case API; // Kuwa API
+    case CHATROOM; // Multi-Chat Chatroom
+}
+
+class WarningMessages
+{
+    const DEFAULT_ERROR = "[Sorry, something is broken, please try again later!]";
+    const NO_EXECUTOR = "[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]";
+    const EMPTY_RESPONSE = "[Oops, the LLM returned empty message, please try again later or report to admins!]";
+    const KUWA_WARNING = "[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]";
+    const KUWA_WARNING_ZH = "[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]";
+}
+class KuwaKernelException extends \Exception
+{
+    public function __construct($message, $code = 0, ?\Throwable $previous = null)
+    {
+        parent::__construct($message, $code, $previous);
+    }
+    public function __toString()
+    {
+        return $this->message;
+    }
+}
 
 class RequestChat implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    private $input, $access_code, $msgtime, $history_id, $user_id, $channel, $lang, $openai_token, $google_token, $third_party_token, $user_token, $modelfile, $preserved_output, $exit_when_finish, $nim_token;
+    private $input, $access_code, $msgtime, $history_id, $user_id;
+    private $channel, $job_queue_id, $app_type;
+    private $lang, $modelfile, $openai_token, $google_token, $third_party_token, $user_token, $nim_token;
+    private $preserved_output, $exit_when_finish;
+    private $kernel_location, $client;
+    public $backoff_sec = 10; # Backoff for 10 seconds when the executors are busy 
     public $tries = 100; # Wait 1000 seconds in total
     public $timeout = 1200; # For the 100th try, 200 seconds limit is given
     public static $kernel_api_version = 'v1.0';
-    public $filters = ["[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]", '[Oops, the LLM returned empty message, please try again later or report to admins!]', '[有關Kuwa的相關說明，請以 kuwaai.org 官網的資訊為準。]', '[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]', '[Sorry, something is broken, please try again later!]'];
 
     /**
      * Create a new job instance.
@@ -57,11 +97,17 @@ class RequestChat implements ShouldQueue
         $this->lang = $lang;
         $this->history_id = $history_id;
         $this->exit_when_finish = $exit_when_finish;
-        if ($channel == null) {
-            $channel = '';
-        }
         $this->preserved_output = $preserved_output;
-        $this->channel = $channel;
+        $this->channel = $channel == null || $channel == '' ? strval($history_id) : $channel;
+        $this->app_type = match (strtoupper(explode('_', $channel)[0])) {
+            'API' => AppType::API,
+            'USERTASK' => AppType::CHATROOM,
+            default => AppType::CHATROOM
+        };
+        $this->job_queue_id = match ($this->app_type) {
+            AppType::API => 'api_' . $user_id,
+            AppType::CHATROOM => 'usertask_' . $user_id
+        };
         $this->modelfile = $this->processModelfile($modelfile);
         $user = User::find($user_id);
         $this->openai_token = $user->openai_token;
@@ -97,311 +143,170 @@ class RequestChat implements ShouldQueue
      */
     public function handle(): void
     {
-        $warningMessages = [];
-        if ($this->channel == '') {
-            $this->channel .= $this->history_id;
-        }
+        $this->kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
+        $client = new Client(['timeout' => 300]);
         Log::channel('analyze')->Info($this->channel);
-        if ($this->history_id > 0 && $this->channel == $this->history_id . '') {
-            if (Histories::find($this->channel) && Histories::find($this->channel)->msg != '* ...thinking... *' && $this->preserved_output == '') {
+        if ($this->history_id > 0 && $this->app_type == AppType::CHATROOM) {
+            if (Histories::find($this->history_id) && Histories::find($this->history_id)->msg != '* ...thinking... *' && $this->preserved_output == '') {
                 Log::Debug('Hmmm');
                 return;
             }
         }
         Log::channel('analyze')->Info('In:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input) . '|' . $this->lang . '|' . $this->modelfile);
         $start = microtime(true);
-        $tmp = '';
+        $chatroomProcessor = new ChatroomProcessor();
+        $executorExitCode = null;
         try {
-            $kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
-            $client = new Client(['timeout' => 300]);
-            $response = $client->post($kernel_location . '/' . self::$kernel_api_version . '/worker/schedule', [
-                'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
+            $schedulingResult = $this->tryScheduleJob();
+            if ($schedulingResult == JobScheduleResult::BUSY) {
+                Log::channel('analyze')->Info('BUSY: ' . $this->access_code . ' | ' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input));
+                $this->release($this->backoff_sec);
+            } elseif ($schedulingResult == JobScheduleResult::NOMACHINE) {
+                Log::channel('analyze')->Info('NOMACHINE: ' . $this->access_code . ' | ' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input));
+                throw new KuwaKernelException(WarningMessages::NO_EXECUTOR);
+            }
+
+            // Early return if job scheduling is not succeed.
+            if ($schedulingResult != JobScheduleResult::READY) {
+                return;
+            }
+
+            $this->input = $chatroomProcessor->rectifyInputMessage($this->input);
+
+            $response = $client->post($this->kernel_location . '/' . self::$kernel_api_version . '/chat/completions', [
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Accept-Language' => $this->lang,
+                    'X-Kuwa-User-Id' => $this->user_id,
+                    'X-Kuwa-Api-Token' => $this->user_token,
+                    'X-Kuwa-Api-Base-Urls' => config('app.KUWA_API_BASE_URLS'),
+                ],
                 'form_params' => [
+                    'input' => $this->input,
                     'name' => $this->access_code,
-                    'history_id' => $this->history_id * ($this->channel == $this->history_id ? 1 : -1),
                     'user_id' => $this->user_id,
+                    'history_id' => $this->history_id * ($this->channel == $this->history_id ? 1 : -1),
+                    'openai_token' => $this->openai_token,
+                    'google_token' => $this->google_token,
+                    'nim_token' => $this->nim_token,
+                    'third_party_token' => $this->third_party_token,
+                    'user_token' => $this->user_token,
+                    'modelfile' => $this->modelfile,
                 ],
                 'stream' => true,
             ]);
-            $state = trim($response->getBody()->getContents());
-            if ($state == 'BUSY') {
-                $this->release(10);
-            } elseif ($state == 'NOMACHINE') {
-                $tmp = "[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]";
-                try {
-                    if ($this->channel == '' . $this->history_id) {
-                        $history = Histories::find($this->history_id);
-                        if ($history != null) {
-                            $history->fill(['msg' => $tmp]);
-                            $history->save();
+            $stream = $response->getBody();
+            $buffer = new Utf8Buffer();
+            while (!$stream->eof()) {
+                $chunk = \GuzzleHttp\Psr7\Utils::readLine($stream);
+                // Extract text response from SSE data
+                if (str_starts_with($chunk, "data: ")) {
+                    $json = substr($chunk, strlen("data: "));
+                    $resp = json_decode($json, true);
+                    $resp_chunks = $resp['delta'] ?? array();
+                    $chunk = "";
+                    foreach ($resp_chunks as $resp_chunk) {
+                        $type = $resp_chunk["type"] ?? null;
+                        switch ($type) {
+                            case 'text':
+                                $chunk .= $resp_chunk["text"]["value"] ?? '';
+                                break;
+                            case 'log':
+                                $chunk .= "\n[" . ($resp_chunk["log"]["level"] ?? '') . "] " . ($resp_chunk["log"]["text"] ?? '');
+                                break;
+                            case 'exit_code':
+                                $executorExitCode = $resp_chunk["exit_code"];
+                                break;
+                            default:
+                                break;
                         }
-                    }
-                } catch (Exception $e) {
-                }
-                Log::channel('analyze')->Info('NOMACHINE: ' . $this->access_code . ' | ' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input));
-
-                Redis::publish($this->channel, 'New ' . json_encode(['msg' => trim($tmp)]));
-                Redis::publish($this->channel, 'Ended Ended');
-                $msgTimeInSeconds = Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->timestamp;
-                $currentTimeInSeconds = Carbon::now()->timestamp;
-                $ExecutionTime = $currentTimeInSeconds - $msgTimeInSeconds;
-
-                if ($ExecutionTime < 5) {
-                    sleep(5 - $ExecutionTime);
-                }
-                Redis::lrem(($this->channel == $this->history_id ? 'usertask_' : 'api_') . $this->user_id, 0, $this->history_id);
-
-                Redis::publish($this->channel, 'New ' . json_encode(['msg' => trim($tmp)]));
-                Redis::publish($this->channel, 'Ended Ended');
-            } elseif ($state == 'READY') {
-                try {
-                    $test = json_decode($this->input);
-
-                    if ($test === false && json_last_error() !== JSON_ERROR_NONE) {
-                        //There're error in the json!
-                        //which shouldn't be happening...
-                        Log::channel('analyze')->Info("How does that happened? JSON decode error in the Job!\n" . $this->input);
-                        return;
-                    } else {
-                        $test_2 = collect(json_decode($this->input))
-                            ->where('isbot', false)
-                            ->last();
-                        if ($test_2 !== null) {
-                            $kuwa_flag = strpos(strtoupper($test_2->msg), strtoupper('kuwa')) !== false;
-
-                            foreach ($test as $t) {
-                                foreach ($this->filters as $filter) {
-                                    if (strpos($t->msg, $filter) !== false) {
-                                        $t->msg = trim(str_replace($filter, '', $t->msg));
-                                    }
-                                }
-                                if ($t->isbot) {
-                                    $t->msg = preg_replace('#<<<WARNING>>>.*?<<</WARNING>>>#s', '', $t->msg);
-                                }
-                            }
-                            $this->input = json_encode($test);
-                        } else {
-                            $kuwa_flag = false;
-                        }
-                        if (trim(\App\Models\SystemSetting::where('key', 'safety_guard_location')->first()->value) !== '') {
-                            $kuwa_flag = false;
-                        }
-                    }
-                    $response = $client->post($kernel_location . '/' . self::$kernel_api_version . '/chat/completions', [
-                        'headers' => [
-                            'Content-Type' => 'application/x-www-form-urlencoded',
-                            'Accept-Language' => $this->lang,
-                            'X-Kuwa-User-Id' => $this->user_id,
-                            'X-Kuwa-Api-Token' => $this->user_token,
-                            'X-Kuwa-Api-Base-Urls' => config('app.KUWA_API_BASE_URLS'),
-                        ],
-                        'form_params' => [
-                            'input' => $this->input,
-                            'name' => $this->access_code,
-                            'user_id' => $this->user_id,
-                            'history_id' => $this->history_id * ($this->channel == $this->history_id ? 1 : -1),
-                            'openai_token' => $this->openai_token,
-                            'google_token' => $this->google_token,
-                            'nim_token' => $this->nim_token,
-                            'third_party_token' => $this->third_party_token,
-                            'user_token' => $this->user_token,
-                            'modelfile' => $this->modelfile,
-                        ],
-                        'stream' => true,
-                    ]);
-                    $stream = $response->getBody();
-                    $buffer = new Utf8Buffer();
-                    $insideTag = false;
-                    $cache = false;
-                    $cached = '';
-                    while (!$stream->eof()) {
-                        $chunk = \GuzzleHttp\Psr7\Utils::readLine($stream);
-                        // Extract text response from SSE data
-                        if (str_starts_with($chunk, "data: ")){
-                            $json = substr($chunk, strlen("data: "));
-                            $resp = json_decode($json, true);
-                            $resp_chunks = $resp['delta'] ?? array();
-                            $chunk = "";
-                            foreach($resp_chunks as $resp_chunk){
-                                $type = $resp_chunk["type"] ?? null;
-                                switch ($type) {
-                                    case 'text':
-                                        $chunk .= $resp_chunk["text"]["value"] ?? '';
-                                        break;
-                                    case 'log':
-                                        $chunk .= "\n[" . ($resp_chunk["log"]["level"] ?? '') . "] " . ($resp_chunk["log"]["text"] ?? '');
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                        }
-                        $buffer->addChunk($chunk);
-                        $message = $buffer->processBuffer();
-                        if ($message === "") continue;
-                        if ($this->channel != $this->history_id) {
-                            $tmp .= $message;
-                            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
-                        } else {
-                            if (str_starts_with($message, '<') && !$cache) {
-                                $cache = true;
-                            }
-                            if (!$cache) {
-                                $tmp .= $message;
-                                $outputTmp = $tmp . '...';
-                                if ($kuwa_flag) {
-                                    $outputTmp .= "\n\n[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]";
-                                }
-                                if ($warningMessages) {
-                                    $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
-                                }
-
-                                Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
-                            } else {
-                                //start caching
-                                $cached .= $message;
-                                if (!(strpos('<<<WARNING>>>', $cached) !== false || strpos($cached, '<<<WARNING>>>') !== false)) {
-                                    $cache = false;
-                                    $tmp .= $cached;
-                                    $outputTmp = $tmp;
-                                    if ($this->channel == $this->history_id) {
-                                        $outputTmp .= '...';
-                                    }
-                                    if ($kuwa_flag && $this->channel == $this->history_id) {
-                                        $outputTmp .= "\n\n[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]";
-                                    }
-                                    if ($warningMessages) {
-                                        $outputTmp .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
-                                    }
-
-                                    if ($this->channel != $this->history_id) {
-                                        // Loop over each character in the UTF-8 string
-                                        for ($i = 0; $i < mb_strlen($outputTmp, 'UTF-8'); $i++) {
-                                            // Get the current character
-                                            $char = mb_substr($outputTmp, $i, 1, 'UTF-8');
-                                            // Publish the character to Redis
-                                            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $char]));
-                                        }
-                                    } else {
-                                        Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputTmp]));
-                                    }
-                                    $cached = '';
-                                } elseif ($message === '>' && (str_ends_with($cached, '<<</WARNING>>>') || str_ends_with($cached, '<<<\/WARNING>>>'))) {
-                                    $warningMessages[] = trim(str_replace(['<<<WARNING>>>', '<<</WARNING>>>', '<<<\/WARNING>>>'], '', $cached));
-                                    $cache = false;
-                                    $cached = '';
-                                }
-                            }
-                        }
-                        /*if (mb_strlen($tmp) > 3500) {
-                            break;
-                        }*/
-                    }
-
-                    if (trim($tmp) == '' && empty($warningMessages)) {
-                        $tmp = '[Oops, the LLM returned empty message, please try again later or report to admins!]';
-                    } else {
-                        if ($this->channel != $this->history_id) {
-                            Redis::publish($this->channel, 'Ended Ended');
-                        } elseif ($kuwa_flag) {
-                            $tmp .= "\n\n[Regarding the introduction of Kuwa, please refer to the information on the official kuwaai.org website.]";
-                        }
-                    }
-                } catch (Exception $e) {
-                    if ($this->channel != $this->history_id) {
-                        $text = '\n[Sorry, something is broken, please try again later!]';
-                        // Loop over each character in the UTF-8 string
-                        for ($i = 0; $i < mb_strlen($text, 'UTF-8'); $i++) {
-                            // Get the current character
-                            $char = mb_substr($text, $i, 1, 'UTF-8');
-                            // Publish the character to Redis
-                            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $char]));
-                        }
-                    } else {
-                        Redis::publish($this->channel, 'New ' . json_encode(['msg' => $tmp . '\n[Sorry, something is broken, please try again later!]']));
-                    }
-                    $tmp .= "\n[Sorry, something is broken, please try again later!]";
-
-                    Log::channel('analyze')->Debug('failJob ' . $this->history_id);
-                } finally {
-                    try {
-                        if ($this->channel == $this->history_id) {
-                            $history = Histories::find($this->history_id);
-                            if ($history != null) {
-                                $result = trim(preg_replace('#<<<WARNING>>>.*?<<</WARNING>>>#s', '', $tmp));
-                                if ($warningMessages) {
-                                    $result .= '<<<WARNING>>>' . implode("\n", $warningMessages) . '<<</WARNING>>>';
-                                }
-                                $history->fill(['msg' => $result]);
-                                $history->save();
-                                $tmp = $result;
-                            }
-                        }
-                    } catch (Exception $e) {
-                    }
-
-                    $end = microtime(true);
-                    $elapsed = $end - $start;
-                    Log::channel('analyze')->Info('Out:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . $elapsed . '|' . strlen(trim($tmp)) . '|' . Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->diffInSeconds(Carbon::now()) . '|' . $tmp);
-
-                    if ($this->channel == $this->history_id) {
-                        $msgTimeInSeconds = Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->timestamp;
-                        $currentTimeInSeconds = Carbon::now()->timestamp;
-                        $ExecutionTime = $currentTimeInSeconds - $msgTimeInSeconds;
-                        if ($this->exit_when_finish) {
-                            Redis::lrem(($this->channel == $this->history_id ? 'usertask_' : 'api_') . $this->user_id, 0, $this->history_id);
-                        }
-                        Redis::publish($this->channel, 'New ' . json_encode(['msg' => trim($tmp)]));
-                        if ($this->exit_when_finish) {
-                            Redis::publish($this->channel, 'Ended Ended');
-                        }
-                    } else {
-                        Redis::lrem(($this->channel == $this->history_id ? 'usertask_' : 'api_') . $this->user_id, 0, $this->history_id);
                     }
                 }
-            }
-        } catch (\Throwable $e) {
-            Log::channel('analyze')->Info('Failed job: ' . $this->channel);
-            Log::channel('analyze')->Info($e->getMessage());
-            $history = Histories::find($this->history_id);
-            if ($history != null) {
-                $history->fill(['msg' => '[Sorry, something is broken, please try again later!]']);
-                $history->save();
-            }
-            Redis::publish($this->channel, 'New ' . json_encode(['msg' => '[Sorry, something is broken, please try again later!]']));
-            Redis::publish($this->channel, 'Ended Ended');
-            Redis::lrem(($this->channel == $this->history_id ? 'usertask_' : 'api_') . $this->user_id, 0, $this->history_id);
-
-            $msgTimeInSeconds = Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->timestamp;
-            $currentTimeInSeconds = Carbon::now()->timestamp;
-            $ExecutionTime = $currentTimeInSeconds - $msgTimeInSeconds;
-
-            if ($ExecutionTime < 5) {
-                sleep(5 - $ExecutionTime);
+                $buffer->addChunk($chunk);
+                $message = $buffer->processBuffer();
+                if ($message === "") continue;
+                $outputChunk = $chatroomProcessor->addChunk($message);
+                if ($this->app_type == AppType::API) {
+                    Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
+                } elseif ($this->app_type == AppType::CHATROOM) {
+                    Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputChunk]));
+                }
             }
 
-            Redis::publish($this->channel, 'New ' . json_encode(['msg' => '[Sorry, something is broken, please try again later!]']));
-            Redis::publish($this->channel, 'Ended Ended');
+            if (trim($chatroomProcessor->getOutputChunk(finalize: true)) == '') {
+                $chatroomProcessor->addChunk(WarningMessages::EMPTY_RESPONSE);
+            }
+        } catch (KuwaKernelException $e) {
+            $this->endStreamWithMessage($e->getMessage());
+        } finally {
+            $end = microtime(true);
+            $elapsed = $end - $start;
+            $fullOutput = $chatroomProcessor->getOutputChunk(finalize: true);
+            Log::channel('analyze')->Info('Out:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . $elapsed . '|' . strlen(trim($fullOutput)) . '|' . Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->diffInSeconds(Carbon::now()) . '|' . $fullOutput);
+
+            $finalOutput = "";
+            if ($this->app_type == AppType::CHATROOM) {
+                $finalOutput = $fullOutput;
+            }
+            $this->endStreamWithMessage(msg: $finalOutput, exitCode: $executorExitCode);
         }
     }
     public function failed(\Throwable $exception)
     {
-        if ($this->channel == '') {
-            $this->channel .= $this->history_id;
-        }
         Log::channel('analyze')->Info('Failed job: ' . $this->channel);
+        Log::channel('analyze')->Info($exception->getMessage());
+        $this->endStreamWithMessage(WarningMessages::DEFAULT_ERROR);
+    }
 
-        $history = Histories::find($this->history_id);
-        if ($history != null) {
-            $history->fill(['msg' => '[Sorry, something is broken, please try again later!]']);
-            $history->save();
+    private function endStreamWithMessage($msg, $exitCode = null)
+    {
+        if (!empty($msg)) {
+            $history = Histories::find($this->history_id);
+            if ($history != null) {
+                $history->fill(['msg' => $msg]);
+                $history->save();
+            }
         }
-        Redis::lrem(($this->channel == $this->history_id ? 'usertask_' : 'api_') . $this->user_id, 0, $this->history_id);
+        $msgTimeInSeconds = Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->timestamp;
+        $currentTimeInSeconds = Carbon::now()->timestamp;
+        $ExecutionTime = $currentTimeInSeconds - $msgTimeInSeconds;
 
-        Redis::publish($this->channel, 'New ' . json_encode(['msg' => '[Sorry, something is broken, please try again later!]']));
-        Redis::publish($this->channel, 'Ended Ended');
+        if (!empty($msg) || !is_null($exitCode)) {
+            $sseGuardingTimeInSeconds = 5;
+            if ($ExecutionTime < $sseGuardingTimeInSeconds && $this->app_type == AppType::CHATROOM) {
+                sleep($sseGuardingTimeInSeconds - $ExecutionTime);
+            }
+
+            Redis::publish($this->channel, 'New ' . json_encode(['msg' => $msg, 'exit_code' => $exitCode]));
+        }
+        if ($this->exit_when_finish) {
+            Redis::publish($this->channel, 'Ended Ended');
+            Redis::lrem($this->job_queue_id, 0, $this->history_id);
+        }
+    }
+
+    private function tryScheduleJob()
+    {
+        $client = new Client(['timeout' => 300]);
+        $response = $client->post($this->kernel_location . '/' . self::$kernel_api_version . '/worker/schedule', [
+            'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
+            'form_params' => [
+                'name' => $this->access_code,
+                'history_id' => $this->history_id * ($this->app_type == AppType::CHATROOM ? 1 : -1),
+                'user_id' => $this->user_id,
+            ],
+            'stream' => true,
+        ]);
+        $state = trim($response->getBody()->getContents());
+        return match (strtoupper($state)) {
+            'BUSY' => JobScheduleResult::BUSY,
+            'NOMACHINE' => JobScheduleResult::NOMACHINE,
+            'READY' => JobScheduleResult::READY,
+            default => JobScheduleResult::UNKNOWN, // Or throw an exception if the state should be one of the above
+        };
     }
 }
+
 
 class Utf8Buffer
 {
@@ -447,5 +352,131 @@ class Utf8Buffer
     public function getRemainingBuffer(): string
     {
         return $this->buffer;
+    }
+}
+
+function try_decode_json(string $jsonString): array
+{
+    $decodedJson = json_decode($jsonString);
+
+    if ($decodedJson === false && json_last_error() !== JSON_ERROR_NONE) {
+        Log::channel('analyze')->Info("JSON decode error.\n" . $jsonString);
+        throw new \RuntimeException("JSON decode error.");
+    }
+
+    return $decodedJson;
+}
+
+class ChatroomProcessor
+{
+    /**
+     * A processor to process the input from chatroom and format the executor response of multi-chat chatroom.
+     * It handles input sanitization, warning message extraction, and output formatting for a multi-chat application.
+     */
+    public static $inputFilters = [
+        WarningMessages::DEFAULT_ERROR,
+        WarningMessages::NO_EXECUTOR,
+        WarningMessages::EMPTY_RESPONSE,
+        WarningMessages::KUWA_WARNING,
+        WarningMessages::KUWA_WARNING_ZH,
+    ];
+
+    private $bufferEnabled = false;
+    private $warningBuffer = "";
+    private $fullOutput = "";
+    private $kuwaFlag = false;
+    private $warningMessages = [];
+
+    /**
+     * Rectifies and cleans the input message by:
+     * 1. Decoding the JSON string into an array of message records.
+     * 2. Iterating through each record and removing predefined filter strings from the message content.
+     * 3. Removing warning messages generated by bots (identified by `isbot` flag).
+     * 4. Setting the `kuwaFlag` based on the presence of "kuwa" (case-insensitive) in the last user message
+     *    and the absence of a safety guard location setting.
+     * 5. Encoding the modified array back into a JSON string.
+     *
+     * @param string $messageString The JSON string containing the messages to rectify.
+     * @return string The rectified JSON string.
+     */
+    public function rectifyInputMessage(string $messageString): string
+    {
+        $decodedMessages = try_decode_json($messageString);
+
+        foreach ($decodedMessages as $record) {
+            foreach (self::$inputFilters as $filter) {
+                if (strpos($record->msg, $filter) !== false) {
+                    $record->msg = trim(str_replace($filter, '', $record->msg));
+                }
+            }
+            if ($record->isbot) {
+                $record->msg = preg_replace('#<<<WARNING>>>.*?<<</WARNING>>>#s', '', $record->msg);
+            }
+        }
+        $lastUserMessage = collect($decodedMessages)->where('isbot', false)->last();
+        $this->kuwaFlag = (
+            $lastUserMessage !== null &&
+            strpos(strtoupper($lastUserMessage->msg), strtoupper('kuwa')) !== false &&
+            trim(\App\Models\SystemSetting::where('key', 'safety_guard_location')->first()->value) === ''
+        );
+
+        return json_encode($decodedMessages);
+    }
+
+    /**
+     * Processes a single chunk of the raw output stream from the executor.
+     *
+     * It appends the chunk to the main output (`$fullOutput`) unless it detects
+     * the potential start of a warning tag ('<<<WARNING>>>'). If a warning tag is
+     * suspected or being processed, chunks are added to `$warningBuffer` until
+     * the closing tag ('<<</WARNING>>>') is found or it's determined not to be a warning.
+     * Extracted warnings are stored in `$warningMessages`.
+     *
+     * @param string $chunk A segment of the executor's output stream.
+     * @return string The current state of the processed output, suitable for streaming.
+     */
+    public function addChunk(string $chunk): string
+    {
+        if (str_starts_with($chunk, '<') && !$this->bufferEnabled) {
+            $this->bufferEnabled = true;
+        }
+
+        if (!$this->bufferEnabled) {
+            $this->fullOutput .= $chunk;
+        } else {
+            $this->warningBuffer .= $chunk;
+            if (strpos('<<<WARNING>>>', $this->warningBuffer) === false && strpos($this->warningBuffer, '<<<WARNING>>>') === false) {
+                $this->fullOutput .= $this->warningBuffer;
+                $this->warningBuffer = '';
+                $this->bufferEnabled = false;
+            } elseif (str_ends_with($this->warningBuffer, '<<</WARNING>>>') || str_ends_with($this->warningBuffer, '<<<\/WARNING>>>')) {
+                $this->warningMessages[] = trim(str_replace(['<<<WARNING>>>', '<<</WARNING>>>', '<<<\/WARNING>>>'], '', $this->warningBuffer));
+                $this->warningBuffer = '';
+                $this->bufferEnabled = false;
+            }
+        }
+        return $this->getOutputChunk();
+    }
+
+    /**
+     * Gets the current state of the formatted output chunk.
+     *
+     * This combines the main accumulated output (`$fullOutput`), appends "..." if the stream
+     * is not finalized, adds the KUWA warning if the `$kuwaFlag` is set, and appends all
+     * extracted warning messages (`$warningMessages`) enclosed in '<<<WARNING>>>' tags.
+     *
+     * @param bool $finalize If true, indicates this is the final chunk and "..." should not be appended. Defaults to false.
+     * @return string The formatted output string ready for display or further processing.
+     */
+    public function getOutputChunk(bool $finalize = false): string
+    {
+        $outputChunk = $this->fullOutput . ($finalize ? '' : '...');
+        if ($this->kuwaFlag) {
+            $outputChunk .= "\n\n" . WarningMessages::KUWA_WARNING;
+        }
+        if ($this->warningMessages) {
+            $outputChunk .= '<<<WARNING>>>' . implode("\n", $this->warningMessages) . '<<</WARNING>>>';
+        }
+        return $outputChunk;
     }
 }

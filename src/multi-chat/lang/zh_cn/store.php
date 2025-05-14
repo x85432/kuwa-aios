@@ -61,6 +61,7 @@ return [
     'bot.type' => '类型',
     'bot.type.desc.prompt' => '提示词机器人：通过提供提示词创建机器人',
     'bot.type.desc.server' => '服务器机器人：连接现有外部应用',
+    'bot.type.desc.agent' => '代理式Bot：串接多步骤应用流程',
     'bot.server_url' => '外部应用地址',
     'bot.server_url.label' => '外部应用URL',
     'bot.output_bot' => '输出Bot',
@@ -69,5 +70,6 @@ return [
     'bot.input_bot.label' => '选择输入Bot，负责处理用户输入',
     'bot.process_bot' => '处理机器人/基础模型',
     'bot.process_bot.label' => '选择基础模型',
-    'bot.type.desc.agent' => '代理式Bot：串接多步骤应用流程',
+    'bot.script' => '工作流程脚本',
+    'bot.script.label' => '自定义工作流程',
 ];
