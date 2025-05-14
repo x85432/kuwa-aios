@@ -14,6 +14,7 @@ from async_lru import alru_cache
 from mcp import ClientSession, StdioServerParameters
 from mcp.types import TextContent, CallToolResult
 from mcp.client.stdio import stdio_client
+from mcp.client.streamable_http import streamablehttp_client
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -26,34 +27,51 @@ logger = logging.getLogger(__name__)
 class Server:
     """Manages MCP server connections and tool execution."""
 
-    def __init__(self, name: str, command: str, cmd_args: str) -> None:
+    def __init__(self, name: str) -> None:
         self.name: str = name
-        self.command: str = command
-        self.cmd_args: str = shlex.split(cmd_args)
-        self.stdio_context: Any | None = None
         self.session: ClientSession | None = None
         self._cleanup_lock: asyncio.Lock = asyncio.Lock()
         self.exit_stack: AsyncExitStack = AsyncExitStack()
 
-    async def initialize(self) -> None:
-        """Initialize the server connection."""
-        server_params = StdioServerParameters(
-            command=self.command, args=self.cmd_args, env=None
-        )
+    async def init_stdio(self, command: str, cmd_args: str) -> None:
+        self.command: str = command
+        self.cmd_args: str = shlex.split(cmd_args)
+        self.stdio_context: Any | None = None
+        self.url = None
         try:
+            server_params = StdioServerParameters(
+                command=self.command, args=self.cmd_args, env=None
+            )
             stdio_transport = await self.exit_stack.enter_async_context(
                 stdio_client(server_params)
             )
-            read, write = stdio_transport
-            session = await self.exit_stack.enter_async_context(
-                ClientSession(read, write)
-            )
-            await session.initialize()
-            self.session = session
+            read_stream, write_stream = stdio_transport
+            await self._init_session(read_stream, write_stream)
         except Exception as e:
-            logger.exception(f"Error initializing server {self.name}")
+            logger.exception(f"Error initializing STDIO server {self.name}")
             await self.cleanup()
             raise
+
+    async def init_sse(self, url: str) -> None:
+        self.url: str = url
+        try:
+            sse_transport= await self.exit_stack.enter_async_context(
+                streamablehttp_client(self.url)
+            )
+            read_stream, write_stream, _ = sse_transport
+            await self._init_session(read_stream, write_stream)
+        except Exception as e:
+            logger.exception(f"Error initializing SSE server {self.name}")
+            await self.cleanup()
+            raise
+
+    async def _init_session(self, read_stream, write_stream) -> None:
+        """Initialize the server connection."""
+        session = await self.exit_stack.enter_async_context(
+            ClientSession(read_stream, write_stream)
+        )
+        await session.initialize()
+        self.session = session
 
     @alru_cache
     async def list_tools(self) -> list[Any]:
@@ -213,6 +231,11 @@ class McpClientExecutor(LLMExecutor):
             default="",
             help="Command arguments of the MCP server.",
         )
+        parser.add_argument(
+            "--mcp_server_url",
+            default=None,
+            help="URL of the MCP server.",
+        )
 
     def setup(self):
         self.stop = False
@@ -222,12 +245,18 @@ class McpClientExecutor(LLMExecutor):
         server_args = modelfile.parameters["mcp_"].get(
             "args", self.args.mcp_server_args
         )
+        server_url = modelfile.parameters["mcp_"].get(
+            "url", self.args.mcp_server_url
+        )
         server_name = modelfile.parameters["mcp_"].get("server_name", "default_server")
-        server = Server(name=server_name, command=server_cmd, cmd_args=server_args)
+        server = Server(name=server_name)
         is_bypassed = False
         try:
             try:
-                await server.initialize()
+                if server_url is not None:
+                    await server.init_sse(url=server_url)
+                else:
+                    await server.init_stdio(command=server_cmd, cmd_args=server_args)
             except Exception:
                 logger.exception("Failed to initialize MCP server.")
                 raise
@@ -253,7 +282,9 @@ class McpClientExecutor(LLMExecutor):
             raise
         finally:
             # Ues exit code to direct Agent workflow
-            exit_code=ExitCodeChunk.COMPLETE if is_bypassed else ExitCodeChunk.INCOMPLETE
+            exit_code = (
+                ExitCodeChunk.COMPLETE if is_bypassed else ExitCodeChunk.INCOMPLETE
+            )
             logger.debug(f"Exit code: {exit_code}")
             yield ExitCodeChunk(exit_code=exit_code)
             await server.cleanup()
