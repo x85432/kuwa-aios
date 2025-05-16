@@ -21,7 +21,7 @@ class KuwaClient:
         self,
         base_url=None,
         kernel_base_url="http://localhost:9000",
-        model=None,
+        model=".bot/.def",
         auth_token=None,
         limit: int = 3072,
     ):
