@@ -173,8 +173,6 @@ if defined web_started (
     goto skip_web
 )
 
-REM Start web
-start http://127.0.0.1
 REM Remake public/storage
 pushd "%~dp0..\src\multi-chat"
 rmdir /Q /S "public\storage"
@@ -210,6 +208,10 @@ set "web_started=True"
 :skip_web
 
 start /b src\import_bots.bat
+
+REM Start web, Waited 10 seconds to prevent red dot issue
+timeout /t 10 >nul
+start http://127.0.0.1
 
 REM Loop to wait for commands
 :loop
