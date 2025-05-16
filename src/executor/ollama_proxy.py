@@ -14,7 +14,16 @@ from PIL import Image
 from io import BytesIO
 
 from kuwa.executor import LLMExecutor, Modelfile
-from kuwa.executor.llm_executor import rectify_chat_history, extract_last_url
+from kuwa.executor.llm_executor import (
+    rectify_chat_history,
+    extract_last_url,
+    extract_user_attachment,
+)
+from kuwa.executor.multi_modality import (
+    get_supported_image_mime,
+    fetch_image,
+    image_to_data_url
+)
 from kuwa.executor.util import (
     read_config,
     merge_config,
@@ -177,35 +186,21 @@ class OllamaExecutor(LLMExecutor):
         jinja_env.globals["raise_exception"] = raise_exception
         return jinja_env.from_string(chat_template)
 
-    @lru_cache
-    def get_supported_image_mime(self):
-        def ext2mime(ext):
-            return mimetypes.guess_type(f"a{ext}")[0]
-
-        exts = Image.registered_extensions()
-        exts = {ex for ex, f in exts.items() if f in Image.OPEN}
-        mimes = {ext2mime(ex) for ex in exts} - {None}
-        return mimes
-
-    def fetch_images(self, urls: str, output_format="PNG"):
-        if not urls or any(map(lambda x: not x or x == "", urls)):
-            return []
-
-        images = []
-        for url in urls:
-            content_type = requests.head(url, allow_redirects=True).headers[
-                "content-type"
-            ]
-            if content_type not in self.get_supported_image_mime():
-                continue
-            image = Image.open(requests.get(url, stream=True, allow_redirects=True).raw)
-            logger.info(f"Image {url} fetched. Converting to {output_format} format...")
-
-            byte_stream = BytesIO()
-            image.save(byte_stream, format=output_format)
-            images.append(byte_stream.getvalue())
-            logger.info(f"Image converted. ({len(byte_stream.getvalue())} bytes)")
-        return images
+    def to_multi_modality_history(self, history):
+        history = extract_user_attachment(
+            history, allowed_mime_type=get_supported_image_mime()
+        )
+        multi_modality_history = []
+        for msg in history:
+            multi_modality_msg = {"role": msg["role"], "content": msg["content"]}
+            if "attachments" in msg.keys():
+                images = [
+                    image_to_data_url(fetch_image(i["url"]), add_prefix=False)
+                    for i in msg["attachments"]
+                ]
+                multi_modality_msg["images"] = images
+            multi_modality_history.append(multi_modality_msg)
+        return multi_modality_history
 
     def synthesis_prompt(self, history: list, template: str):
         """
@@ -261,10 +256,8 @@ class OllamaExecutor(LLMExecutor):
                 prompt = self.synthesis_prompt(history, modelfile.template)
                 logger.debug(f"Prompt: {prompt}")
             else:
+                history = self.to_multi_modality_history(history)
                 logger.debug(f"History: {history}")
-                url, _ = extract_last_url(history)
-                images = self.fetch_images([url])
-                history[-1]["images"] = images
 
             # [TODO] Trim the history to fit into the context window
 

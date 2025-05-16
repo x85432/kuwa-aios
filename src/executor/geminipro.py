@@ -5,6 +5,7 @@ import asyncio
 import logging
 import pprint
 from textwrap import dedent
+from typing import List, Dict
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import google.generativeai as genai
@@ -15,7 +16,12 @@ import hashlib
 import tempfile
 
 from kuwa.executor import LLMExecutor, Modelfile
-from kuwa.executor.llm_executor import extract_last_url, rectify_chat_history
+from kuwa.executor.multi_modality import get_supported_image_mime, fetch_image, convert_image
+from kuwa.executor.llm_executor import (
+    rectify_chat_history,
+    extract_user_attachment,
+)
+from kuwa.executor.cache import lru_cache_with_ttl
 from kuwa.executor.util import (
     expose_function_parameter,
     read_config,
@@ -106,6 +112,24 @@ class GeminiExecutor(LLMExecutor):
     no_system_prompt: bool = False
     limit: int = 30720
     generation_config: dict = {}
+    # Ref: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#blob
+    supported_mime_types = [
+        "application/pdf",
+        "text/plain",
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/wav",
+        "image/png",
+        "image/jpeg",
+        "video/mov",
+        "video/mpeg",
+        "video/mp4",
+        "video/mpg",
+        "video/avi",
+        "video/wmv",
+        "video/mpegps",
+        "video/flv",
+    ]
 
     def __init__(self):
         super().__init__()
@@ -187,76 +211,62 @@ class GeminiExecutor(LLMExecutor):
 
         self.proc = False
 
-    async def count_token(self, messages: list):
-        contents = [m["parts"][0]["text"] for m in messages]
+    async def count_token(self, messages: List):
+        contents = [
+            p["text"] for m in messages for p in m["parts"] if "text" in p.keys()
+        ]
         check_resp = await self.model.count_tokens_async(contents=contents)
         return check_resp.total_tokens
 
-    def fetch_attachment(self, url: str):
-        # Ref: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#blob
-        supported_mime_types = [
-            "application/pdf",
-            "text/plain",
-            "audio/mpeg",
-            "audio/mp3",
-            "audio/wav",
-            "image/png",
-            "image/jpeg",
-            "video/mov",
-            "video/mpeg",
-            "video/mp4",
-            "video/mpg",
-            "video/avi",
-            "video/wmv",
-            "video/mpegps",
-            "video/flv",
-        ]
-
-        mime_type = None
+    @lru_cache_with_ttl()
+    def fetch_attachment(self, url: str, mime_type: str):
         content = None
-        if url is not None and url != "":
-            mime_type = requests.head(url, allow_redirects=True).headers["content-type"]
-            if mime_type in supported_mime_types:
-                content = requests.get(url, stream=True, allow_redirects=True).content
+        try:
+            if url is None or url == "":
+                raise ValueError("URL is None or empty")
+            if mime_type in get_supported_image_mime():
+                img = fetch_image(url)
+                content = convert_image(img)
+            else:
+                response = requests.get(url, stream=True, allow_redirects=True)
+                response.raise_for_status()
+                content = response.content
             logger.info("Attachment fetched.")
+        except Exception:
+            logger.exception(f"Error fetching attachment {url}")
 
-        return mime_type, content
+        finally:
+            return content
 
-    async def parse_messages(
-        self, msgs: [dict], enable_multimodal: bool, file_store: GoogleFileStore
-    ):
+    async def parse_messages(self, msgs: List[Dict], file_store: GoogleFileStore):
         """
         Parse multi-modal messages from chat history.
         """
         result = []
+        msgs = extract_user_attachment(
+            msgs, allowed_mime_type=self.supported_mime_types + list(get_supported_image_mime())
+        )
         for msg in msgs:
             new_msg = {
                 "parts": [],
                 "role": {"user": "user", "assistant": "model"}[msg["role"]],
             }
-            if enable_multimodal:
-                url, text = extract_last_url([msg])
-                mime_type, file_content = self.fetch_attachment(url)
+            for attachment in msg.get("attachments", []):
+                file_content = self.fetch_attachment(url=attachment["url"], mime_type=attachment["mime_type"])
+                if file_content is None:
+                    continue
                 new_msg["parts"].append(
                     {
-                        "text": text[0]["content"]
-                        .encode("utf-8", "ignore")
-                        .decode("utf-8")
+                        "file_data": {
+                            "mime_type": attachment["mime_type"],
+                            "file_uri": (
+                                await file_store.upload_file(
+                                    file_content, attachment["mime_type"]
+                                )
+                            ).uri,
+                        }
                     }
                 )
-                if file_content is not None:
-                    new_msg["parts"].append(
-                        {
-                            "file_data": {
-                                "mime_type": mime_type,
-                                "file_uri": (
-                                    await file_store.upload_file(
-                                        file_content, mime_type
-                                    )
-                                ).uri,
-                            }
-                        }
-                    )
             new_msg["parts"].append(
                 {"text": msg["content"].encode("utf-8", "ignore").decode("utf-8")}
             )
@@ -268,9 +278,6 @@ class GeminiExecutor(LLMExecutor):
         try:
             google_token = (
                 modelfile.parameters["_"].get("google_token") or self.args.api_key
-            )
-            enable_multimodal = modelfile.parameters["llm_"].get(
-                "enable_multimodal", self.args.multimodal
             )
             model_name = modelfile.parameters["llm_"].get("model", self.model_name)
             file_store = GoogleFileStore(google_token)
@@ -284,14 +291,15 @@ class GeminiExecutor(LLMExecutor):
 
             # Apply parsed modelfile data to Inference
             raw_inputs = modelfile.messages + history
-            msg = await self.parse_messages(raw_inputs, enable_multimodal, file_store)
-            msg[-1]["parts"][0]["text"] = (
-                modelfile.before_prompt
-                + msg[-1]["parts"][0]["text"]
-                + modelfile.after_prompt
+            msg = await self.parse_messages(raw_inputs, file_store)
+            last_text_part = next(
+                filter(lambda x: "text" in x.keys(), msg[-1]["parts"])
             )
-            msg[0]["parts"][0]["text"] = (
-                override_system_prompt + msg[0]["parts"][0]["text"]
+            last_text_part["text"] = (
+                override_system_prompt
+                + modelfile.before_prompt
+                + last_text_part["text"]
+                + modelfile.after_prompt
             )
 
             if not google_token or len(google_token) == 0:
@@ -300,6 +308,7 @@ class GeminiExecutor(LLMExecutor):
 
             genai.configure(api_key=google_token)
             self.model = genai.GenerativeModel(model_name)
+            logger.debug(f"msg: {msg}")
 
             # Trim the history to fit into the context window
             while await self.count_token(msg) > self.limit:
@@ -342,9 +351,8 @@ class GeminiExecutor(LLMExecutor):
                     print(end=chunk, flush=True)
                 if not self.proc:
                     break
-        except Exception as e:
-            logger.exception("Error occurs when calling Gemini-Pro API.")
-            yield str(e)
+        except Exception:
+            raise
         finally:
             await file_store.delete_all_files()
             self.proc = False

@@ -2,11 +2,12 @@ import re
 import json
 import logging
 import requests
+import time
 from fnmatch import fnmatch
-from functools import lru_cache
 from collections.abc import Iterable
 from .base_executor import BaseExecutor
 from .modelfile import Modelfile
+from .cache import lru_cache_with_ttl
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +101,7 @@ def extract_last_url(chat_history: list[dict]) -> (str, list[dict]):
     return url, trimmed_chat_history
 
 
-@lru_cache
+@lru_cache_with_ttl()
 def get_mime_type(url):
     try:
         response = requests.head(url, allow_redirects=True)
@@ -111,7 +112,6 @@ def get_mime_type(url):
         logger
         mime_type = None
     return mime_type
-
 
 def extract_user_attachment(
     chat_history: list[dict], allowed_mime_type: Iterable = []
@@ -131,7 +131,7 @@ def extract_user_attachment(
         text_content = record["content"]
         pos = 0
         attachments = []
-        while (url_match := re.search(URL_REGEX, text_content[pos:])) is not None:
+        while (url_match := re.search(URL_REGEX, text_content[pos:], flags=re.IGNORECASE)) is not None:
             url, url_begin_pos, url_end_pos = url_match.group(), url_match.start(), url_match.end()
             mime_type = get_mime_type(url)
             if mime_type is not None:
