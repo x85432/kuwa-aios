@@ -176,19 +176,17 @@ begin
     SaveStringToFile(InitFile, InitContent, False);
   end;
 end;
-function IsValidEmail(strEmail : String) : boolean;
+function IsValidEmail(strEmail: String): Boolean;
 var
-    strTemp  : String;
-    nSpace   : Integer;
-    nAt      : Integer;
-    nDot     : Integer;
+  nSpace: Integer;
+  nAt: Integer;
 begin
-    strEmail := Trim(strEmail);
-    nSpace := Pos(' ', strEmail);
-    nAt := Pos('@', strEmail);
-    strTemp := Copy(strEmail, nAt + 1, Length(strEmail) - nAt + 1);
-    nDot := Pos('.', strTemp) + nAt;
-    Result := ((nSpace = 0) and (1 < nAt) and (nAt + 1 < nDot) and (nDot < Length(strEmail)));
+  strEmail := Trim(strEmail);
+  nSpace := Pos(' ', strEmail);
+  nAt := Pos('@', strEmail);
+
+  // Valid if: no spaces, has an '@' not at start or end
+  Result := (nSpace = 0) and (nAt > 1) and (nAt < Length(strEmail));
 end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
