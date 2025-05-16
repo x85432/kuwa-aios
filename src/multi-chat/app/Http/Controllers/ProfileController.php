@@ -448,12 +448,13 @@ class ProfileController extends Controller
         }
 
         $is_calling_bot = str_starts_with($jsonData['model'], self::BOT_PREFIX);
+        $bot_name = substr($jsonData['model'], strlen(self::BOT_PREFIX));
         
         $llm = LLMs::where('access_code', '=', $jsonData['model']);
-        $bot = Bots::where('bots.name', '=', $is_calling_bot ? substr($jsonData['model'], strlen(self::BOT_PREFIX)) : '');
+        $bot = Bots::where('bots.name', '=', $is_calling_bot ? $bot_name : '');
         
         // Default bot
-        if($is_calling_bot && (substr($jsonData['model'], strlen(self::BOT_PREFIX)) == ".def")){
+        if($is_calling_bot && ($bot_name == ".def" || $bot_name == ".default")){
             $is_calling_bot = false;
             $llm = LLMs::select('*')->orderBy('order');
         }

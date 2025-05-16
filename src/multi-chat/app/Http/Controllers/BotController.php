@@ -541,7 +541,7 @@ class BotController extends Controller
         $bot_list = array_map($expose_bot, $bot_list);
         array_unshift($bot_list, array(
             "name" => trans('store.bot.default_bot'),
-            "value" => '.bot/.def'
+            "value" => '.bot/.default'
         ));
 
         return response()->json($bot_list);

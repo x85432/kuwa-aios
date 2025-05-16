@@ -17,7 +17,7 @@ PARAMETER retriever_mmr_fetch_k 12 # MMR fetch k chunks
 PARAMETER retriever_mmr_k 6 # MMR fetch k chunks
 PARAMETER retriever_chunk_size 512 # Length of each chunk in characters (not restricted for DatabaseQA)
 PARAMETER retriever_chunk_overlap 128 # Overlap length between chunks in characters (not restricted for DatabaseQA)
-PARAMETER generator_model ".bot/.def" # Specify which model to answer, ".bot/.def" means select the default bot
+PARAMETER generator_model ".bot/.default" # Specify which model to answer, ".bot/.default" means select the default bot
 PARAMETER generator_limit 3072 # Length limit of the entire prompt in characters
 PARAMETER display_hide_ref False # Do not show references
 PARAMETER crawler_user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" # Crawler UA string

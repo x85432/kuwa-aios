@@ -15,7 +15,7 @@ services:
       - multi-chat
     command: [
       "--api_base_url", "http://web/",
-      "--model", ".bot/.def",
+      "--model", ".bot/.default",
       "--log", "debug"
       ]
     volumes: [

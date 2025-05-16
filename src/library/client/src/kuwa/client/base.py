@@ -21,7 +21,7 @@ class KuwaClient:
         self,
         base_url=None,
         kernel_base_url="http://localhost:9000",
-        model=".bot/.def",
+        model=".bot/.default",
         auth_token=None,
         limit: int = 3072,
     ):
@@ -188,7 +188,7 @@ class KuwaClient:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {auth_token}",
         }
-        model = self.model if self.model is not None else ".bot/.def"
+        model = self.model if self.model is not None else ".bot/.default"
         logger.debug(f"Use model {model}")
         request_body = {"messages": messages, "model": model, "stream": streaming}
         if botfile is not None:

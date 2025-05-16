@@ -10,7 +10,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "Diagram Generator"
 KUWABOT base ".tool/kuwa/agent"
-INPUT-BOT ".bot/.def"
+INPUT-BOT ".bot/.default"
 INPUT-SUFFIX "Write a mermaid code. Without explanation."
 OUTPUT-BOT ".bot/Mermaid"
 PARAMETER agent_show_step_log True
