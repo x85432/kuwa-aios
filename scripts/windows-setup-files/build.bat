@@ -11,12 +11,13 @@ REM Paths to include (relative to ROOT_DIR)
 set REL_DIR1=src\multi-chat\node_modules
 set REL_DIR2=src\multi-chat\vendor
 set REL_DIR3=windows\packages
+set REL_DIR4=windows\cache
 
 REM Create zip using 7-Zip
 if "%1"=="zip" (
     echo Creating archive %ARCHIVE_NAME% using 7-Zip from %ROOT_DIR%...
     pushd %ROOT_DIR%
-    7z a -tzip "scripts/windows-setup-files/%ARCHIVE_NAME%" "%REL_DIR1%" "%REL_DIR2%" "%REL_DIR3%"
+    7z a -tzip "scripts/windows-setup-files/%ARCHIVE_NAME%" "%REL_DIR1%" "%REL_DIR2%" "%REL_DIR3%" "%REL_DIR4%"
     popd
     goto :eof
 )
