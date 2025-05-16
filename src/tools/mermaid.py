@@ -64,7 +64,7 @@ def mermaid_to_data_url(mermaid_script, argv):
         output_filename = input_filename[:-4] + ".svg"
 
         # Call mmdc to convert the Mermaid script to PNG
-        exec = "mmdc" if platform.system() == "Windows" else "mmdc"
+        exec = "mmdc.cmd" if platform.system() == "Windows" else "mmdc"
         cmd = [exec, "-i", input_filename, "-o", output_filename, "-e", "svg"] + argv
         logger.debug(f"`cmd: {cmd}`")
         subprocess.run(

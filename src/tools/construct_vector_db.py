@@ -140,7 +140,7 @@ async def create_bot(
     response = await client.create_bot(
         bot_name = bot_name,
         bot_description = "Created by \"Construct Vector DB\"",
-        llm_access_code = "db-qa",
+        llm_access_code = ".tool/kuwa/rag",
         modelfile = modelfile,
     )
     logger.info(f"Bot \"{bot_name}\" created successfully.")
