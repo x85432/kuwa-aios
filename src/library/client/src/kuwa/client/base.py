@@ -188,7 +188,7 @@ class KuwaClient:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {auth_token}",
         }
-        model = self.model if self.model is not None else await self.get_available_llm()
+        model = self.model if self.model is not None else ".bot/.def"
         logger.debug(f"Use model {model}")
         request_body = {"messages": messages, "model": model, "stream": streaming}
         if botfile is not None:

@@ -127,7 +127,7 @@ echo !command!>> run.bat
 echo popd>>run.bat
 
 REM kuwa-executor
-set command=start /b "" "python" !worker_path! "--access_code" "!EXECUTOR_ACCESS_CODE!" "--model" ".bot/.def"
+set command=start /b "" "python" !worker_path! "--access_code" "!EXECUTOR_ACCESS_CODE!"
 if DEFINED db_path (
     set command=!command! "--database" "!db_path!"
 )
