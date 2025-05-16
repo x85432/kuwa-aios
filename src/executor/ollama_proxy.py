@@ -49,7 +49,7 @@ class KwargsParser(argparse.Action):
 
 class OllamaExecutor(LLMExecutor):
     ollama_host: str = None
-    model_name: str = "llama3"
+    default_model_name: str = "gemma3:4b"
     limit: int = 1024 * 7
     context_window: int = 8192
     system_prompt: str = None
@@ -67,7 +67,7 @@ class OllamaExecutor(LLMExecutor):
         )
         model_group.add_argument(
             "--model",
-            default=self.model_name,
+            default=self.default_model_name,
             help="Model name. See https://ollama.com/library",
         )
         model_group.add_argument(
@@ -106,7 +106,7 @@ class OllamaExecutor(LLMExecutor):
 
     def setup(self):
         self.ollama_host = self.args.ollama_host
-        self.model_name = self.args.model
+        self.default_model_name = self.args.model
         self.context_window = self.args.context_window
         self.limit = self.args.limit
         self.system_prompt = self.args.system_prompt
@@ -131,24 +131,25 @@ class OllamaExecutor(LLMExecutor):
         self.client = ollama.AsyncClient(host=self.ollama_host)
 
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.prepare_model())
+        loop.run_until_complete(self.prepare_model(self.default_model_name))
 
         self.proc = False
 
-    async def prepare_model(self):
+    async def prepare_model(self, model_name):
         try:
-            await self.client.show(self.model_name)
+            logger.info(f'Preparing model "{model_name}"')
+            await self.client.show(model_name)
         except ollama.ResponseError as e:
-            logger.warning(f"Error querying model {self.model_name}: {e.error}")
+            logger.warning(f"Error querying model {model_name}: {e.error}")
             if e.status_code == 404:
-                logger.info(f"Model {self.model_name} not found. Trying to pull it.")
-                await self.pull_model()
+                logger.info(f"Model {model_name} not found. Trying to pull it.")
+                await self.pull_model(model_name)
 
-    async def pull_model(self):
-        progress = await self.client.pull(self.model_name, stream=True)
+    async def pull_model(self, model_name):
+        progress = await self.client.pull(model_name, stream=True)
         last_status_line = ""
         async for i in progress:
-            status_line = f"Pulling model {self.model_name}: {i['status']}"
+            status_line = f"Pulling model {model_name}: {i['status']}"
             if "completed" in i:
                 progress = int(i["completed"]) / int(i["total"])
                 status_line += " [{0: <10}] {1:.0f}%".format(
@@ -232,6 +233,9 @@ class OllamaExecutor(LLMExecutor):
 
     async def llm_compute(self, history: list[dict], modelfile: Modelfile):
         try:
+            model_name = modelfile.parameters["llm_"].get(
+                "model", self.default_model_name
+            )
             # Apply modelfile
             system_prompt = modelfile.override_system_prompt or self.system_prompt
             prepended_messages = rectify_chat_history(modelfile.messages)
@@ -265,9 +269,10 @@ class OllamaExecutor(LLMExecutor):
             # [TODO] Trim the history to fit into the context window
 
             self.proc = True
+            await self.prepare_model(model_name)
             if chat_mode:
                 response = await self.client.chat(
-                    model=self.model_name,
+                    model=model_name,
                     messages=history,
                     options=self.ollama_options,
                     stream=True,
@@ -275,7 +280,7 @@ class OllamaExecutor(LLMExecutor):
             else:
                 dummy_ollama_template = "{{ .Prompt }}{{ .Response }}"
                 response = await self.client.generate(
-                    model=self.model_name,
+                    model=model_name,
                     prompt=prompt,
                     options=self.ollama_options,
                     stream=True,
