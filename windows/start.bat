@@ -223,11 +223,13 @@ if /I "%userInput%"=="stop" (
 	call src\stop.bat
 ) else if /I "%userInput%"=="seed" (
     echo Running seed command...
-    call src\multi-chat\executables\bat\AdminSeeder.bat
+    pushd ..\src\multi-chat\executables\bat\
+    call AdminSeeder.bat
+    popd
     goto loop
 ) else if /I "%userInput%"=="hf login" (
     echo Running huggingface login command...
-    call src\migration\20240403_login_huggingface.bat
+    huggingface-cli.exe login
     goto loop
 ) else if /I "%userInput%"=="reload" (
     echo Reloading kernel and executors...
