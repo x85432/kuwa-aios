@@ -175,7 +175,7 @@
                     {{ __('store.bot.react_buttons') }}
                 </p>
 
-                @foreach (['Feedback', 'Translate', 'Quote', "Other"] as $label)
+                @foreach (['Feedback', 'Quote', "Other"] as $label)
                     @php $id = strtolower($label); @endphp
                     <div class="flex items-center">
                         <input id="{{ $id }}" name="react_btn[]" value="{{ $id }}" type="checkbox"

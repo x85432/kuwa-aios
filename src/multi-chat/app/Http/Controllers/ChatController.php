@@ -56,32 +56,6 @@ class ChatController extends Controller
         }
 
         $tmp = json_encode([['isbot' => false, 'msg' => $msg]]);
-        #Unused Codes about safety guard react button
-        /*if ($access_code == 'safety-guard') {
-            if ($record->chained) {
-                $tmp = Histories::where('chat_id', '=', $record->chat_id)
-                    ->where('id', '<=', $record->id)
-                    ->where('created_at', '<=', $record->created_at)
-                    ->select('msg', 'isbot')
-                    ->orderby('created_at')
-                    ->orderby('id', 'desc')
-                    ->get()
-                    ->toJson();
-            } else {
-                $tmp = json_encode([
-                    [
-                        'isbot' => false,
-                        'msg' => Histories::where('chat_id', '=', $record->chat_id)
-                            ->where('isbot', '=', false)
-                            ->orderby('created_at')
-                            ->orderby('id', 'desc')
-                            ->get()
-                            ->last()->msg,
-                    ],
-                    ['isbot' => true, 'msg' => $msg],
-                ]);
-            }
-        }*/
         $history = new APIHistories();
         $history->fill(['input' => $tmp, 'output' => '* ...thinking... *', 'user_id' => Auth::user()->id]);
         $history->save();

@@ -152,7 +152,7 @@
                                     <ul class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200"
                                         aria-labelledby="react_button2">
 
-                                        @foreach (['Feedback', 'Translate', 'Quote', 'Other'] as $label)
+                                        @foreach (['Feedback', 'Quote', 'Other'] as $label)
                                             @php $id = strtolower($label); @endphp
                                             <li>
                                                 <div class="flex rounded hover:bg-gray-100 dark:hover:bg-gray-600">
