@@ -4,12 +4,9 @@ import torch
 import logging
 import pprint
 import argparse
-import functools
-import mimetypes
 import requests
 import queue
 import json
-import re
 from typing import Optional
 from threading import Thread
 
@@ -31,7 +28,8 @@ from transformers import (
 )
 
 from kuwa.executor import LLMExecutor, Modelfile
-from kuwa.executor.llm_executor import rectify_chat_history
+from kuwa.executor.llm_executor import rectify_chat_history, extract_user_attachment
+from kuwa.executor.multi_modality import get_supported_image_mime, fetch_image
 from kuwa.executor.util import (
     read_config,
     merge_config,
@@ -110,26 +108,6 @@ class KwargsParser(argparse.Action):
                     converted_v = kwarg_v
             getattr(namespace, self.dest)[kwarg_k] = converted_v
 
-
-def get_content_type(url):
-    content_type = requests.head(url, allow_redirects=True).headers.get(
-        "content-type", None
-    )
-    content_type = content_type.split(";")[0]
-    return content_type
-
-
-@functools.cache
-def get_supported_image_mime():
-    def ext2mime(ext):
-        return mimetypes.guess_type(f"a{ext}")[0]
-
-    exts = Image.registered_extensions()
-    exts = {ex for ex, f in exts.items() if f in Image.OPEN}
-    mimes = {ext2mime(ex) for ex in exts} - {None}
-    return mimes
-
-
 def to_multi_modal_history(history: list[dict]) -> list[dict]:
     """
     Converts a chat history with text content into a multi-modal history,
@@ -189,6 +167,9 @@ def to_multi_modal_history(history: list[dict]) -> list[dict]:
         is treated as text.
     """
     multi_modal_history = []
+    history = extract_user_attachment(
+        history, allowed_mime_type=get_supported_image_mime()
+    )
     for item in history:
         role = item["role"]
         content = item["content"]
@@ -199,24 +180,11 @@ def to_multi_modal_history(history: list[dict]) -> list[dict]:
             continue
 
         content_list = []
-        url_regex = r"(https?://\S+)"
-        parts = re.split(url_regex, content, flags=re.IGNORECASE)
-        for part in parts:
-            part = part.strip()
-            if not re.match(url_regex, part):
-                if part:
-                    content_list.append({"type": "text", "text": part})
-                continue
-            try:
-                mime_type = get_content_type(part)
-                if mime_type and mime_type in get_supported_image_mime():
-                    content_list.append({"type": "image", "url": part})
-                else:
-                    content_list.append({"type": "text", "text": part})
-            except Exception:
-                logger.exception(f"Error fetching URL {part}")
-                content_list.append({"type": "text", "text": part})
-
+        content_list.append({"type": "text", "text": content})
+        for attachment in item.get("attachments", []):
+            content_list.append(
+                {"type": "image_url", "image_url": {"url": attachment["url"]}},
+            )
         multi_modal_history.append({"role": role, "content": content_list})
 
     return multi_modal_history
@@ -490,10 +458,7 @@ class HuggingfaceExecutor(LLMExecutor):
             if part.get("type") != "image":
                 continue
             try:
-                img_content = requests.get(
-                    part.get("url"), stream=True, allow_redirects=True
-                ).raw
-                images.append(Image.open(img_content))
+                images.append(fetch_image(part.get("url")))
             except Exception as e:
                 logger.warning(f"Error fetching image: {str(e)}")
         logger.info("Image fetched. Processing...")
@@ -526,7 +491,7 @@ class HuggingfaceExecutor(LLMExecutor):
             model_inputs = self.synthesis_prompt(
                 prepended_messages + history, system_prompt, modelfile.template
             )
-            prompt_embedding = model_inputs['input_ids']
+            prompt_embedding = model_inputs["input_ids"]
             logger.debug(f"Length of prompt: {prompt_embedding.shape[1]}")
             if prompt_embedding.shape[1] <= self.limit:
                 break

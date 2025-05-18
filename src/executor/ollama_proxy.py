@@ -14,7 +14,16 @@ from PIL import Image
 from io import BytesIO
 
 from kuwa.executor import LLMExecutor, Modelfile
-from kuwa.executor.llm_executor import rectify_chat_history, extract_last_url
+from kuwa.executor.llm_executor import (
+    rectify_chat_history,
+    extract_last_url,
+    extract_user_attachment,
+)
+from kuwa.executor.multi_modality import (
+    get_supported_image_mime,
+    fetch_image,
+    image_to_data_url
+)
 from kuwa.executor.util import (
     read_config,
     merge_config,
@@ -49,7 +58,7 @@ class KwargsParser(argparse.Action):
 
 class OllamaExecutor(LLMExecutor):
     ollama_host: str = None
-    model_name: str = "llama3"
+    default_model_name: str = "gemma3:4b"
     limit: int = 1024 * 7
     context_window: int = 8192
     system_prompt: str = None
@@ -67,7 +76,7 @@ class OllamaExecutor(LLMExecutor):
         )
         model_group.add_argument(
             "--model",
-            default=self.model_name,
+            default=self.default_model_name,
             help="Model name. See https://ollama.com/library",
         )
         model_group.add_argument(
@@ -106,7 +115,7 @@ class OllamaExecutor(LLMExecutor):
 
     def setup(self):
         self.ollama_host = self.args.ollama_host
-        self.model_name = self.args.model
+        self.default_model_name = self.args.model
         self.context_window = self.args.context_window
         self.limit = self.args.limit
         self.system_prompt = self.args.system_prompt
@@ -131,24 +140,25 @@ class OllamaExecutor(LLMExecutor):
         self.client = ollama.AsyncClient(host=self.ollama_host)
 
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.prepare_model())
+        loop.run_until_complete(self.prepare_model(self.default_model_name))
 
         self.proc = False
 
-    async def prepare_model(self):
+    async def prepare_model(self, model_name):
         try:
-            await self.client.show(self.model_name)
+            logger.info(f'Preparing model "{model_name}"')
+            await self.client.show(model_name)
         except ollama.ResponseError as e:
-            logger.warning(f"Error querying model {self.model_name}: {e.error}")
+            logger.warning(f"Error querying model {model_name}: {e.error}")
             if e.status_code == 404:
-                logger.info(f"Model {self.model_name} not found. Trying to pull it.")
-                await self.pull_model()
+                logger.info(f"Model {model_name} not found. Trying to pull it.")
+                await self.pull_model(model_name)
 
-    async def pull_model(self):
-        progress = await self.client.pull(self.model_name, stream=True)
+    async def pull_model(self, model_name):
+        progress = await self.client.pull(model_name, stream=True)
         last_status_line = ""
         async for i in progress:
-            status_line = f"Pulling model {self.model_name}: {i['status']}"
+            status_line = f"Pulling model {model_name}: {i['status']}"
             if "completed" in i:
                 progress = int(i["completed"]) / int(i["total"])
                 status_line += " [{0: <10}] {1:.0f}%".format(
@@ -176,35 +186,21 @@ class OllamaExecutor(LLMExecutor):
         jinja_env.globals["raise_exception"] = raise_exception
         return jinja_env.from_string(chat_template)
 
-    @lru_cache
-    def get_supported_image_mime(self):
-        def ext2mime(ext):
-            return mimetypes.guess_type(f"a{ext}")[0]
-
-        exts = Image.registered_extensions()
-        exts = {ex for ex, f in exts.items() if f in Image.OPEN}
-        mimes = {ext2mime(ex) for ex in exts} - {None}
-        return mimes
-
-    def fetch_images(self, urls: str, output_format="PNG"):
-        if not urls or any(map(lambda x: not x or x == "", urls)):
-            return []
-
-        images = []
-        for url in urls:
-            content_type = requests.head(url, allow_redirects=True).headers[
-                "content-type"
-            ]
-            if content_type not in self.get_supported_image_mime():
-                continue
-            image = Image.open(requests.get(url, stream=True, allow_redirects=True).raw)
-            logger.info(f"Image {url} fetched. Converting to {output_format} format...")
-
-            byte_stream = BytesIO()
-            image.save(byte_stream, format=output_format)
-            images.append(byte_stream.getvalue())
-            logger.info(f"Image converted. ({len(byte_stream.getvalue())} bytes)")
-        return images
+    def to_multi_modality_history(self, history):
+        history = extract_user_attachment(
+            history, allowed_mime_type=get_supported_image_mime()
+        )
+        multi_modality_history = []
+        for msg in history:
+            multi_modality_msg = {"role": msg["role"], "content": msg["content"]}
+            if "attachments" in msg.keys():
+                images = [
+                    image_to_data_url(fetch_image(i["url"]), add_prefix=False)
+                    for i in msg["attachments"]
+                ]
+                multi_modality_msg["images"] = images
+            multi_modality_history.append(multi_modality_msg)
+        return multi_modality_history
 
     def synthesis_prompt(self, history: list, template: str):
         """
@@ -232,6 +228,9 @@ class OllamaExecutor(LLMExecutor):
 
     async def llm_compute(self, history: list[dict], modelfile: Modelfile):
         try:
+            model_name = modelfile.parameters["llm_"].get(
+                "model", self.default_model_name
+            )
             # Apply modelfile
             system_prompt = modelfile.override_system_prompt or self.system_prompt
             prepended_messages = rectify_chat_history(modelfile.messages)
@@ -257,17 +256,16 @@ class OllamaExecutor(LLMExecutor):
                 prompt = self.synthesis_prompt(history, modelfile.template)
                 logger.debug(f"Prompt: {prompt}")
             else:
+                history = self.to_multi_modality_history(history)
                 logger.debug(f"History: {history}")
-                url, _ = extract_last_url(history)
-                images = self.fetch_images([url])
-                history[-1]["images"] = images
 
             # [TODO] Trim the history to fit into the context window
 
             self.proc = True
+            await self.prepare_model(model_name)
             if chat_mode:
                 response = await self.client.chat(
-                    model=self.model_name,
+                    model=model_name,
                     messages=history,
                     options=self.ollama_options,
                     stream=True,
@@ -275,7 +273,7 @@ class OllamaExecutor(LLMExecutor):
             else:
                 dummy_ollama_template = "{{ .Prompt }}{{ .Response }}"
                 response = await self.client.generate(
-                    model=self.model_name,
+                    model=model_name,
                     prompt=prompt,
                     options=self.ollama_options,
                     stream=True,

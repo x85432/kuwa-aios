@@ -1,24 +1,23 @@
+import io
 import re
 import os
 import sys
 import logging
 import pprint
-from textwrap import dedent
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import openai
 import tiktoken
-from openai.resources.chat.completions import AsyncCompletions
-
-import io
-import functools
-import mimetypes
 import requests
 import base64
+from textwrap import dedent
+from typing import List, Dict
 from PIL import Image
+from openai.resources.chat.completions import AsyncCompletions
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from kuwa.executor import LLMExecutor, Modelfile
-from kuwa.executor.llm_executor import extract_last_url
+from kuwa.executor.llm_executor import extract_user_attachment
+from kuwa.executor.multi_modality import get_supported_image_mime, fetch_image_as_data_url
 from kuwa.executor.util import (
     expose_function_parameter,
     read_config,
@@ -175,7 +174,10 @@ class ChatGptExecutor(LLMExecutor):
         )
         self.api_key = self.args.api_key
         self.no_override_api_key = self.args.no_override_api_key
-        if not (self.api_key or "").startswith(self.api_token_prefix) and not self.no_override_api_key:
+        if (
+            not (self.api_key or "").startswith(self.api_token_prefix)
+            and not self.no_override_api_key
+        ):
             logger.warning(
                 f'By incorporating the "--no_override_api_key" argument, you can prevent overriding of the specified third-party API key by the user\'s {self.api_token_field_display_name} key.'
             )
@@ -247,50 +249,27 @@ class ChatGptExecutor(LLMExecutor):
         num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
         return num_tokens
 
-    @functools.cache
-    def get_supported_image_mime(self):
-        def ext2mime(ext):
-            return mimetypes.guess_type(f"a{ext}")[0]
-        exts = Image.registered_extensions()
-        exts = {ex for ex, f in exts.items() if f in Image.OPEN}
-        mimes = {ext2mime(ex) for ex in exts} - {None}
-        return mimes
-
-    def fetch_image_as_data_url(self, url: str):
-        def image_to_data_url(img):
-            if img is None:
-                return None
-            buffered = io.BytesIO()
-            img = img.convert("RGB")
-            img.save(buffered, format="JPEG")
-            return "data:image/jpeg;base64," + base64.b64encode(
-                buffered.getvalue()
-            ).decode("utf-8")
-
-        image = None
-        if (url is not None and url != "") and requests.head(
-            url, allow_redirects=True
-        ).headers["content-type"] in self.get_supported_image_mime():
-            image = Image.open(requests.get(url, stream=True, allow_redirects=True).raw)
-            logger.info("Image fetched.")
-
-        result = image_to_data_url(image) if image is not None else None
-        return result
-
-    def parse_images(self, history: [dict]):
+    def parse_images(self, history: List[Dict]):
         """
         Parse image URL to image data URL in the messages.
         """
         result = []
+        history = extract_user_attachment(
+            history, allowed_mime_type=get_supported_image_mime()
+        )
         for msg in history:
-            new_msg = msg.copy()
-            url, text = extract_last_url([msg])
-            data_url = self.fetch_image_as_data_url(url)
-            if data_url is not None:
-                new_msg["content"] = [
-                    {"type": "text", "text": text[0]["content"]},
+            new_msg = {"role": msg["role"]}
+            content = [
+                {"type": "text", "text": msg["content"]},
+            ]
+            for attachment in msg.get("attachments", []):
+                data_url = fetch_image_as_data_url(url=attachment["url"])
+                if data_url is None:
+                    continue
+                content.append(
                     {"type": "image_url", "image_url": {"url": data_url}},
-                ]
+                )
+            new_msg["content"] = content
             result.append(new_msg)
 
         return result
@@ -304,10 +283,9 @@ class ChatGptExecutor(LLMExecutor):
                     if not self.use_third_party_api_key
                     else "third_party_token"
                 )
-                openai_token = modelfile.parameters["_"].get(api_token_field_name) or self.api_key
-            enable_multimodal = modelfile.parameters["llm_"].get(
-                "enable_multimodal", self.args.multimodal
-            )
+                openai_token = (
+                    modelfile.parameters["_"].get(api_token_field_name) or self.api_key
+                )
             model_name = modelfile.parameters["llm_"].get("model", self.model_name)
 
             # Parse and process modelfile
@@ -321,17 +299,17 @@ class ChatGptExecutor(LLMExecutor):
             generation_config = merge_config(
                 self.generation_config, modelfile.parameters["llm_"]
             )
-            generation_config.pop("enable_multimodal", None)
             generation_config.pop("model", None)
             msg = messages + history
             if system_prompt is not None:
                 msg = [{"content": system_prompt, "role": "system"}] + msg
 
-            msg[-1]["content"] = (
-                modelfile.before_prompt + msg[-1]["content"] + modelfile.after_prompt
+            msg = self.parse_images(msg)
+            text_part = next(filter(lambda x: x["type"] == "text", msg[-1]["content"]))
+            text_part["text"] = (
+                modelfile.before_prompt + text_part["text"] + modelfile.after_prompt
             )
-            if enable_multimodal:
-                msg = self.parse_images(msg)
+
             if not msg or len(msg) == 0:
                 yield "[No input message entered]"
                 return

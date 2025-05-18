@@ -1,0 +1,20 @@
+Subject: Exported bot "MCP%20Client"
+Date: Sun, 18 May 2025 12:43:56 +0800
+Content-Type: multipart/related; boundary="kuwatupst"; type=application/vnd.kuwabot
+Content-Transfer-Encoding: quoted-printable
+
+--kuwatupst
+Content-Type: application/vnd.kuwabot;
+Content-Language: en-us
+
+#!
+KUWABOT version 0.3.3
+KUWABOT name "MCP Client"
+KUWABOT base ".tool.mcp"
+# STDIO transport
+PARAMETER mcp_cmd "python"
+PARAMETER mcp_args "-m mcp_server_time --local-timezone=Asia/Taipei"
+# Streamable HTTP (SSE) transport
+# PARAMETER mcp_url "http://examaple/mcp"
+
+--kuwatupst--

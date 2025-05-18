@@ -5,7 +5,18 @@ from kuwa.executor.llm_executor import (
     to_openai_chat_format,
     rectify_chat_history,
     extract_last_url,
+    extract_user_attachment,
 )
+
+
+def format_chat_history(chat_history, target_role, **kwargs):
+    new_chat_history = []
+    for record in chat_history:
+        new_record = record.copy()
+        if new_record["role"] == target_role:
+            new_record["content"] = record["content"].format(**kwargs)
+        new_chat_history.append(new_record)
+    return new_chat_history
 
 
 class TestToOpenAiChatFormat(unittest.TestCase):
@@ -171,6 +182,155 @@ class TestExtractLastUrl(unittest.TestCase):
             url, history = extract_last_url(history)
             self.assertEqual(url, test_url)
             self.assertEqual(history, exp_history)
+
+
+class TestExtractUserAttachment(unittest.TestCase):
+    maxDiff = None
+    attachments = [
+        {"url": "https://kuwaai.org/", "mime_type": "text/html"},
+        {
+            "url": "https://kuwaai.org/os/intro",
+            "mime_type": "text/html",
+        },
+        {"url": "https://kuwaai.org/notexist", "mime_type": None},
+        {"url": "https://not-exist-domain/", "mime_type": None},
+        {"url": "https://kuwaai.org/img/logo.svg", "mime_type": "image/svg+xml"},
+    ]
+
+    chat_history = [
+        {"role": "user", "content": "hello1 {url}"},
+        {"role": "assistant", "content": "world1 {url}"},
+        {"role": "user", "content": "hello2"},
+        {"role": "assistant", "content": "world2"},
+        {"role": "user", "content": "hello3 {url} world"},
+    ]
+
+    def test_single_user_attachment(self):
+        for attachment in self.attachments:
+            url = attachment["url"]
+            if attachment["mime_type"] is not None:
+                expected_chat_history = [
+                    {"role": "user", "content": "hello1 ", "attachments": [attachment]},
+                    {"role": "assistant", "content": "world1 {url}"},
+                    {"role": "user", "content": "hello2", "attachments": []},
+                    {"role": "assistant", "content": "world2"},
+                    {
+                        "role": "user",
+                        "content": "hello3  world",
+                        "attachments": [attachment],
+                    },
+                ]
+            else:
+                expected_chat_history = [
+                    {"role": "user", "content": f"hello1 {url}", "attachments": []},
+                    {"role": "assistant", "content": "world1 {url}"},
+                    {"role": "user", "content": "hello2", "attachments": []},
+                    {"role": "assistant", "content": "world2"},
+                    {
+                        "role": "user",
+                        "content": f"hello3 {url} world",
+                        "attachments": [],
+                    },
+                ]
+            chat_history = format_chat_history(
+                chat_history=self.chat_history,
+                target_role="user",
+                url=url,
+            )
+            history_with_attachments = extract_user_attachment(
+                chat_history, allowed_mime_type=["*"]
+            )
+            self.assertEqual(history_with_attachments, expected_chat_history)
+
+    def test_multi_user_attachment(self):
+        url = " ".join([i["url"] for i in self.attachments])
+
+        def attachment_filter(x):
+            return x["mime_type"] is not None
+
+        attachments = list(filter(attachment_filter, self.attachments))
+        url_in_text_content = " ".join(
+            i["url"] for i in self.attachments if not attachment_filter(i)
+        )
+        expected_chat_history = [
+            {
+                "role": "user",
+                "content": f"hello1   {url_in_text_content} ",
+                "attachments": attachments,
+            },
+            {"role": "assistant", "content": "world1 {url}"},
+            {"role": "user", "content": "hello2", "attachments": []},
+            {"role": "assistant", "content": "world2"},
+            {
+                "role": "user",
+                "content": f"hello3   {url_in_text_content}  world",
+                "attachments": attachments,
+            },
+        ]
+        chat_history = format_chat_history(
+            chat_history=self.chat_history,
+            target_role="user",
+            url=url,
+        )
+        history_with_attachments = extract_user_attachment(
+            chat_history, allowed_mime_type=["*"]
+        )
+        self.assertEqual(history_with_attachments, expected_chat_history)
+
+    def test_assistant_url(self):
+        for attachment in self.attachments:
+            url = attachment["url"]
+            expected_chat_history = [
+                {"role": "user", "content": "hello1 {url}", "attachments": []},
+                {"role": "assistant", "content": f"world1 {url}"},
+                {"role": "user", "content": "hello2", "attachments": []},
+                {"role": "assistant", "content": "world2"},
+                {"role": "user", "content": "hello3 {url} world", "attachments": []},
+            ]
+            chat_history = format_chat_history(
+                chat_history=self.chat_history,
+                target_role="assistant",
+                url=url,
+            )
+            history_with_attachments = extract_user_attachment(
+                chat_history, allowed_mime_type=["*"]
+            )
+            self.assertEqual(history_with_attachments, expected_chat_history)
+
+    def test_not_allowed_attachment(self):
+        url = " ".join([i["url"] for i in self.attachments])
+
+        def allowed_attachment_filter(x):
+            return x["mime_type"] is not None and x["mime_type"].startswith("image/")
+
+        attachments = list(filter(allowed_attachment_filter, self.attachments))
+        url_in_text_content = " ".join(
+            i["url"] for i in self.attachments if not allowed_attachment_filter(i)
+        )
+        expected_chat_history = [
+            {
+                "role": "user",
+                "content": f"hello1 {url_in_text_content} ",
+                "attachments": attachments,
+            },
+            {"role": "assistant", "content": "world1 {url}"},
+            {"role": "user", "content": "hello2", "attachments": []},
+            {"role": "assistant", "content": "world2"},
+            {
+                "role": "user",
+                "content": f"hello3 {url_in_text_content}  world",
+                "attachments": attachments,
+            },
+        ]
+        chat_history = format_chat_history(
+            chat_history=self.chat_history,
+            target_role="user",
+            url=url,
+        )
+        history_with_attachments = extract_user_attachment(
+            chat_history, allowed_mime_type=["image/*"]
+        )
+        self.assertEqual(history_with_attachments, expected_chat_history)
 
 
 if __name__ == "__main__":
