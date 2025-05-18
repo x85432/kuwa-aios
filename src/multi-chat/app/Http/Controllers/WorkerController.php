@@ -162,21 +162,13 @@ class WorkerController extends Controller
         $pids = []; // Initialize an array to store process IDs
 
         if (PHP_OS_FAMILY === 'Windows') {
-            // Attempt to use wmic to get the command line of running PHP processes
-            $cmd = 'wmic process where "name=\'php.exe\'" get CommandLine, ProcessId';
+            // Use PowerShell to get command line and PID of php.exe processes
+            $cmd = 'powershell -command "Get-CimInstance Win32_Process -Filter \"Name=\'php.exe\'\" | Select-Object CommandLine, ProcessId"';
             $processes = shell_exec($cmd);
 
-            if (!empty($processes)) {
-                // Remove the first line (header) and trim the rest of the output
-                $lines = array_filter(explode("\n", trim($processes)));
-                $lines = array_slice($lines, 1); // Skip the first line (header)
-            } else {
-                // Fallback to PowerShell if wmic fails
-                $cmd = 'powershell -command "Get-CimInstance Win32_Process -Filter \"Name=\'php.exe\'\" | Select-Object ProcessId, CommandLine"';
-                $processes = shell_exec($cmd);
-                $lines = array_filter(explode("\n", trim($processes)));
-                $lines = array_slice($lines, 1); // Skip the first line (header)
-            }
+            // Process the output
+            $lines = array_filter(explode("\n", trim($processes)));
+            $lines = array_slice($lines, 1); // Skip the header line
 
             $pids = []; // Initialize an empty array for storing PIDs
 
@@ -185,8 +177,8 @@ class WorkerController extends Controller
                 if (preg_match('/php\s+"([^"]+)"\s+' . preg_quote($command, '/') . '/', $line, $matches)) {
                     // Ensure the real path of the matched command matches the expected artisan file
                     if (isset($matches[1]) && realpath($matches[1]) === realpath($artisanFile)) {
-                        // Add the process ID to the array
-                        if (preg_match('/\s+(\d+)/', $line, $pidMatch)) {
+                        // Extract the PID from the end of the line
+                        if (preg_match('/\s+(\d+)\s*$/', $line, $pidMatch)) {
                             $pids[] = $pidMatch[1]; // Add the PID to the array
                         }
                     }
