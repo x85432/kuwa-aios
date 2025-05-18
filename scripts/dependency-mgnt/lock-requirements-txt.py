@@ -20,7 +20,7 @@ common_sources = [
     "src/bot/text-to-cad/requirements.in",
     "src/toolchain/requirements.in",
     "src/tools/requirements.in",
-    # "src/executor/mcp/requirements.in",
+    "src/executor/mcp/requirements.in",
     # "src/executor/requirements.in",
     # "src/kernel/requirements.in",
     # "src/library/rag/requirements.in",
