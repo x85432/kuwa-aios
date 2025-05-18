@@ -10,7 +10,7 @@ Content-Language: en-us
 #!
 KUWABOT version 0.3.3
 KUWABOT name "MCP Client"
-KUWABOT base ".kuwa/tool/mcp-client"
+KUWABOT base ".tool.mcp"
 # STDIO transport
 PARAMETER mcp_cmd "python"
 PARAMETER mcp_args "-m mcp_server_time --local-timezone=Asia/Taipei"
