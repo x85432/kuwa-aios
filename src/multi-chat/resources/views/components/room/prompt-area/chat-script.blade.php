@@ -188,6 +188,7 @@
                 $("#submit_msg").show()
                 if ($("#abort_btn")) $("#abort_btn").hide();
                 if ($("#upload_btn")) $("#upload_btn").show();
+                if (location.protocol !== 'https:') $("#recordButton").remove();
                 if ($('#recordButton')) $("#recordButton").show();
                 $("#chat_input").prop("readonly", false)
                 $("#chat_input").val("")
