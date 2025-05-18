@@ -12,7 +12,7 @@ return [
     'label.all_bots' => 'All Bots',
     'label.community_bots' => 'Community Bots',
     'label.private' => 'Private Bots',
-    'label.groups_bots' => 'Groups Bots',
+    'label.groups_bots' => 'Group Bots',
     'label.system_bots' => 'System Bots',
     'button.create' => 'Create Bot',
     'button.community' => 'Community',
