@@ -203,9 +203,7 @@ class ManageController extends Controller
             }
             $validated['image'] = $file->store('public/images');
         }
-        if (is_null($validated['order'])) {
-            unset($validated['order']);
-        }
+		if (is_null($validated['order'])) unset($validated['order']);
         $validated['config'] = [];
         if (isset($validated['system_prompt'])) {
             $validated['config']['startup_prompt'] = [['role' => 'system', 'message' => $validated['system_prompt']]];
@@ -353,9 +351,7 @@ class ManageController extends Controller
         if ($file = $request->file('image')) {
             $validated['image'] = $file->store('public/images');
         }
-        if (isset($validated['order']) && is_null($validated['order'])) {
-            unset($validated['order']);
-        }
+		if (is_null($validated['order'])) unset($validated['order']);
         $validated['config'] = [];
         if (isset($validated['system_prompt'])) {
             $validated['config']['startup_prompt'] = [['role' => 'system', 'message' => $validated['system_prompt']]];
