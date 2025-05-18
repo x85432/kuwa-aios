@@ -411,7 +411,10 @@
 
             $('#confirmUpdate').click(function() {
                 $('#confirmUpdateModal').addClass('hidden');
-                $('#commandOutput').empty();
+                $('#commandOutput').empty().append(
+                    $('<pre class="whitespace-normal text-blue-500 font-semibold"></pre>').text('Updating, please wait...')
+                );
+
                 $('#outputModal').removeClass('hidden');
 
                 const eventSource = new EventSource("{{ route('manage.setting.updateWeb') }}");
