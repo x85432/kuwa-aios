@@ -18,6 +18,7 @@ cd "%~dp0"
 REM Unpack offline resources
 if exist "../scripts/windows-setup-files/package.zip" (
 	echo Extracting all packages...
+    echo It may take a couple of minutes. Please wait.
     pushd "../scripts/windows-setup-files/"
 	call build.bat restore
     popd
