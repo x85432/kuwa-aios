@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Redirect;
 use App\Http\Controllers\WorkerController;
+use Illuminate\Support\Facades\Storage;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Jobs\CheckUpdate;
@@ -29,7 +31,22 @@ class SystemController extends Controller
 
         return SystemSetting::where('key', 'cache_update_check')->select('value', 'updated_at')->get()->first()->toarray();
     }
+    public static function getMachineCode()
+    {
+        $filePath = 'root/machine_id';
 
+        if (!Storage::disk('public')->exists($filePath)) {
+            Storage::disk('public')->put($filePath, Str::uuid());
+
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                exec('attrib +R ' . storage_path('app/' . $filePath));
+            } else {
+                chmod(storage_path('app/' . $filePath), 0444);
+            }
+        }
+
+        return trim(Storage::disk('public')->get($filePath));
+    }
     public function update(Request $request): RedirectResponse
     {
         $extractBaseUrl = fn($url) => $url ? parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . (parse_url($url, PHP_URL_PORT) ? ':' . parse_url($url, PHP_URL_PORT) : '') : '';
@@ -120,6 +137,10 @@ class SystemController extends Controller
             $scriptPath = stripos(PHP_OS, 'WIN') === 0 ? '/executables/bat/production_update.bat' : '/executables/sh/production_update.sh';
             chdir($projectRoot . dirname($scriptPath));
 
+            $gitHash = substr($this->runCommand('git merge-base @ @{u}', $projectRoot), 0, 8);
+            $url = 'https://update.kuwaai.org/' . $gitHash . '/' . self::getMachineCode();
+            $this->runCommand('curl -s ' . escapeshellarg($url), $projectRoot);
+
             echo 'data: ' . json_encode(['status' => 'progress', 'output' => 'Current dir: ' . getcwd()]) . "\n\n";
             ob_flush();
             flush();
@@ -128,7 +149,7 @@ class SystemController extends Controller
                 $this->runCommand($command, $projectRoot);
             }
 
-            echo 'data: ' . json_encode(['status' => 'progress', 'output' => "Stopping all workers..."]) . "\n\n";
+            echo 'data: ' . json_encode(['status' => 'progress', 'output' => 'Stopping all workers...']) . "\n\n";
             ob_flush();
             flush();
             $workerController = new WorkerController();
@@ -137,10 +158,13 @@ class SystemController extends Controller
                 $this->makeExecutable(basename($scriptPath));
             }
             $this->runCommand((stripos(PHP_OS, 'WIN') === 0 ? '' : './') . basename($scriptPath), $projectRoot);
-            echo 'data: ' . json_encode(['status' => 'progress', 'output' => "Starting 10 workers..."]) . "\n\n";
+            echo 'data: ' . json_encode(['status' => 'progress', 'output' => 'Starting 10 workers...']) . "\n\n";
             ob_flush();
             flush();
             $workerController->startWorkers();
+
+            $this->runCommand('curl -s ' . escapeshellarg($url), $projectRoot);
+
             SystemSetting::where('key', 'cache_update_check')->update(['value' => 'no-update']);
             CheckUpdate::dispatch(true);
             echo 'data: ' . json_encode(['status' => 'success', 'output' => 'Update completed successfully!']) . "\n\n";
@@ -153,13 +177,12 @@ class SystemController extends Controller
         }
     }
 
-    private function runCommand(string $command, string $projectRoot)
+    private function runCommand(string $command, string $projectRoot): string
     {
         $gitSshCommand = SystemSetting::where('key', 'updateweb_git_ssh_command')->first()->value ?? '';
 
         $customPath = SystemSetting::where('key', 'updateweb_path')->value('value');
-
-        $defaultPath = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? getenv('PATH') : getenv('PATH');
+        $defaultPath = getenv('PATH');
 
         $env = [
             'PATH' => !empty($customPath) ? $customPath : $defaultPath,
@@ -173,16 +196,17 @@ class SystemController extends Controller
         $process->setEnv($env);
         $process->setTimeout(null);
 
-        $process->run(function ($type, $buffer) use ($projectRoot) {
+        $output = '';
+
+        $process->run(function ($type, $buffer) use (&$output, $projectRoot) {
+            $output .= $buffer;
             $this->handleOutput($buffer, $projectRoot);
         });
 
         if (!$process->isSuccessful()) {
-            echo 'data: ' . json_encode(['status' => 'error', 'output' => "Error executing command: $command"]) . "\n\n";
-            ob_flush();
-            flush();
-            exit();
+            return "Error executing command: $command\n" . $process->getErrorOutput();
         }
+        return $output;
     }
 
     private function handleOutput(string $buffer, string $projectRoot)
