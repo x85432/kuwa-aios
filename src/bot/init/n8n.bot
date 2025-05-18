@@ -1,4 +1,4 @@
-Subject: Exported bot "N8N"
+Subject: Exported bot "n8n"
 Date: Sat, 19 Apr 2025 19:27:32 +0800
 Content-Type: multipart/related; boundary="kuwam2dkv"; type=application/vnd.kuwabot
 Content-Transfer-Encoding: quoted-printable
@@ -9,7 +9,7 @@ Content-Language: en-us
 
 #!
 KUWABOT version 0.3.3
-KUWABOT name "N8N"
+KUWABOT name "n8n"
 KUWABOT description "Third-Party Workflow Automation Software"
 KUWABOT base ".tool/kuwa/weblet"
 PARAMETER redirect_url http://localhost:38788/
