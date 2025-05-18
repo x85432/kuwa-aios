@@ -183,7 +183,7 @@
                                 </div>
 
                                 <div class="absolute bottom-0 right-0 z-2 opacity-90">
-                                    @if (!$llms[0]->healthy || time() - strtotime($llms[0]->updated_at) > 300)
+                                    @if (time() - strtotime($llms[0]->healthy) > 300)
                                         <div class="bg-red-500 rounded-full w-6 h-6"
                                             data-updated-at="{{ $llms[0]->updated_at }}"></div>
                                     @endif

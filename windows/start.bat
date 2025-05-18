@@ -209,8 +209,11 @@ set "web_started=True"
 
 start /b src\import_bots.bat
 
-REM Start web, Waited 10 seconds to prevent red dot issue
-timeout /t 10 >nul
+pushd "..\src\multi-chat"
+call php artisan model:reset-health
+popd
+REM Start web, Waited 5 seconds to make sure executors all started
+timeout /t 5 >nul
 start http://127.0.0.1
 
 REM Loop to wait for commands

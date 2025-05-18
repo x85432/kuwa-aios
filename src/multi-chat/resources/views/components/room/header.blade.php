@@ -72,7 +72,7 @@
                             </div>
 
                             <div class="absolute bottom-0 right-0 z-2 opacity-90">
-                                @if (!$bot->healthy || time() - strtotime($bot->updated_at) > 300)
+                                @if (time() - strtotime($bot->healthy) > 300)
                                     <div class="bg-red-500 rounded-full w-3 h-3" data-updated-at="{{$bot->updated_at}}"></div>
                                 @endif
                             </div>

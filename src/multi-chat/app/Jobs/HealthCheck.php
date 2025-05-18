@@ -45,20 +45,8 @@ class HealthCheck implements ShouldQueue
                         $foundIds[] = $llm->id;
                     }
                 }
-
-                // Update healthy status and log results in one query each
                 LLMs::whereIn('id', $foundIds)->update([
-                    'healthy' => true,
-                    'updated_at' => Carbon::now(),
-                ]);
-                LLMs::whereNotIn('id', $foundIds)->update([
-                    'healthy' => false,
-                    'updated_at' => Carbon::now(),
-                ]);
-
-                Log::info('LLM health status updated.', [
-                    'found' => $foundIds,
-                    'not_found' => array_diff($llms->pluck('id')->toArray(), $foundIds),
+                    'healthy' => Carbon::now(),
                 ]);
             } else {
                 Log::error('GET request failed:', ['status' => $response->status()]);
