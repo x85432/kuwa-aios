@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Carbon;
 use DB;
 
 class ManageController extends Controller
@@ -365,6 +366,7 @@ class ManageController extends Controller
             unset($validated['react_btn']);
         }
         $validated['config'] = json_encode($validated['config']);
+        $validated['healthy'] = Carbon::now();
         $model->fill($validated);
         $model->save();
         $perm = new Permissions();

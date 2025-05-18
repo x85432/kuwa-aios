@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('llms', function (Blueprint $table) {
-            $table->timestamp('healthy')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('healthy')->default('2025-01-01 00:00:00');
         });
     }
 
@@ -27,3 +26,4 @@ return new class extends Migration
         });
     }
 };
+

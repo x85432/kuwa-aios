@@ -9,6 +9,7 @@ use App\Models\Permissions;
 use App\Models\GroupPermissions;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use DB;
 
 class ModelConfigure extends Command
@@ -42,12 +43,12 @@ class ModelConfigure extends Command
                     $path = 'public/images/' . $imageName;
                     Storage::put($path, $fileContents);
                 }
-                
+
                 $model = LLMs::where('access_code', '=', $accessCode);
-                if (!$model->exists()){
+                if (!$model->exists()) {
                     $model = new LLMs();
                 }
-                $fillData = ['name' => $name, 'access_code' => $accessCode, 'image' => $path];
+                $fillData = ['name' => $name, 'access_code' => $accessCode, 'image' => $path, 'healthy' => Carbon::now()];
                 if ($this->option('order')) {
                     $fillData['order'] = (int) $this->option('order');
                 }
@@ -63,9 +64,7 @@ class ModelConfigure extends Command
                 $groups = GroupPermissions::pluck('group_id')->toArray();
 
                 foreach ($groups as $group) {
-                    GroupPermissions::where('group_id', $group)
-                        ->where('perm_id', '=', $perm->id)
-                        ->delete();
+                    GroupPermissions::where('group_id', $group)->where('perm_id', '=', $perm->id)->delete();
                     if (GroupPermissions::where('group_id', $group)->where('perm_id', '=', $targetPermID)->exists()) {
                         GroupPermissions::insert([
                             'group_id' => $group,
