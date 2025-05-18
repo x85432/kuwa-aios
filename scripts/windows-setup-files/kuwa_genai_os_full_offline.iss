@@ -75,7 +75,7 @@ Name: "product\Kuwa"; Description: "Kuwa"; Types:  full compact custom ;Flags: f
 
 Name: "models"; Description: "Model Selection"; Types: full custom;Flags: fixed;
 Name: "models\gemma_3_1b_it_q4_0"; Description: "Gemma3 1B QAT Q4"; Types: full compact custom;
-Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom; ExtraDiskSpaceRequired:5261727040;
+Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom;
 
 [Files]
 Source: "..\..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; \
