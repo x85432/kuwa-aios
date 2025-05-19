@@ -28,6 +28,7 @@ platform_sources = {
         "windows/src/version_patch/ipex-llm/windows/src/requirements.in",
     ],
     "windows-qnn": [
+        "windows/src/version_patch/cpu/windows/src/requirements.in",
         "src/executor/qnn_genie/requirements.in",
         "src/executor/speech_recognition/requirements-onnx.in",
     ],
