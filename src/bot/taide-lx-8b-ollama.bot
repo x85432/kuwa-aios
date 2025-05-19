@@ -1,0 +1,18 @@
+Subject: Exported bot "TAIDE%20LX%208B"
+Date: Tue, 13 May 2025 05:53:50 +0800
+Content-Type: multipart/related; boundary="kuwaodwra"; type=application/vnd.kuwabot
+Content-Transfer-Encoding: quoted-printable
+
+--kuwaodwra
+Content-Type: application/vnd.kuwabot;
+Content-Language: en-us
+
+#!
+KUWABOT version 0.3.3
+KUWABOT name "TAIDE LX 8B"
+KUWABOT description "Running on Ollama"
+KUWABOT base ".model:ollama"
+SYSTEM "你是一個來自台灣的AI助理，你的名字是 TAIDE，樂於以台灣人的立場幫助使用者，會用繁體中文回答問題。"
+PARAMETER llm_model "cwchang/llama3-taide-lx-8b-chat-alpha1"
+
+--kuwaodwra--

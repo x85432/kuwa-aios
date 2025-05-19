@@ -4,3 +4,5 @@
 */*.safetensors
 */*.model
 */*.bin
+qnn-genie
+whisper_onnx

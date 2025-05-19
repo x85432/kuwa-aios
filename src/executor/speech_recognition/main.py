@@ -67,6 +67,21 @@ class SpeechRecognitionExecutor(LLMExecutor):
             "--backend", default=self.default_model_backend, help="The model backend."
         )
         model_group.add_argument(
+            "--use_onnx",
+            action="store_true",
+            help="Use ONNX as the backend instead of whisperS2T.",
+        )
+        model_group.add_argument(
+            "--encoder_path",
+            default="build/whisper_base/WhisperEncoderInf.onnx",
+            help="The path to encoder. Only valid in ONNX backend.",
+        )
+        model_group.add_argument(
+            "--decoder_path",
+            default="build/whisper_base/WhisperDecoderInf.onnx",
+            help="The path to decoder. Only valid in ONNX backend.",
+        )
+        model_group.add_argument(
             "--language", default=self.language, help="The language to transcribe."
         )
         model_group.add_argument(
@@ -122,7 +137,15 @@ class SpeechRecognitionExecutor(LLMExecutor):
         self.stop = False
 
         # Initialize the pipelines
-        self.transcriber = WhisperS2tTranscriber()
+        if self.args.use_onnx:
+            from src.onnx_backend.onnx_transcriber import OnnxTranscriber
+
+            self.transcriber = OnnxTranscriber(
+                encoder_path=self.args.encoder_path,
+                decoder_path=self.args.decoder_path,
+            )
+        else:
+            self.transcriber = WhisperS2tTranscriber()
         if not self.enable_diarization:
             self.diarizer = PyannoteSpeakerDiarizer()
 
@@ -143,6 +166,7 @@ class SpeechRecognitionExecutor(LLMExecutor):
     ):
         def get_value(v):
             return type(v) if type is not None and v is not None else v
+
         result = []
         target = f"/{param}"
         for record in history:
