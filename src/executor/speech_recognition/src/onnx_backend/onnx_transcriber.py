@@ -60,11 +60,11 @@ class OnnxTranscriber:
         # Load whisper model
         logger.debug("Loading model...")
         start_time = time.time()
-        logger.debug(f"Encoder path: {parse_model_path(self.encoder_path)}")
-        logger.debug(f"Decoder path: {parse_model_path(self.decoder_path)}")
+        logger.debug(f"Encoder path: {self.encoder_path}")
+        logger.debug(f"Decoder path: {self.decoder_path}")
         whisper = WhisperApp(
-            ExecutableOnnxModel.OnNPU(self.encoder_path),
-            ExecutableOnnxModel.OnNPU(self.decoder_path),
+            ExecutableOnnxModel.OnNPU(parse_model_path(self.encoder_path)),
+            ExecutableOnnxModel.OnNPU(parse_model_path(self.decoder_path)),
             num_decoder_blocks=6,
             num_decoder_heads=8,
             attention_dim=512,
