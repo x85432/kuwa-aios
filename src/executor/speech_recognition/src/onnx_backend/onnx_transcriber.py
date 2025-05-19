@@ -3,7 +3,9 @@
 # Copyright (c) 2025 Yung-Hsiang Hu. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 # ---------------------------------------------------------------------
-import os, sys
+import os
+import sys
+import re
 import onnxruntime
 import argparse
 import time
@@ -12,27 +14,29 @@ import functools
 import numpy as np
 from datetime import datetime
 from pathlib import Path
+from huggingface_hub import hf_hub_download
 
 from qai_hub_models.models._shared.whisper.app import WhisperApp
+from qai_hub_models.utils.executable_onnx_model import ExecutableOnnxModel
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from src.onnx_backend.model import WhisperBaseONNX
-
-
-def load_audio_file(filepath: str) -> tuple[np.array, int]:
-    import audio2numpy as a2n  # import here, as this requires ffmpeg to be installed on host machine
-
-    audio, audio_sample_rate = a2n.audio_from_file(filepath)
-    logger.debug(f"{audio.shape}, {audio_sample_rate}")
-    if audio.ndim > 1:
-        audio = np.mean(audio, axis=1)
-
-    return audio, audio_sample_rate
-
-
 logger = logging.getLogger(__name__)
 
+def parse_model_path(model_path):
+    if os.path.isfile(model_path):
+        return Path(model_path).resolve()
+    regex = r"hf://([^?]+)\?(.*)"
+    match = re.match(regex, model_path)
+    if not match:
+        raise Exception(f"Invalid model_path format: {model_path}")
+
+    repo_id = match.group(1)
+    filename = match.group(2)
+    model_path = hf_hub_download(repo_id=repo_id, filename=filename)
+    logger.debug(f"Downloaded model from HF. Path: {model_path}")
+
+    return Path(model_path).resolve()
 
 class OnnxTranscriber:
     """
@@ -56,9 +60,16 @@ class OnnxTranscriber:
         # Load whisper model
         logger.debug("Loading model...")
         start_time = time.time()
-        logger.debug(f"Encoder path: {Path(self.encoder_path).resolve()}")
-        logger.debug(f"Decoder path: {Path(self.decoder_path).resolve()}")
-        whisper = WhisperApp(WhisperBaseONNX(self.encoder_path, self.decoder_path))
+        logger.debug(f"Encoder path: {parse_model_path(self.encoder_path)}")
+        logger.debug(f"Decoder path: {parse_model_path(self.decoder_path)}")
+        whisper = WhisperApp(
+            ExecutableOnnxModel.OnNPU(self.encoder_path),
+            ExecutableOnnxModel.OnNPU(self.decoder_path),
+            num_decoder_blocks=6,
+            num_decoder_heads=8,
+            attention_dim=512,
+            mean_decode_len=224,
+        )
         end_time = time.time()
         logger.debug(f"Model {self.encoder_path}; {self.decoder_path} loaded")
         logger.debug(f"Model loading time: {end_time - start_time:.4f}")
@@ -76,9 +87,8 @@ class OnnxTranscriber:
         result = None
         try:
             model = self.load_model()
-            audio, audio_sample_rate = load_audio_file(audio_files[0])
             start_time = time.time()
-            text = model.transcribe(audio, audio_sample_rate)
+            text = model.transcribe(audio_files[0])
             end_time = time.time()
 
             result = {
