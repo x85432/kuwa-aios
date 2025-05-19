@@ -236,7 +236,7 @@ tld==0.13                 # via courlan
 tokenizers==0.21.1        # via langchain-huggingface, transformers, whisper-s2t
 tomli==2.2.1              # via hatchling, setuptools-scm
 tomlkit==0.13.2           # via gradio
-torch @ https://download.pytorch.org/whl/cu121/torch-2.3.0%2Bcu121-cp310-cp310-win_amd64.whl#sha256=002027d18a9c054f08fe9cf7a729e041229e783e065a71349015dcccc9a7137e  # via accelerate, asteroid-filterbanks, julius, kuwa-executor, lightning, openai-whisper, optimum, pyannote-audio, pytorch-lightning, pytorch-metric-learning, sentence-transformers, speechbrain, torch-audiomentations, torch-pitch-shift, torchaudio, torchmetrics, torchvision, whisper-s2t, -r src/toolchain/requirements.in, -r windows/src/version_patch/cpu/windows/src/requirements.in
+torch==2.3.0              # via accelerate, asteroid-filterbanks, julius, kuwa-executor, lightning, openai-whisper, optimum, pyannote-audio, pytorch-lightning, pytorch-metric-learning, sentence-transformers, speechbrain, torch-audiomentations, torch-pitch-shift, torchaudio, torchmetrics, torchvision, whisper-s2t, -r src/toolchain/requirements.in, -r windows/src/version_patch/cpu/windows/src/requirements.in
 torch-audiomentations==0.12.0  # via pyannote-audio
 torch-pitch-shift==1.2.5  # via torch-audiomentations
 torchaudio==2.3.0         # via pyannote-audio, speechbrain, torch-audiomentations, torch-pitch-shift, -r src/executor/speech_recognition/requirements.in
