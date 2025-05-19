@@ -61,7 +61,7 @@ jobs:
       - name: Compile installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
         with:
-          path: scripts/windows-setup-files/kuwa_genai_os.iss
+          path: scripts/windows-setup-files/Kuwa-AIOS-Online-Installer.iss
           options: /O+
 
       - name: Upload installer artifact
