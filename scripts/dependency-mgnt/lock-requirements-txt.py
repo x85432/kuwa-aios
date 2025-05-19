@@ -42,7 +42,10 @@ output_paths = {
     "docker": "/dev/null",
     "docker-cu118": "/dev/null",
 }
-cmd_opts = ["--color", "always", "--annotation-style=line", "--python-version", "3.10.11"]
+default_cmd_opts = ["--color", "always", "--annotation-style=line", "--python-version", "3.10.11"]
+platform_cmd_opts = {
+    "windows-qnn": ["--color", "always", "--annotation-style=line", "--python-version", "3.10.11", "--no-emit-package", "onnxruntime"]
+}
 
 
 def compile_requirements(
@@ -71,6 +74,7 @@ def compile_requirements(
 
     # Construct the uv pip compile command
     source_files = [str(Path(s)) for s in source_files]
+    cmd_opts = platform_cmd_opts.get(platform, default_cmd_opts)
     command = [
         "uv",
         "pip",
