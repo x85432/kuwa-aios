@@ -1,6 +1,7 @@
 @echo off
 chcp 65001 > NUL
 set PYTHONUTF8=1
+setlocal enabledelayedexpansion
 set PYTHONIOENCODING="utf8"
 cd "%~dp0"
 if "%1" equ "__start__" (shift & goto main)
@@ -9,9 +10,14 @@ cmd /s /c "%0 __start__ %* 2>&1 | src\bin\tee.exe logs\build.log"
 exit /b
 
 :main
-REM Initialize everything
+REM Initialize global configurations
+pushd "%~dp0"
 call src\variables.bat
-cd "%~dp0"
+call src\switch.bat
+popd
+
+echo PWD: %cd%
+
 
 REM Check if VCredist is installed
 
@@ -26,6 +32,8 @@ pause
 :found_vcredist
 echo Visual C++ Redistributable found.
 
+if not exist "packages" mkdir packages
+
 REM Download and extract RunHiddenConsole if not exists
 call src\download_extract.bat %url_RunHiddenConsole% packages\%RunHiddenConsole_folder% packages\%RunHiddenConsole_folder% RunHiddenConsole.zip
 
@@ -35,28 +43,20 @@ call src\download_extract.bat %url_NodeJS% packages\%node_folder% packages\. nod
 REM Download and extract PHP if not exists
 call src\download_extract.bat %url_PHP% packages\%php_folder% packages\%php_folder% php.zip
 
-REM Download and extract PHP if not exists
-call src\download_extract.bat %url_PHP_Archive% packages\%php_folder_Archive% packages\%php_folder_Archive% php.zip
-
-REM Download and extract xpdfreader if not exists
-call src\download_extract.bat %url_XpdfReader% packages\%xpdfreader_folder% packages\. xpdfreader.zip
-
-REM Download and extract antiword if not exists
-call src\download_extract.bat %url_antiword% packages\%antiword_folder% packages\. antiword.zip
+REM Download and extract fallback version of PHP if the latest release not found
+if not exist "packages\%php_folder%" (
+    echo Downloading fallback version of PHP
+    call src\download_extract.bat %url_PHP_Fallback% packages\%php_folder_Fallback% packages\%php_folder_Fallback% php.zip
+    set "php_folder=%php_folder_Fallback%"
+) 
 
 REM Download and extract git bash if not exists
-git --version >nul 2>&1
-if %ERRORLEVEL% equ 0 (
-    echo Git is installed, skip downloading git bash
-) else (
-	call src\download_extract.bat %url_gitbash% packages\%gitbash_folder% packages\%gitbash_folder% gitbash.7z.exe
-    echo Git is not installed.
-)
+call src\download_extract.bat %url_gitbash% packages\%gitbash_folder% packages\%gitbash_folder% gitbash.7z.exe
 
+REM Download and extract Python if not exists
 IF EXIST packages\%python_folder% (
     echo Python folder already exists.
 ) ELSE (
-    REM Download and extract Python if not exists
     call src\download_extract.bat %url_Python% packages\%python_folder% packages\%python_folder% python.zip
     REM Overwrite the python310._pth file
     echo Overwrite the python310._pth file.
@@ -67,7 +67,7 @@ REM Download and extract Redis if not exists
 call src\download_extract.bat %url_Redis% packages\%redis_folder% packages\. redis.zip
 
 IF EXIST packages\%nginx_folder% (
-    echo Nginx folder already exists.
+    echo Nginx folder already exists. Skipping download.
 ) ELSE (
     REM Download and extract Nginx if not exists
     call src\download_extract.bat %url_Nginx% packages\%nginx_folder% packages\. nginx.zip
@@ -94,6 +94,7 @@ if not exist "packages\%php_folder%\ext\php_redis.dll" (
 
 REM Download composer.phar if not exists
 if not exist "packages\composer.phar" (
+    echo Downloading composer
     curl -o packages\composer.phar https://getcomposer.org/download/latest-stable/composer.phar
 ) else (
     echo Composer already exists, skipping download.
@@ -108,91 +109,77 @@ if not exist "packages\%php_folder%\RunHiddenConsole.exe" (
 
 REM Prepare get-pip.py
 if not exist "packages\%python_folder%\get-pip.py" (
+    echo Downloading get-pip.py
 	curl -o "packages\%python_folder%\get-pip.py" https://bootstrap.pypa.io/get-pip.py
 ) else (
     echo get-pip.py already exists, skipping download.
 )
 
 REM Install pip for python
+echo Installing updated version of pip and uv
 if not exist "packages\%python_folder%\Scripts\pip.exe" (
 	pushd "packages\%python_folder%"
 	python get-pip.py --no-warn-script-location
-    python -m pip install pip==24.0
 	popd
-) else (
-    echo pip already installed, skipping installing.
-    python -m pip install --upgrade pip
 )
+python -m pip install -U pip uv
 
 REM Check if .env file exists
 if not exist "..\src\multi-chat\.env" (
     REM Kuwa Chat
-    echo Preparing Kuwa Chat
+    echo Copying environment configuration file ^(.env^) of multi-chat
     copy ..\src\multi-chat\.env.dev ..\src\multi-chat\.env
 ) else (
-    echo .env file already exists, skipping copy.
+    echo Environment configuration file ^(.env^) of multi-chat already exists, skipping copy.
 )
 
 set "PATH=%~dp0packages\%node_folder%;%PATH%"
 
 REM Production update
+echo Initializing multi-chat
 SET HTTP_PROXY_REQUEST_FULLURI=0
 pushd "..\src\multi-chat"
-call php ..\..\windows\packages\composer.phar update
+call php ..\..\windows\packages\composer.phar install --no-dev --optimize-autoloader --no-interaction
 call php artisan key:generate --force
 call php artisan db:seed --class=InitSeeder --force
 call php artisan migrate --force
 rmdir /Q /S public\storage
 call php artisan storage:link
 call npm.cmd install
-call php ..\..\windows\packages\composer.phar dump-autoload --optimize
+call npm.cmd audit fix
+call npm.cmd ci --no-audit --no-progress
+call npm.cmd run build
+call php artisan optimize
 call php artisan route:cache
 call php artisan view:cache
-call php artisan optimize
-call npm.cmd run build
 call php artisan config:cache
-call php artisan config:clear
+if exist "..\..\.git\test_pack_perm.priv" (
+	call php artisan web:config --settings="updateweb_git_ssh_command=ssh -i .git/test_pack_perm.priv -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
+)
 popd
 
-REM Install windows dependency
-pushd ".\src"
-call :install-requirements-txt
+
+REM Sync locked Python dependencies
+echo Syncing Python dependencies
+pushd ".."
+uv pip sync --system windows\src\requirements.txt.lock
 popd
 
-REM Download required pip packages
-pushd "..\src\kernel"
-pip install --default-timeout=1000 --force-reinstall .
-call :install-requirements-txt
-popd
-pushd "..\src\library\client"
-pip install --default-timeout=1000 --force-reinstall .
-popd
-pushd "..\src\executor"
-pip install --default-timeout=1000 --force-reinstall .
-call :install-requirements-txt
-pushd "docqa"
-call :install-requirements-txt
-popd
-pushd "uploader"
-call :install-requirements-txt
-popd
-popd
-pushd "..\src\toolchain"
-call :install-requirements-txt
-popd
-pushd "..\src\tools"
-call :install-requirements-txt
-popd
+REM Install dependency of whisper
+call src\download_extract.bat %url_ffmpeg% packages\%ffmpeg_folder% packages\. ffmpeg.zip
+REM Install dependency of n8n
+echo Installing n8n
+call npm.cmd install -g "n8n@1.73.1"
 
-REM Make sure the windows edition package are still the correct version
-pushd ".\src"
-call :install-requirements-txt
-popd
+REM Install dependency of Mermaid Tool
+call npm.cmd install -g "@mermaid-js/mermaid-cli"
 
 REM Download Embedding Model
+echo Downloading the embedding model.
 python ..\src\executor\docqa\download_model.py
 
 REM Make Kuwa root
+echo Initializing the filesystem hierarchy of Kuwa.
 mkdir "%KUWA_ROOT%\bin"
 mkdir "%KUWA_ROOT%\database"
 mkdir "%KUWA_ROOT%\custom"
@@ -216,8 +203,9 @@ goto :eof
 :: Install each dependency in requirements.txt under current working directory to
 :: prevent cascading failure.
 :install-requirements-txt
+echo Installing requirements.txt in %cd%
 for /f "tokens=*" %%a in ('findstr /v /r /c:"^#" requirements.txt') do (
   echo Installing "%%a"...
-  pip install --default-timeout=1000 "%%a"
+  uv pip install --system "%%a"
 )
 goto :eof

@@ -2,6 +2,7 @@ import os
 import sys
 import asyncio
 import logging
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from kuwa.executor import LLMExecutor, Modelfile
@@ -20,26 +21,28 @@ Warning 2, hi
 End of simulated text output
 """
 
+
 class DummyExecutor(LLMExecutor):
     def __init__(self):
         super().__init__()
 
     def extend_arguments(self, parser):
-        parser.add_argument('--delay', type=int, default=0.02, help='Inter-token delay')
+        parser.add_argument("--delay", type=int, default=0.02, help="Inter-token delay")
 
     def setup(self):
         self.stop = False
 
-
-    async def llm_compute(self, history: list[dict], modelfile:Modelfile):
+    async def llm_compute(self, history: list[dict], modelfile: Modelfile):
         try:
             self.stop = False
-            for i in lorem: 
+            for i in lorem:
                 yield i
                 if self.stop:
                     self.stop = False
                     break
-                await asyncio.sleep(modelfile.parameters.get("llm_delay", self.args.delay))
+                await asyncio.sleep(
+                    modelfile.parameters.get("llm_delay", self.args.delay)
+                )
         except Exception as e:
             logger.exception("Error occurs during generation.")
             yield str(e)
@@ -50,6 +53,7 @@ class DummyExecutor(LLMExecutor):
         self.stop = True
         logger.debug("aborted")
         return "Aborted"
+
 
 if __name__ == "__main__":
     executor = DummyExecutor()

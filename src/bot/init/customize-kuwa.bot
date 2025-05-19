@@ -9,7 +9,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "Customize Kuwa"
 KUWABOT description "Customize the Kuwa Web UI by uploading components."
-KUWABOT base "uploader"
+KUWABOT base ".tool/kuwa/uploader"
 PARAMETER uploader_dst_dir "/custom"
 PARAMETER uploader_succeed_message "Custom web component uploaded."
 

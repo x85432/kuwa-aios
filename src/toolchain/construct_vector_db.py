@@ -1,5 +1,6 @@
 #!/bin/python3
 
+import asyncio
 import argparse
 import logging
 import sys
@@ -10,13 +11,16 @@ from langchain_community.document_loaders import DirectoryLoader
 sys.path.append(".")
 
 from lib.gpu_util import check_gpu
-from lib.file_text_loader import FileTextLoader
-from lib.parallel_splitter import ParallelSplitter
-from lib.document_store import DocumentStore
+# from lib.file_text_loader import FileTextLoader
+# from lib.parallel_splitter import ParallelSplitter
+# from lib.document_store import DocumentStore
+
+from kuwa.rag.document_store import DocumentStore
+from kuwa.rag.document_store_factory import DocumentStoreFactory, path2file_url
 
 logger = logging.getLogger(__name__)
 
-def construct_db(
+async def construct_db(
     docs_path:str,
     output_path:str,
     chunk_size:int = 512,
@@ -27,28 +31,17 @@ def construct_db(
     Construct vector database from local documents and save to the destination.
     """
 
-    loader = None
-    if os.path.isdir(docs_path):
-        loader = DirectoryLoader(docs_path,
-                            recursive=True,
-                            loader_cls=FileTextLoader,
-                            use_multithreading=True,
-                            show_progress=True)
-    else:
-        loader = FileTextLoader(file_path=docs_path)
-    logger.info(f'Loading documents...')
-    docs = loader.load()
-    logger.debug(docs)
-    logger.info(f'Loaded {len(docs)} documents.')
-
-    logger.info(f'Chunking documents...')
-    splitter = ParallelSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    chunks = splitter.split(docs)
-    logger.info(f'Chunked documents into {len(chunks)} chunks.')
-
-    db = DocumentStore(embedding_model_name = embedding_model)
     logger.info(f'Constructing vector store...')
-    db.from_documents(chunks)
+    document_store_factory = DocumentStoreFactory()
+    document_store_kwargs = dict(
+        embedding_model = embedding_model,
+        chunk_size = chunk_size,
+        chunk_overlap = chunk_overlap
+    )
+    db, _ = await document_store_factory.construct_document_store(
+        urls = [path2file_url(docs_path)],
+        document_store_kwargs = document_store_kwargs
+    )
     logger.info(f'Vector store constructed.')
     #with tempfile.TemporaryDirectory() as tmpdirname:
     #    db.save(tmpdirname)
@@ -58,8 +51,8 @@ def construct_db(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Construct a FAISS vector database from local documents.')
-    parser.add_argument("docs_path", help="the path to the directory of input documents.", type=str)
-    parser.add_argument("output_path", help="the path where the final database will be stored.", type=str)
+    parser.add_argument("docs_path", help="the path to the directory of input documents.", default="", type=str)
+    parser.add_argument("output_path", help="the path where the final database will be stored.", default="", type=str)
     parser.add_argument('--visible_gpu', default=None, help='Specify the GPU IDs that this executor can use. Separate by comma.')
     parser.add_argument("--chunk-size", help="The chunk size to split the document.", type=int, default=512)
     parser.add_argument("--chunk-overlap", help="The chunk size to split the document.", type=int, default=128)
@@ -78,10 +71,12 @@ if __name__ == '__main__':
         os.environ["CUDA_VISIBLE_DEVICES"] = args.visible_gpu
     check_gpu()
     
-    construct_db(
-        docs_path=args.docs_path,
-        output_path=args.output_path,
-        chunk_size=args.chunk_size,
-        chunk_overlap=args.chunk_overlap,
-        embedding_model=args.embedding_model
+    asyncio.run(
+        construct_db(
+            docs_path=args.docs_path,
+            output_path=args.output_path,
+            chunk_size=args.chunk_size,
+            chunk_overlap=args.chunk_overlap,
+            embedding_model=args.embedding_model
+        )
     )

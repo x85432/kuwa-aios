@@ -80,7 +80,7 @@ Similarly, add the parameter `PARAMETER whisper_enable_diarization True` to the 
 > The command `/speakers <n>` allows you to specify the number of speakers. The default is to detect automatically, but it may be biased. You can use this command to correct it.
 
 ### Full Configuration Description
-The following parameters can be set for Bots. For a complete description, please refer to [ganai-os/src/executor/speech_recognition/README.md](https://github.com/kuwaai/genai-os/blob/main/src/executor/speech_recognition/README.md).
+The following parameters can be set for Bots. For a complete description, please refer to [ganai-os/src/executor/speech_recognition/README.md](https://github.com/kuwaai/kuwa-aios/blob/main/src/executor/speech_recognition/README.md).
 
 ```dockerfile
 SYSTEM "Add punctuation." #Custom vocabulary or prompting

@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'modal.start.title' => 'Spustit zpracování úkolů',
+    'modal.start.label' => 'Počet zpracovatelů úkolů:',
+    'modal.stop.title' => 'Zastavit všechny zpracovatele úkolů',
+    'modal.stop.confirm' => 'Jste si jisti, že chcete zastavit všechny zpracovatele úkolů?',
+    'button.new_executor' => 'Přidat záznam o vykonavateli',
+    'button.start' => 'Spustit zpracování úkolů',
+    'button.stop' => 'Zastavit všechny zpracovatele úkolů',
+    'button.confirm' => 'Potvrdit',
+    'button.cancel' => 'Zrušit',
+    'label.loading' => 'Načítání...',
+    'label.no_workers_boot' => 'Žádní aktivní zpracovatelé úkolů, klikněte pro spuštění',
+    'label.last_refresh' => 'Poslední aktualizace: :time',
+    'label.current_worker_count' => 'Aktuální počet zpracovatelů úkolů',
+    'label.error_fetching_worker_count' => 'Chyba při získávání počtu zpracovatelů úkolů.',
+    'label.last_refresh_time' => 'Poslední aktualizace',
+    'label.seconds_ago' => 'sekund zpátky',
+    'label.error' => 'Chyba',
+    'label.valid_worker_count' => 'Zadejte prosím platný počet zpracovatelů úkolů.',
+    'label.worker_started' => 'Zpracování úkolů spuštěno',
+    'label.worker_start_failed' => 'Spuštění zpracování úkolů selhalo:',
+    'label.no_workers' => 'Žádní aktivní zpracovatelé úkolů',
+    'label.worker_stopped' => 'Zpracování úkolů zastaveno',
+];

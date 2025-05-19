@@ -8,7 +8,7 @@ Content-Type: application/vnd.kuwabot;
 #!
 KUWABOT version 0.3.3
 KUWABOT name "English to Chinese"
-KUWABOT base "taide"
+KUWABOT base ".model/taide/taide-lx"
 BEFORE-PROMPT 翻譯成繁體中文。
 
 --kuwa6taz5--

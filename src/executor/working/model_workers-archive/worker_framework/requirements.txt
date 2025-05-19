@@ -1,8 +1,0 @@
-uvicorn[standard]
-starlette
-sse-starlette
-python-multipart
-pyyaml
-requests
-dacite
-prometheus-client

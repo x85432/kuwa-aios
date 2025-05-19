@@ -1,0 +1,4 @@
+opencv-python
+qai_hub_models[whisper_base_en]==0.28.2
+samplerate
+onnxruntime-qnn==1.22.0

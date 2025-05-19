@@ -30,21 +30,22 @@
             @if ($anonymous)
                 <div class="h-full w-full bg-black flex justify-center items-center text-white">?</div>
             @else
-                <div id="{{ $history->id }}_llm_{{ $history->bot_id }}_msg" role="tooltip" access_code="{{ $history->access_code }}"
+                <div id="{{ $history->id }}_llm_{{ $history->bot_id }}_msg" role="tooltip" access_code="{{ \App\Http\Controllers\ProfileController::BOT_PREFIX . $history->name }}"
                     class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-500">
                     {{ $history->name }}
                     <div class="tooltip-arrow" data-popper-arrow></div>
                 </div>
                 <img data-tooltip-target="{{ $history->id }}_llm_{{ $history->bot_id }}_msg"
-                    data-tooltip-placement="top" src="{{ $botimgurl }}" class="h-full w-full {{$readonly ? '' : 'cursor-pointer'}}"
-                    @if(!$readonly) onclick="$('#prompt_area input[name=\'chatsTo[]\']').prop('disabled',true); $('#prompt_area .sends span').addClass('bg-red-500 hover:bg-red-600').removeClass('bg-green-500 hover:bg-green-600');$('span[data-tooltip-target=llm_{{ $history->bot_id }}_toggle]').removeClass('bg-red-500 hover:bg-red-600').addClass('bg-green-500 hover:bg-green-600');$('#chatsTo_{{ $history->bot_id }}').prop('disabled',false);$('#prompt_area').submit()" @endif>
+                    data-tooltip-placement="top" src="{{ $botimgurl }}"
+                    class="h-full w-full {{ $readonly ? '' : 'cursor-pointer' }}"
+                    @if (!$readonly) onclick="$('#prompt_area input[name=\'chatsTo[]\']').prop('disabled',true); $('#prompt_area .sends span').addClass('bg-red-500 hover:bg-red-600').removeClass('bg-green-500 hover:bg-green-600');$('span[data-tooltip-target=llm_{{ $history->bot_id }}_toggle]').removeClass('bg-red-500 hover:bg-red-600').addClass('bg-green-500 hover:bg-green-600');$('#chatsTo_{{ $history->bot_id }}').prop('disabled',false);$('#prompt_area').submit()" @endif>
             @endif
         </div>
         <div class="overflow-hidden">
             <div tabindex="0" hidefocus="true" class="transition-colors p-3 bg-gray-300 rounded-r-lg rounded-bl-lg"
                 @if (!$anonymous && $history->isbot) onfocus="toggleHighlight(this, true)" onblur="toggleHighlight(this, false)" @endif>
                 {{-- blade-formatter-disable --}}
-                <div class="text-sm space-y-3 break-words{{ $history->chained ? ' chain-msg' : '' }}{{ $history->isbot ? ' bot-msg' : '' }}" id="task_{{ $history->id }}">{{ $history->msg == "* ...thinking... *" ? "<pending holder>" : $history->msg }}</div>
+                <div class="text-sm space-y-3 break-words msg-content {{ $history->chained ? ' chain-msg' : '' }}{{ $history->isbot ? ' bot-msg' : '' }}" id="task_{{ $history->id }}">{{ $history->msg == "* ...thinking... *" ? "<pending holder>" : $history->msg }}</div>
                 {{-- blade-formatter-enable --}}
                 <x-chat.react-buttons :history="$history" :showOnFinished='true' />
             </div>
@@ -58,14 +59,15 @@
                 @if ($anonymous)
                     <div class="h-full w-full bg-black flex justify-center items-center text-white">?</div>
                 @else
-                    <div id="{{ $history->id }}_llm_{{ $history->bot_id }}_msg" role="tooltip" access_code="{{ $history->access_code }}"
+                    <div id="{{ $history->id }}_llm_{{ $history->bot_id }}_msg" role="tooltip" access_code="{{\App\Http\Controllers\ProfileController::BOT_PREFIX . $history->name }}"
                         class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-500">
                         {{ $history->name }}
                         <div class="tooltip-arrow" data-popper-arrow></div>
                     </div>
                     <img data-tooltip-target="{{ $history->id }}_llm_{{ $history->bot_id }}_msg"
-                        data-tooltip-placement="top" src="{{ $botimgurl }}" class="h-full w-full {{$readonly ? '' : 'cursor-pointer'}}"
-                        @if(!$readonly) onclick="$('#prompt_area input[name=\'chatsTo[]\']').prop('disabled',true); $('#prompt_area .sends span').addClass('bg-red-500 hover:bg-red-600').removeClass('bg-green-500 hover:bg-green-600');$('span[data-tooltip-target=llm_{{ $history->bot_id }}_toggle]').removeClass('bg-red-500 hover:bg-red-600').addClass('bg-green-500 hover:bg-green-600');$('#chatsTo_{{ $history->bot_id }}').prop('disabled',false);$('#prompt_area').submit()" @endif>
+                        data-tooltip-placement="top" src="{{ $botimgurl }}"
+                        class="h-full w-full {{ $readonly ? '' : 'cursor-pointer' }}"
+                        @if (!$readonly) onclick="$('#chatHeader div.bot-{{ $history->bot_id }}').click()" @endif>
                 @endif
             </div>
         @endif
@@ -74,7 +76,7 @@
                 @if (!$anonymous && $history->isbot) onfocus="toggleHighlight(this, true)" onblur="toggleHighlight(this, false)" @endif
                 class="p-3 transition-colors {{ $history->isbot ? 'bg-gray-300 rounded-r-lg rounded-bl-lg' : 'bg-cyan-500 text-white rounded-l-lg rounded-br-lg' }}">
                 {{-- blade-formatter-disable --}}
-                <div class="text-sm space-y-3 break-words{{$history->chained ? ' chain-msg' : ''}}{{$history->isbot ? ' bot-msg' : ''}}">{{ $message }}</div>
+                <div class="text-sm space-y-3 break-words msg-content {{$history->chained ? ' chain-msg' : ''}}{{$history->isbot ? ' bot-msg' : ''}}">{{ $message }}</div>
                 {{-- blade-formatter-enable --}}
                 @if (!$readonly)
                     <x-chat.react-buttons :history="$history" :showOnFinished='false' />

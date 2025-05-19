@@ -1,0 +1,4 @@
+config.json
+index.faiss
+index.pkl
+*.zip

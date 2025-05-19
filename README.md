@@ -15,9 +15,6 @@
   <a href="http://makeapullrequest.com">
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?logo=github&logoColor=white">
   </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square">
-  </a>
   <a href="https://laravel.com/docs/10.x/releases">
     <img src="https://img.shields.io/badge/maintained%20with-Laravel-cc00ff.svg?logo=laravel&logoColor=white">
   </a>
@@ -25,13 +22,13 @@
     <img src="https://img.shields.io/badge/discord-active-blue?logo=discord&logoColor=white">
   </a>
   <a href="#">
-    <img src="https://img.shields.io/github/v/release/kuwaai/genai-os">
+    <img src="https://img.shields.io/github/v/release/kuwaai/kuwa-aios">
   </a>
+  <!--<a href="#">
+    <img src="https://img.shields.io/github/downloads/kuwaai/kuwa-aios/total">
+  </a>-->
   <a href="#">
-    <img src="https://img.shields.io/github/downloads/kuwaai/genai-os/total">
-  </a>
-  <a href="#">
-    <img src="https://img.shields.io/github/license/kuwaai/genai-os">
+    <img src="https://img.shields.io/github/license/kuwaai/kuwa-aios">
   </a>
   <a href="#">
     <img src="https://img.shields.io/github/stars/kuwaai">
@@ -67,13 +64,13 @@
 Download the script or the executable file, run it, and follow its steps to have your own Kuwa!
 * **Windows**
 
-  Download and run the pre-built Windows executable from [Kuwa's latest releases](https://github.com/kuwaai/genai-os/releases)
+  Download and run the pre-built Windows executable from [Kuwa's latest releases](https://github.com/kuwaai/kuwa-aios/releases)
 
 * **Linux/Docker**
 
   Download and run sudo [build.sh](./docker/build.sh) , or invoke the following command to automatically install Docker, CUDA, and Kuwa. You may need to reboot after installing CUDA. Before finishing installation, you will be asked to set your administration passwords for your Kuwa and database. After installation, it will invoke run.sh to start the system and you can log in with admin@localhost. Enjoy!
   ```
-  curl -fsSL https://raw.githubusercontent.com/kuwaai/genai-os/main/docker/build.sh | sudo bash
+  curl -fsSL https://raw.githubusercontent.com/kuwaai/kuwa-aios/main/docker/build.sh | sudo bash
   ```
 ###  Step-by-step Installation
 You can build your own customized Kuwa by following the step-by-step documents.
@@ -84,7 +81,7 @@ With executors, Kuwa can orchestrate diverse multimodal models, remote services,
 
 ## Download
 
-You can [download](https://github.com/kuwaai/genai-os/releases) the latest Kuwa GenAI OS version that supports Windows and Linux.
+You can [download](https://github.com/kuwaai/kuwa-aios/releases) the latest Kuwa GenAI OS version that supports Windows and Linux.
 
 ## Community
 
@@ -119,15 +116,6 @@ The following packages and applications are used in this project:
 - [Marked](https://github.com/chjj/marked)
 - [highlight.js](https://highlightjs.org/)
 - [NVIDIA CUDA](https://developer.nvidia.com/cuda-toolkit)
-
-## Acknowledgements
-We want to acknowledge NSTC's TAIDE project and the Taiwan AI Academy for their assistance in the early development of this project.
-<a href="https://www.nuk.edu.tw/"><img src="./src/multi-chat/public/images/logo_NUK.jpg" height="100px"></a>
-<a href="https://taide.tw/"><img src="./src/multi-chat/public/images/logo_taide.jpg" height="100px"></a>
-<a href="https://www.nstc.gov.tw/"><img src="./src/multi-chat/public/images/logo_NSTCpng.jpg" height="100px"></a>
-<a href="https://www.narlabs.org.tw/"><img src="./src/multi-chat/public/images/logo_NARlabs.jpg" height="100px"></a>
-<a href="https://aiacademy.tw/"><img src="./src/multi-chat/public/images/logo_AIA.jpg" height="100px"></a>
-
 
 ## License
 [MIT](./LICENSE)

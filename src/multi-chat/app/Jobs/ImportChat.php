@@ -26,7 +26,7 @@ class ImportChat implements ShouldQueue
     private $ids, $access_code, $user_id;
     public $tries = 1; # Believe if it fails, it always failed
     public $timeout = 6000; # Shouldn't takes longer than 100 mins
-    public $agent_version = 'v1.0';
+    public $kernel_api_version = 'v1.0';
     /**
      * Create a new job instance.
      */
@@ -52,7 +52,6 @@ class ImportChat implements ShouldQueue
                 while (count($dispatchedAccessCodes) > 0) {
                     // Retrieve the data from Redis
                     $redisData = Redis::lrange('usertask_' . $this->user_id, 0, -1);
-                    $id_list = $this->ids;
                     // Filter the data based on $dispatchedAccessCodes
                     $filteredData = array_filter($dispatchedids, function ($history_id) use ($redisData) {
                         // Assuming $item is a JSON-encoded string, you may need to decode it if it's a different format

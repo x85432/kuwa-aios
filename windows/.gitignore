@@ -11,3 +11,8 @@ cache
 *.zip
 src/conf/migrations.txt
 logs/
+.ssh/
+.gitconfig
+.*
+!.gitignore
+!.gitattributes

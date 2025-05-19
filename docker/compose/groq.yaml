@@ -1,0 +1,30 @@
+services:
+  groq-executor:
+    image: kuwaai/model-executor
+    environment:
+      EXECUTOR_TYPE: chatgpt
+      EXECUTOR_ACCESS_CODE: .model:groq/
+      EXECUTOR_NAME: Groq API
+      EXECUTOR_IMAGE: groq.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 401300
+      EXECUTOR_CREATE_BOT: false
+    depends_on:
+      - executor-builder
+      - kernel
+    command: [
+      "--log", "debug",
+      "--base_url", "https://api.groq.com/openai/v1/",
+      "--model", "meta-llama/llama-4-maverick-17b-128e-instruct",
+      "--context_window", "131072",
+
+      # Method 1: System-wise API key
+      # "--no_override_api_key", # Disable override the system API key with user API key.
+      # "--api_key", "YOUR_API_KEY", # Input the API key that you have applied for
+
+      # Method 2: Per-user API key
+      "--use_third_party_api_key", # Use the "Third-Party API Keys" from from user setting in Multi-Chat.
+    ]
+    restart: unless-stopped
+    extra_hosts:
+      - "localhost:host-gateway"
+    networks: ["backend"]

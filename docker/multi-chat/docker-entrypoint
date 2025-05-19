@@ -82,7 +82,7 @@ seed_admin() {
     fi
 
     printf "${ADMIN_NAME}\n${ADMIN_EMAIL}\n${ADMIN_PASSWORD}" \
-      | php artisan db:seed --class=AdminSeeder --force || return 0
+      | php artisan create:admin-user || return 0
     printf "Admin \"${ADMIN_NAME}\" had been added\n"
 }
 
@@ -92,19 +92,22 @@ seed_kernel() {
     then
         return
     fi
-    php artisan web:config --kernel_endpoint ${KUWA_KERNEL_URL} || return 0
+    php artisan web:config --settings="kernel_location=${KUWA_KERNEL_URL}" || return 0
 }
 
 # Import the default bots in bootstrap stage
 import_default_bots() {
+    echo "Try to import default bots."
     mkdir -p ${KUWA_ROOT}/bootstrap/bot
     for botfile in ${KUWA_ROOT}/bootstrap/bot/*.bot; do
+    echo $botfile
     # Check if the file exists
     if [ -f "$botfile" ]; then
         php artisan bot:import "$botfile"
     fi
     ensure_web_permission
     done
+    echo "Successfully import default bots."
 }
 
 # Check whether should update 
@@ -133,9 +136,22 @@ upgrade() {
     seed_kernel || true
     seed_admin || true
 
-    echo "Try to import default bots."
+    if [[ "$1" != "force" ]]; then
+        secs=30
+        while [ $secs -gt 0 ]; do
+            echo "Waiting for Executors to become ready... ($secs seconds remaining)"
+            sleep 1
+            : $((secs--))
+        done
+    fi
+
     import_default_bots
     kill %1
+}
+
+prune_executors() {
+    echo "Pruning All Executors."
+    php artisan model:prune --exclude=""
 }
 
 #=========================================
@@ -151,9 +167,10 @@ then
     upgrade
 fi
 
-if [ "$1" = force-upgrade ]
-then
-    upgrade
+if [ "$1" = force-upgrade ]; then
+    upgrade force
+elif [ "$1" = prune-executors ]; then
+    prune_executors
 else
     exec "$@"
 fi

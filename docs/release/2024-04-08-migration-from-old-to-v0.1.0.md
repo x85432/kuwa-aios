@@ -2,7 +2,7 @@ This is a tutorial for updating from the initial version to the stable version v
 
 <!-- truncate -->
 
-1. First, clone the repository using `git clone https://github.com/kuwaai/genai-os.git --tag v0.1.0`, or download and extract it from [here](https://github.com/kuwaai/genai-os/releases/tag/v0.1.0) to get a clean copy of the v0.1.0 project.
+1. First, clone the repository using `git clone https://github.com/kuwaai/kuwa-aios.git --tag v0.1.0`, or download and extract it from [here](https://github.com/kuwaai/kuwa-aios/releases/tag/v0.1.0) to get a clean copy of the v0.1.0 project.
 2. Here, the old version of the project is referred to as the `old` folder, and the newly obtained version is referred to as the `new` folder. If you have these files, please copy them completely and replace them in the corresponding locations:
    - `old/multi-chat/storage/app/` => `new/src/multi-chat/storage/app/`
    - `old/multi-chat/database/database.sqlite` => `new/src/multi-chat/database/database.sqlite`
@@ -17,4 +17,4 @@ This is a tutorial for updating from the initial version to the stable version v
    - `old/windows/RunHiddenConsole/` => `new/windows/packages/RunHiddenConsole/`
    - `old/windows/composer.phar` => `new/windows/packages/composer.phar`
 5. If you are running on Linux, navigate to `new/src/multi-chat/executables/sh/` and run `production_update.sh`. If you are using the Windows Portable version, run `build.bat` in `new/windows/`.
-6. The file update should be completed at this point. You can now check if anything is broken. For the Windows Portable version, please proceed to configure the models according to the [tutorial for the new version](https://github.com/kuwaai/genai-os/blob/v0.1.0/windows/workers/README.md).
+6. The file update should be completed at this point. You can now check if anything is broken. For the Windows Portable version, please proceed to configure the models according to the [tutorial for the new version](https://github.com/kuwaai/kuwa-aios/blob/v0.1.0/windows/workers/README.md).

@@ -2,15 +2,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class TextBuffer:
     """
     Decode text from byte stream.
     """
-    def __init__(self, coding:str|None = None):
+
+    def __init__(self, coding: str | None = None):
         self.coding = coding
-        self.buffer = b''
-    
-    def get_chunk(self, raw_chunk:bytes, eof:bool) -> str|None:
+        self.buffer = b""
+
+    def get_chunk(self, raw_chunk: bytes, eof: bool) -> str | None:
         """
         Continuously append incoming raw data chunks to a buffer.
         Decode complete chunks from this buffer whenever possible.
@@ -29,8 +31,7 @@ class TextBuffer:
         for end in range(buffer_len, 0, -1):
             try:
                 chunk = self.buffer[:end].decode(
-                    encoding=self.coding,
-                    errors='strict' if not eof else 'ignore'
+                    encoding=self.coding, errors="strict" if not eof else "ignore"
                 )
                 self.buffer = self.buffer[end:]
                 break

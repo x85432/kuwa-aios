@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Carbon;
 use DB;
 
 class ManageController extends Controller
@@ -202,9 +203,7 @@ class ManageController extends Controller
             }
             $validated['image'] = $file->store('public/images');
         }
-        if (is_null($validated['order'])) {
-            unset($validated['order']);
-        }
+		if (is_null($validated['order'])) unset($validated['order']);
         $validated['config'] = [];
         if (isset($validated['system_prompt'])) {
             $validated['config']['startup_prompt'] = [['role' => 'system', 'message' => $validated['system_prompt']]];
@@ -231,6 +230,19 @@ class ManageController extends Controller
         return Redirect::route('manage.home')->with('last_tab', 'llms')->with('last_llm_id', $request->input('id'));
     }
 
+/**
+ * @OA\Post(
+ *     path="/api/user/create/base_model",
+ *     summary="Create a base model",
+ *     tags={"Models"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(ref="#/components/schemas/BaseModel")
+ *     ),
+ *     @OA\Response(response=200, description="Model created")
+ * )
+ */
     public function api_create_base_model(Request $request)
     {
         $result = DB::table('personal_access_tokens')
@@ -267,7 +279,15 @@ class ManageController extends Controller
             return response()->json($errorResponse, 401, [], JSON_UNESCAPED_UNICODE);
         }
     }
-
+/**
+ * @OA\Get(
+ *     path="/api/user/read/models",
+ *     summary="List base models",
+ *     tags={"Models"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\Response(response=200, description="List of models")
+ * )
+ */
     public function api_read_models(Request $request)
     {
         $result = DB::table('personal_access_tokens')
@@ -331,9 +351,7 @@ class ManageController extends Controller
         if ($file = $request->file('image')) {
             $validated['image'] = $file->store('public/images');
         }
-        if (isset($validated['order']) && is_null($validated['order'])) {
-            unset($validated['order']);
-        }
+		if (is_null($validated['order'])) unset($validated['order']);
         $validated['config'] = [];
         if (isset($validated['system_prompt'])) {
             $validated['config']['startup_prompt'] = [['role' => 'system', 'message' => $validated['system_prompt']]];
@@ -344,6 +362,7 @@ class ManageController extends Controller
             unset($validated['react_btn']);
         }
         $validated['config'] = json_encode($validated['config']);
+        $validated['healthy'] = Carbon::now();
         $model->fill($validated);
         $model->save();
         $perm = new Permissions();

@@ -23,6 +23,8 @@ use App\Models\User;
 use App\Models\Groups;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\BotController;
+use App\Models\Bots;
 use DB;
 use Crypt;
 use Net_IPv4;
@@ -30,6 +32,10 @@ use Net_IPv6;
 
 class ProfileController extends Controller
 {
+
+    public const CHAT_COMPLETION_PREFIX = 'chatcmpl-';
+    public const BOT_PREFIX = ".bot/";
+
     /**
      * Display the user's profile form.
      */
@@ -44,6 +50,33 @@ class ProfileController extends Controller
             'user' => $request->user(),
         ]);
     }
+    /**
+ * @OA\Post(
+ *     path="/api/user/upload/file",
+ *     summary="Upload a file",
+ *     tags={"Cloud"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 type="object",
+ *                 required={"file"},
+ *                 @OA\Property(
+ *                     property="file",
+ *                     type="string",
+ *                     format="binary"
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="File uploaded"
+ *     )
+ * )
+ */
     public function api_upload_file(Request $request)
     {
         $result = DB::table('personal_access_tokens')
@@ -54,7 +87,7 @@ class ProfileController extends Controller
         if ($result) {
             $user = $result;
             Auth::setUser(User::find($user->id));
-            if (User::find($user->id)->hasPerm('Room_update_upload_file')) {
+            if (User::find($user->id)->hasPerm('Cloud_update_upload_files')) {
                 $controller = new RoomController();
                 $upload_result = $controller->upload_file($request);
                 if ($upload_result['succeed']){
@@ -193,7 +226,7 @@ class ProfileController extends Controller
                             $user->save();
                             $user->markEmailAsVerified();
 
-                            return response()->json(['message' => __('auth.hint.user_created_success')], 201, [], JSON_UNESCAPED_UNICODE);
+                            return response()->json(['message' => __('auth.placeholder.user_created_success')], 201, [], JSON_UNESCAPED_UNICODE);
                         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
                         }
                     }
@@ -265,6 +298,15 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'google-token-updated');
     }
     
+    public function nim_update(Request $request)
+    {
+        $request
+            ->user()
+            ->fill(['nim_token' => $request->input('nim_token')])
+            ->save();
+        return Redirect::route('profile.edit')->with('status', 'nim-token-updated');
+    }
+    
     public function third_party_update(Request $request)
     {
         $request
@@ -307,6 +349,76 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+/**
+ * @OA\Post(
+ *     path="/v1.0/chat/completions",
+ *     summary="Complete a chat (streaming or non-streaming)",
+ *     tags={"Chat"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"model", "messages"},
+ *             @OA\Property(property="model", type="string", example="gpt-4"),
+ *             @OA\Property(
+ *                 property="messages",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     required={"role", "content"},
+ *                     @OA\Property(property="role", type="string", example="user"),
+ *                     @OA\Property(property="content", type="string", example="Hello")
+ *                 )
+ *             ),
+ *             @OA\Property(property="stream", type="boolean", example=false, description="Enable streaming mode"),
+ *             @OA\Property(
+ *                 property="options",
+ *                 type="object",
+ *                 description="Additional options for the completion",
+ *                 additionalProperties={}
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Chat completion response (streamed or full)",
+ *         @OA\JsonContent(
+ *             @OA\Property(
+ *                 property="choices",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     oneOf={
+ *                         @OA\Schema(
+ *                             @OA\Property(
+ *                                 property="delta",
+ *                                 type="object",
+ *                                 @OA\Property(property="content", type="string", example="Hello, how can I assist?")
+ *                             )
+ *                         ),
+ *                         @OA\Schema(
+ *                             @OA\Property(
+ *                                 property="message",
+ *                                 type="object",
+ *                                 @OA\Property(property="role", type="string", example="assistant"),
+ *                                 @OA\Property(property="content", type="string", example="Hello, how can I assist you?")
+ *                             )
+ *                         )
+ *                     }
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Bad request"
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized"
+ *     )
+ * )
+ */
 
     public function api_auth(Request $request)
     {
@@ -344,9 +456,19 @@ class ProfileController extends Controller
             return response()->json($errorResponse, 400, [], JSON_UNESCAPED_UNICODE);
         }
 
+        $is_calling_bot = str_starts_with($jsonData['model'], self::BOT_PREFIX);
+        $bot_name = substr($jsonData['model'], strlen(self::BOT_PREFIX));
+        
         $llm = LLMs::where('access_code', '=', $jsonData['model']);
+        $bot = Bots::where('bots.name', '=', $is_calling_bot ? $bot_name : '');
+        
+        // Default bot
+        if($is_calling_bot && ($bot_name == ".def" || $bot_name == ".default")){
+            $is_calling_bot = false;
+            $llm = LLMs::select('*')->orderBy('order');
+        }
 
-        if (!$llm->exists()) {
+        if (!((!$is_calling_bot && $llm->exists()) || ($is_calling_bot && $bot->exists()))) {
             // Handle the case where the specified model doesn't exist
             $errorResponse = [
                 'status' => 'error',
@@ -355,7 +477,15 @@ class ProfileController extends Controller
             return response()->json($errorResponse, 404, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $llm = $llm->first();
+        $llm = $llm->exists() ? $llm->first() : LLMs::findOrFail($bot->first()->model_id);
+        $botFile = $bot->exists() ? (json_decode($bot->first()->config ?? '')->modelfile ?? null) : null;
+        if(isset($jsonData['botfile'])){
+            $botController = new BotController();
+            $botFile = $botController->modelfile_parse($jsonData['botfile']);
+            $botFile = array_map(function($item) {
+                return (object) $item;
+            }, $botFile);
+        }
 
         $jsonData['messages'] = array_map(function($x){
             return [
@@ -380,8 +510,8 @@ class ProfileController extends Controller
         $history->save();
 
         Redis::rpush('api_' . $user->tokenable_id, $history->id);
-        Redis::expire('usertask_' . $user->tokenable_id, 1200);
-        RequestChat::dispatch($messages_json, $llm->access_code, $user->id, $history->id, $lang, 'api_' . $history->id);
+        Redis::expire('api_' . $user->tokenable_id, 1200);
+        RequestChat::dispatch($messages_json, $llm->access_code, $user->id, $history->id, $lang, 'api_' . $history->id, $botFile);
 
         if (isset($jsonData['stream']) ? boolval($jsonData['stream']) : false){
             return $this->streaming_response($user, $history, $llm);
@@ -393,13 +523,17 @@ class ProfileController extends Controller
     private function nonstreaming_response(&$user, &$history, &$llm){
 
         $bot_output = "";
-        $backend_callback = function ($event, $message) use (&$history, &$llm, &$bot_output){
+        $executor_exit_code = null;
+        $backend_callback = function ($event, $chunk) use (&$history, &$llm, &$bot_output, &$executor_exit_code){
             
             if ($event == 'Error') {
-                throw new \Exception($message);
+                throw new \Exception($chunk);
             }
             if ($event == 'New') {
-                $bot_output .= $message;
+                $bot_output .= $chunk->msg;
+                if(isset($chunk->exit_code)){
+                    $executor_exit_code = $chunk->exit_code;
+                }
             }
             $history->fill(['output' => $bot_output]);
             $history->save();
@@ -419,14 +553,15 @@ class ProfileController extends Controller
                         "content" => $bot_output,
                     ],
                     "logprobs" => null,
-                    "finish_reason" => "stop"
+                    "finish_reason" => "stop",
+                    "exit_code" => $executor_exit_code,
                 ]
             ],
             'created' => time(),
-            'id' => 'chatcmpl-' . $history->id,
+            'id' => self::CHAT_COMPLETION_PREFIX . $history->id,
             'model' => $llm->access_code,
             'object' => 'chat.completion',
-            'usage' => [],
+            'usage' => (object)[],
         ];
 
         return response()->json($resp);
@@ -440,12 +575,14 @@ class ProfileController extends Controller
         $response->headers->set('X-Accel-Buffering', 'no');
         $response->headers->set('charset', 'utf-8');
         $response->headers->set('Connection', 'close');
+        $response->headers->set('X-Request-ID', self::CHAT_COMPLETION_PREFIX . $history->id);
         
         $response->setCallback(function() use (&$user, &$history, &$llm) {
             $bot_output = "";
-            $backend_callback = function ($event, $message) use (&$history, &$llm, &$bot_output){
+            $executor_exit_code = null;
+            $backend_callback = function ($event, $chunk) use (&$history, &$llm, &$bot_output, &$executor_exit_code){
                 if ($event == 'Error') {
-                    throw new \Exception($message);
+                    throw new \Exception($chunk);
                 }
 
                 $resp = [
@@ -456,31 +593,42 @@ class ProfileController extends Controller
                                 'role' => "assistant",
                             ],
                             'logprobs' => null,
-                            'finish_reason' => null
+                            'finish_reason' => null,
+                            'exit_code' => null,
                         ],
                     ],
                     'created' => time(),
-                    'id' => 'chatcmpl-' . $history->id,
+                    'id' => self::CHAT_COMPLETION_PREFIX . $history->id,
                     'model' => $llm->access_code,
                     'object' => 'chat.completion.chunk',
                 ];
                 
+                $sendNewChunk = false;
                 if ($event == 'Ended') {
-                    $message = "";
                     $resp['choices'][0]['delta'] = (object) null;
                     $resp['choices'][0]['finish_reason'] = 'stop';
+                    $resp['choices'][0]['exit_code'] = $executor_exit_code;
+                    $sendNewChunk = true;
                 } elseif ($event == 'New') {
-                    $resp['choices'][0]['delta']['content'] = $message;
+                    if (!empty($chunk->msg)){
+                        $resp['choices'][0]['delta']['content'] = $chunk->msg;
+                        $bot_output .= $chunk->msg;
+                        $sendNewChunk = true;
+                    }
+                    if(isset($chunk->exit_code)){
+                        $executor_exit_code = $chunk->exit_code;
+                    }
                 }
-                echo 'data: ' . json_encode($resp) . "\n\n";
-                
+                if($sendNewChunk){
+                    echo 'data: ' . json_encode($resp) . "\n\n";
+                }
+
                 if ($event == 'Ended') {
                     echo "data: [DONE]\n\n";
                 }
                 ob_flush();
                 flush();
 
-                $bot_output .= $message;
                 $history->fill(['output' => $bot_output]);
                 $history->save();
             };
@@ -496,7 +644,6 @@ class ProfileController extends Controller
 
     public function api_abort(Request $request)
     {
-        $jsonData = $request->json()->all();
         $result = DB::table('personal_access_tokens')
             ->join('users', 'tokenable_id', '=', 'users.id')
             ->select('tokenable_id', 'users.id', 'users.name', 'openai_token')
@@ -520,19 +667,33 @@ class ProfileController extends Controller
             return response()->json($errorResponse, 403, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $list = Redis::lrange('api_' . $user->tokenable_id, 0, -1);
-        $integers = array_map(function ($element) {
-            return is_string($element) ? -((int) $element) : null;
-        }, $list);
-        $integers = array_filter($integers, function ($element) {
-            return $element !== null;
+        $user_active_history_ids = Redis::lrange('api_' . $user->tokenable_id, 0, -1);
+        $user_active_history_ids = array_map(function ($el) {
+            return is_string($el) ? -((int) $el) : null;
+        }, $user_active_history_ids);
+        $user_active_history_ids = array_filter($user_active_history_ids, function ($el) {
+            return $el !== null;
         });
+
+        $request_param = $request->json()->all();
+        $requested_history_ids = [];
+        if (!isset($request_param['ids'])) {
+            $requested_history_ids = $user_active_history_ids;
+        } else {
+            $requested_history_ids = $request_param['ids'];
+            $requested_history_ids = array_map(function ($el) {
+                return -((int) str_replace(self::CHAT_COMPLETION_PREFIX, '', $el));
+            }, $requested_history_ids);
+        }
+
+        $history_ids_to_abort = array_intersect($user_active_history_ids, $requested_history_ids);
+
+        $kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
         $client = new Client(['timeout' => 300]);
-        $agent_location = \App\Models\SystemSetting::where('key', 'agent_location')->first()->value;
-        $msg = $client->post($agent_location . '/' . RequestChat::$agent_version . '/chat/abort', [
+        $msg = $client->post($kernel_location . '/' . RequestChat::$kernel_api_version . '/chat/abort', [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'form_params' => [
-                'history_id' => json_encode($integers),
+                'history_id' => json_encode($history_ids_to_abort),
                 'user_id' => $user->tokenable_id,
             ],
         ]);
@@ -559,17 +720,17 @@ class ProfileController extends Controller
         $response->headers->set('Connection', 'close');
         
         $response->setCallback(function() use (&$request) {
-            $backend_callback = function ($event, $message){
+            $backend_callback = function ($event, $chunk){
                 if ($event == 'Ended') {
                     echo "event: close\n\n";
                     ob_flush();
                     flush();
                 } elseif ($event == 'New') {
-                    echo 'data: ' . $message . "\n";
+                    echo 'data: ' . $chunk->msg . "\n";
                     ob_flush();
                     flush();
                 } elseif ($event == 'Error') {
-                    throw new \Exception($message);
+                    throw new \Exception($chunk);
                 }
             };
             $this->read_backend_stream(
@@ -590,6 +751,9 @@ class ProfileController extends Controller
          * This function will block until all message is received.
          */
         
+        // Prevent PHP socket timeout
+        ini_set('default_socket_timeout', -1);
+        
         if (!$history_id || !$user_id) {
             $callback("Error", "Missing history_id or user_id.");
             return;
@@ -603,11 +767,11 @@ class ProfileController extends Controller
             $channel = 'api_' . $history_id;
             // The subscribe loop will block until the channel is unsubscribed or the client is disconnected.
             $client->subscribe($channel, function ($message, $channel) use (&$client, &$callback) {
-                [$event, $msg] = explode(' ', $message, 2);
+                [$event, $chunk] = explode(' ', $message, 2);
                 if ($event == 'New') {
-                    $msg = json_decode($msg, false, JSON_INVALID_UTF8_IGNORE)->msg;
+                    $chunk = json_decode($chunk, false, JSON_INVALID_UTF8_IGNORE);
                 }
-                $callback($event, $msg);
+                $callback($event, $chunk);
                 if ($event == 'Ended') {
                     // Terminate the subscribe loop
                     $client->disconnect();

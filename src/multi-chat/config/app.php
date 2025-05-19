@@ -3,8 +3,9 @@
 use Illuminate\Support\Facades\Facade;
 
 return [
-    'Version' => "0.3.4",
+    'Version' => "0.4.0",
     'API_Key' => env('API_Key', null),
+    'APP_AUTO_EMAIL' => env('APP_AUTO_EMAIL', null),
     'MAIL_MAILER' => env('MAIL_MAILER', null),
     'MAIL_HOST' => env('MAIL_HOST', null),
     'MAIL_PORT' => env('MAIL_PORT', null),
@@ -15,6 +16,7 @@ return [
     'MAIL_FROM_NAME' => env('MAIL_FROM_NAME', null),
     'Email_Required' => env('Email_Required', true),
     'LLM_DEFAULT_IMG' => env('LLM_DEFAULT_IMG','images/kuwa.png'),
+    'KNOWLEDGE_DIRECTORY' => realpath(env('KNOWLEDGE_DIRECTORY','root')),
     'LANGUAGES' => json_decode(env('LANGUAGES'), true) ?: [
         'en_us' => 'English',
         'zh_tw' => '中文 (台灣)',
@@ -27,6 +29,7 @@ return [
     ],
     'DEFAULT_GROUP' => env("DEFAULT_GROUP", null),
 
+    'KUWA_API_BASE_URLS' => env('KUWA_API_BASE_URLS', 'http://localhost/v1.0/'),
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -218,7 +221,6 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Bepsvpt\SecureHeaders\SecureHeadersServiceProvider::class,
-
     ],
 
     /*

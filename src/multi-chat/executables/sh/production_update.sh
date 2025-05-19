@@ -1,10 +1,13 @@
 cd ../..
-sudo apt install php-pgsql php-xml php php-curl php-ldap php-redis composer redis php-sqlite3 php-gd php-zip -y
 composer install --no-dev --optimize-autoloader --no-interaction
-php artisan key:generate --force
+php artisan key:generate
 php artisan db:seed --class=InitSeeder --force
 php artisan migrate --force
 rm public/storage
+rm storage/app/public/root/custom
+rm storage/app/public/root/database
+rm storage/app/public/root/bin
+rm storage/app/public/root/bot
 php artisan storage:link
 npm audit fix
 npm install

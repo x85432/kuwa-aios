@@ -8,6 +8,7 @@ packages = ["src/kuwa"]
 [tool.hatch.version]
 source = "vcs"
 raw-options = {root = "../../"}
+fallback-version = "0.1.0"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/kuwa/executor/_version.py"
@@ -15,7 +16,6 @@ version-file = "src/kuwa/executor/_version.py"
 [tool.hatch.metadata.hooks.vcs]
 
 [tool.hatch.build.targets.wheel.force-include]
-"sysinfo.py" = "kuwa/executor/example/sysinfo.py"
 "debug.py" = "kuwa/executor/example/debug.py"
 "dummy.py" = "kuwa/executor/example/dummy.py"
 "geminipro.py" = "kuwa/executor/example/geminipro.py"
@@ -23,6 +23,7 @@ version-file = "src/kuwa/executor/_version.py"
 "huggingface.py" = "kuwa/executor/example/huggingface.py"
 "llamacpp.py" = "kuwa/executor/example/llamacpp.py"
 "ollama_proxy.py" = "kuwa/executor/example/ollama_proxy.py"
+"nim.py" = "kuwa/executor/example/nim.py"
 
 [project]
 name = "kuwa-executor"
@@ -40,18 +41,39 @@ classifiers = [
 ]
 dependencies=[
   'pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4',
-  'fastapi~=0.110.0',
+  'fastapi~=0.115.0',
   'prometheus_client~=0.20.0',
   'python-multipart~=0.0.9',
   'requests~=2.32.0',
   'retry~=0.9.2',
   'uvicorn[standard]~=0.29.0',
-  'PyYAML~=6.0.1'
+  'PyYAML~=6.0.1',
+
+  # Gemini
+  'google-generativeai>=0.6.0',
+  
+  # OpenAI
+  'openai>=1.76.0',
+  'tiktoken>=0.9.0',
+
+  # Ollama
+  'jinja2>=3.1.6',
+  'ollama>=0.4.8',
+
+  # Huggingface
+  'accelerate>=1.6.0',
+  'pillow>=11.2.1',
+  'requests>=2.32.3',
+  'sentencepiece>=0.2.0',
+  'torch==2.3.0',
+  'torchvision==0.18.0',
+  'transformers==4.51.3',
+  'numpy<2.0.0',
 ]
 
 [project.urls]
 "Homepage" = "https://kuwaai.tw/os/Intro"
-"Bug Tracker" = "https://github.com/kuwaai/genai-os/issues"
+"Bug Tracker" = "https://github.com/kuwaai/kuwa-aios/issues"
 
 [project.scripts]
 kuwa-executor = "kuwa.executor.cli:main"

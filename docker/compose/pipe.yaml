@@ -3,9 +3,11 @@ services:
     image: kuwaai/model-executor
     environment:
       CUSTOM_EXECUTOR_PATH: ./pipe/main.py
-      EXECUTOR_ACCESS_CODE: pipe
+      EXECUTOR_ACCESS_CODE: .tool/kuwa/pipe
       EXECUTOR_NAME: Pipe
       EXECUTOR_IMAGE: pipe.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 999999
+      TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-0} # For embedding model
     depends_on:
       - executor-builder
       - kernel
@@ -15,7 +17,8 @@ services:
       "--log", "debug",
     ]
     volumes: [
-      "kuwa-root:/var/kuwa/docker/root:ro", # The root of Kuwa filesystem hierarchy to store user-uploaded data during runtime.
+      "kuwa-root:/var/kuwa/docker/root:rw", # The root of Kuwa filesystem hierarchy to store user-uploaded data during runtime.
+      "~/.cache/huggingface:/root/.cache/huggingface"
     ]
     extra_hosts:
       - "localhost:host-gateway"

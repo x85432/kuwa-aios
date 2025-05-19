@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>2024 04 20 llama3 linux - Kuwa Help Center</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "2024 04 20 llama3 linux";
+        var mkdocs_page_input_path = "tutorial\\2024-04-20-llama3-linux.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Kuwa Help Center
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Documentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../community/">Community</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../configuration/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../contribution_guidelines/">Contributing Guidelines</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_installation/">Docker installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_model_setup/">Docker model setup</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_quick_installation/">Docker quick installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequently Asked Questions</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../legal_information/">Legal Information</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../windows_installation/">Windows installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../windows_model_setup/">Windows model setup</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Release</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-08-first-stable-release-v0.1.0/">2024 04 08 first stable release v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-08-migration-from-old-to-v0.1.0/">2024 04 08 migration from old to v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-15-release-v0.2.0-beta/">2024 04 15 release v0.2.0 beta</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-15-release-v0.2.0-taide/">2024 04 15 release v0.2.0 taide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-29-migrate-to-v0.2.1/">2024 04 29 migrate to v0.2.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-29-release-v0.2.1-taide/">Kuwa TAIDE v0.2.1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-05-07-release-v0.3.0-beta1/">Kuwa TAIDE v0.3.0-beta1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-05-19-release-v0.3.0/">2024 05 19 release v0.3.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-06-24-relese-v0.3.1/">2024 06 24 relese v0.3.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-07-05-release-v0.3.2/">2024 07 05 release v0.3.2</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-08-12-release-v0.3.3/">2024 08 12 release v0.3.3</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">2024 04 20 llama3 linux</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#method-1-applying-for-access-on-huggingface">Method 1: Applying for Access on HuggingFace</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#method-2-direct-download-from-huggingface">Method 2: Direct Download from HuggingFace</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-20-llama3-windows/">2024 04 20 llama3 windows</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-18-bot-system-guide/">2024 05 18 bot system guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-apply-gemini/">2024 05 19 apply gemini</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-dbqa-setup/">2024 05 19 dbqa setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-searchqa-setup/">2024 05 19 searchqa setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-painter-tutorial/">2024 06 24 painter tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-vlm-tutorial/">2024 06 24 vlm tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-whisper-tutorial/">2024 06 24 whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-05-rag-param-tutorial/">2024 07 05 rag param tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-05-tool-tutorial/">2024 07 05 tool tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-18-cool-whisper-tutorial/">2024 07 18 cool whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../client_library/">Client library</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Kuwa Help Center</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorial</li>
+      <li class="breadcrumb-item active">2024 04 20 llama3 linux</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="getting-the-model">Getting the Model</h2>
+<h3 id="method-1-applying-for-access-on-huggingface">Method 1: Applying for Access on HuggingFace</h3>
+<ol>
+<li>Log in to HuggingFace and apply for access to the meta-llama/Meta-Llama-3-8B-Instruct model (approximately 1 hour review time)
+   <img alt="" src="../img/2024-04-20-llama3/hf-meta-llama3.png" /></li>
+<li>If you see the "You have been granted access to this model" message, you have obtained the model access, and you can download the model
+   <img alt="" src="../img/2024-04-20-llama3/hf-meta-llama3-granted.png" /></li>
+</ol>
+<!-- truncate -->
+
+<ol>
+<li>If you need to use a model that requires login, you need to set up a HuggingFace token. If you are using a model that does not require login, you can skip this step
+    Go to https://huggingface.co/settings/tokens?new_token=true<br />
+<img alt="" src="../img/2024-04-20-llama3/hf-new-token.png" /><br />
+    Enter your desired name<br />
+<img alt="" src="../img/2024-04-20-llama3/hf-new-token-name.png" /><br />
+    Then, keep this token safe (do not share it with anyone)<br />
+<img alt="" src="../img/2024-04-20-llama3/hf-token.png" /></li>
+</ol>
+<h3 id="method-2-direct-download-from-huggingface">Method 2: Direct Download from HuggingFace</h3>
+<ul>
+<li>If you don't want to log in to HuggingFace, you can find a third-party re-uploaded model (named Meta-Llama-3-8B-Instruct, no GGUF): 
+    HuggingFace search: https://huggingface.co/models?search=Meta-Llama-3-8B-Instruct<br />
+    For example, NousResearch/Meta-Llama-3-8B-Instruct, remember the name<br />
+<img alt="" src="../img/2024-04-20-llama3/hf-nousresearch.png" /></li>
+</ul>
+<h2 id="2-kuwa-settings">2. Kuwa Settings</h2>
+<h3 id="method-1-starting-executor-using-command">Method 1: Starting Executor using Command</h3>
+<ol>
+<li>
+<p>You can start the Llama3 8B Instruct Executor (with code <code>llama3-8b-instruct</code>) using the following command, replacing <code>&lt;YOUR_HF_TOKEN&gt;</code> with the HuggingFace token obtained in the previous step. If you downloaded it from a third-party, leave it blank.</p>
+<p>The <code>--model_path</code> parameter is followed by the name of the model on the Huggingface hub. You can obtain the model using method 1: <code>meta-llama/Meta-Llama-3-8B-Instruct</code> or method 2: <code>NousResearch/Meta-Llama-3-8B-Instruct</code>.</p>
+<p><code>sh
+export HUGGING_FACE_HUB_TOKEN=&lt;YOUR_HF_TOKEN&gt;
+kuwa-executor huggingface --access_code llama3-8b-instruct --log debug --model_path meta-llama/Meta-Llama-3-8B-Instruct --stop " --no_system_prompt</code></p>
+<p><code>sh
+export HUGGING_FACE_HUB_TOKEN=
+kuwa-executor huggingface --access_code llama3-8b-instruct --log debug --model_path NousResearch/Meta-Llama-3-8B-Instruct --stop " --no_system_prompt</code></p>
+</li>
+<li>
+<p>After adding the Llama3 8B Instruct model settings in the web frontend, you can use it.
+    <img alt="" src="../img/2024-04-20-llama3/kuwa-model-config-en.png" /></p>
+</li>
+</ol>
+<h3 id="method-2-starting-executor-using-docker">Method 2: Starting Executor using Docker</h3>
+<ol>
+<li>Create a <code>llama3.yaml</code> file in the <code>genai-os/docker/</code> directory and fill in the following content. If you use method 1, you need to modify the <code>command</code> parameter in the compose file to <code>meta-llama/Meta-Llama-3-8B-Instruct</code>.</li>
+</ol>
+<pre><code class="language-yaml">services:
+  llama3-executor:
+    build:
+      context: ../
+      dockerfile: docker/executor/Dockerfile
+    image: kuwa-executor
+    environment:
+      EXECUTOR_TYPE: huggingface
+      EXECUTOR_ACCESS_CODE: llama3-8b-instruct
+      EXECUTOR_NAME: Meta Llama3 8B Instruct
+      # HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN}
+    depends_on:
+      - kernel
+      - multi-chat
+    command: [&quot;--model_path&quot;, &quot;NousResearch/Meta-Llama-3-8B-Instruct&quot;, &quot;--no_system_prompt&quot;, &quot;--stop&quot;, &quot;&lt;|eot_id|&gt;&quot;]
+    restart: unless-stopped
+    volumes: [&quot;~/.cache/huggingface:/root/.cache/huggingface&quot;]
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
+    networks: [&quot;backend&quot;]
+</code></pre>
+<ol>
+<li>Use the following command to start a new container (<code>&lt;...&gt;</code> is the existing system's compose file combination, and the existing system does not need to be stopped).</li>
+</ol>
+<pre><code class="language-sh">sudo docker compose -f compose.yaml &lt;...&gt; -f llama3.yaml up --build
+</code></pre>
+<ol>
+<li>If the Executor runs successfully, you will see the following image.
+    <img alt="" src="../img/2024-04-20-llama3/kuwa-container-succeed.png" /></li>
+</ol>
+<h2 id="3-kuwa-usage">3. Kuwa Usage</h2>
+<ol>
+<li>Wait for the model to download and then log in to Kuwa. You can start chatting with Llama3.</li>
+<li>Llama3 is set to prefer English, and you can use the "Translate this model's response" function to translate the model's response into Chinese.
+    <img alt="" src="../img/2024-04-20-llama3/kuwa-usage-1.png" /><br />
+<img alt="" src="../img/2024-04-20-llama3/kuwa-usage-2.png" />  </li>
+<li>You can use the group chat function to compare the responses of Llama3, Llama2, and TAIDE-LX-7B-Chat.
+    <img alt="" src="../img/2024-04-20-llama3/kuwa-usage-3.png" />  </li>
+</ol>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../release/2024-08-12-release-v0.3.3/" class="btn btn-neutral float-left" title="2024 08 12 release v0.3.3"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../2024-04-20-llama3-windows/" class="btn btn-neutral float-right" title="2024 04 20 llama3 windows">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../release/2024-08-12-release-v0.3.3/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../2024-04-20-llama3-windows/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

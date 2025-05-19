@@ -63,15 +63,24 @@
                         @endphp
                         <div onclick="detail_update({{ $bot_json }}, {{ request()->user()->id == $bot->owner_id || request()->user()->hasPerm('tab_Manage') ? 'false' : 'true' }})"
                             data-modal-target="detail-modal" data-modal-toggle="detail-modal"
-                            class="cursor-pointer mx-1 flex-shrink-0 h-10 w-10 rounded-full bg-black flex items-center justify-center overflow-hidden">
-                            <img data-tooltip-target="llm_{{ $bot->id }}_chat" data-tooltip-placement="top"
-                                class="h-full w-full"
-                                src="{{ $bot->image ?? $bot->base_image ? asset(Storage::url($bot->image ?? $bot->base_image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
-                            <div id="llm_{{ $bot->id }}_chat" role="tooltip"
-                                class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-500">
-                                {{ $bot->name }}
-                                <div class="tooltip-arrow" data-popper-arrow></div>
+                            data-tooltip-target="llm_{{ $bot->id }}_chat" data-tooltip-placement="top"
+                            class="relative bot-{{ $bot->id }} cursor-pointer mx-1 flex-shrink-0 h-10 w-10 rounded-full">
+
+                            <div class="flex justify-center items-center h-full">
+                                <img class="rounded-full bg-black w-full h-full overflow-hidden"
+                                    src="{{ $bot->image ?? $bot->base_image ? asset(Storage::url($bot->image ?? $bot->base_image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
                             </div>
+
+                            <div class="absolute bottom-0 right-0 z-2 opacity-90">
+                                @if (time() - strtotime($bot->healthy) > 300)
+                                    <div class="bg-red-500 rounded-full w-3 h-3" data-updated-at="{{$bot->updated_at}}"></div>
+                                @endif
+                            </div>
+                        </div>
+                        <div id="llm_{{ $bot->id }}_chat" role="tooltip"
+                            class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-500">
+                            {{ $bot->name }}
+                            <div class="tooltip-arrow" data-popper-arrow></div>
                         </div>
                     @else
                         <div
@@ -107,13 +116,13 @@
                     @if (!session('llms') && request()->user()->hasPerm('Room_read_export_chat'))
                         <x-dropdown-link onclick="event.preventDefault();export_chat()" href="#"
                             data-modal-target="exportModal" data-modal-toggle="exportModal">
-                            {{ __('chat.modal.export.header') }}
+                            {{ __('chat.header.export') }}
                         </x-dropdown-link>
                     @endif
                     @if (request()->user()->hasPerm('Room_update_import_chat'))
                         <x-dropdown-link href="#" onclick="event.preventDefault();"
                             data-modal-target="importModal" data-modal-toggle="importModal">
-                            {{ __('chat.modal.import.header') }}
+                            {{ __('chat.header.import') }}
                         </x-dropdown-link>
                     @endif
                     @if (!session('llms'))
@@ -127,9 +136,8 @@
                         </x-dropdown-link>
                         @if (request()->user()->hasPerm('Room_delete_chatroom'))
                             <x-dropdown-link href="#"
-                                onclick="event.preventDefault();$('#deleteChat input[name=id]').val({{ App\Models\ChatRoom::findOrFail(request()->route('room_id'))->id }});$('#deleteChat h3 span:eq(1)').text('<{{ App\Models\ChatRoom::findOrFail(request()->route('room_id'))->name }}>');"
-                                class="!text-red-500 hover:!text-red-600" data-modal-target="delete_chat_modal"
-                                data-modal-toggle="delete_chat_modal">
+                                onclick="event.preventDefault();$('#delete_chat_modal input[name=id]').val({{ App\Models\ChatRoom::findOrFail(request()->route('room_id'))->id }});$('#delete_chat_modal h3 span:eq(1)').text('<{{ App\Models\ChatRoom::findOrFail(request()->route('room_id'))->name }}>');$('#delete_chat_modal').removeClass('hidden');"
+                                class="!text-red-500 hover:!text-red-600">
                                 {{ __('chat.button.delete') }}
                             </x-dropdown-link>
                         @endif
@@ -201,7 +209,7 @@
                 "messages": chatMessages
             }, null, 4))
             //Tab Separate Values
-            var csvContent = "role	model	content	chain\n"; // Define CSV header
+            var tsvContent = "role	model	content	chain\n"; // Define CSV header
 
             $("#chatroom > div > div.flex.w-full.mt-2.space-x-3 ").each(function(index, element) {
                 var historyId = $(element).prop("id").replace("history_", "");
@@ -221,9 +229,9 @@
                     row = `user		${msgText}	\n`;
                 }
 
-                csvContent += row; // Add row to CSV content
+                tsvContent += row; // Add row to CSV content
             });
-            $("#export_tsv").val(csvContent)
+            $("#export_tsv").val(tsvContent)
         }
     </script>
 @endif

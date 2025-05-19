@@ -71,4 +71,7 @@ then
   exit 1
 fi
 
+cp -i ../src/bots/init/*.bot ./root/bootstrap/bot/
+cp -i ../src/tools/ ./root/bin
+
 log "Update and build completed successfully."

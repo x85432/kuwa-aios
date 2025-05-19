@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'modal.start.title' => 'Starten Sie den Task-Prozessor',
+    'modal.start.label' => 'Anzahl der Task-Prozessoren:',
+    'modal.stop.title' => 'Stoppen Sie alle Task-Prozessoren',
+    'modal.stop.confirm' => 'Sind Sie sicher, dass Sie alle Task-Prozessoren stoppen möchten?',
+    'button.new_executor' => 'Neuen Executor-Datensatz hinzufügen',
+    'button.start' => 'Task-Prozessor starten',
+    'button.stop' => 'Alle Task-Prozessoren stoppen',
+    'button.confirm' => 'Bestätigen',
+    'button.cancel' => 'Abbrechen',
+    'label.loading' => 'Lädt...',
+    'label.no_workers_boot' => 'Keine laufenden Task-Prozessoren. Klicken Sie hier, um zu starten.',
+    'label.last_refresh' => 'Letzte Aktualisierung: :time',
+    'label.current_worker_count' => 'Aktuelle Anzahl der Task-Prozessoren',
+    'label.error_fetching_worker_count' => 'Fehler beim Abrufen der Anzahl der Task-Prozessoren.',
+    'label.last_refresh_time' => 'Letzte Aktualisierung',
+    'label.seconds_ago' => 'Sekunden',
+    'label.error' => 'Fehler',
+    'label.valid_worker_count' => 'Bitte geben Sie eine gültige Anzahl von Task-Prozessoren ein.',
+    'label.worker_started' => 'Task-Prozessor wurde erfolgreich gestartet.',
+    'label.worker_start_failed' => 'Start des Task-Prozessors fehlgeschlagen: ',
+    'label.no_workers' => 'Keine gestarteten Task-Prozessoren',
+    'label.worker_stopped' => 'Task-Prozessor wurde gestoppt',
+];

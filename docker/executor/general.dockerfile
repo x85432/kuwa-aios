@@ -5,11 +5,11 @@ WORKDIR /usr/src/app
 RUN apt-get update &&\
     apt-get install -y cmake build-essential git
 
-# Install llama-cpp-python == 0.2.87
+# Install llama-cpp-python == 0.3.8
 # Ref: https://github.com/abetlen/llama-cpp-python/issues/1628
 RUN apt-get install -y musl-dev && \
     ln -s /usr/lib/$(uname -m)-linux-musl/libc.so /lib/libc.musl-$(uname -m).so.1 &&\
-    pip install --no-cache-dir "llama-cpp-python @ https://github.com/abetlen/llama-cpp-python/releases/download/v0.2.87/llama_cpp_python-0.2.87-cp310-cp310-linux_$(uname -m).whl"
+    pip install --no-cache-dir "llama-cpp-python @ https://github.com/kuwaai/llama-cpp-python/releases/download/v0.3.8/llama_cpp_python-0.3.8-cp310-cp310-linux_$(uname -m).whl"
 
 COPY src/executor/requirements.txt ./
 RUN sed -i '/^\.[\/]*/d' ./requirements.txt &&\
@@ -35,13 +35,15 @@ RUN pip install --no-cache-dir -r ./uploader/requirements.txt
 COPY src/tools/requirements.txt ./tools/requirements.txt
 RUN pip install --no-cache-dir -r ./tools/requirements.txt
 
-# Install the executor framework and client library
+# Install the executor framework, client library and RAG library
 COPY .git ../../.git
 COPY src/executor/. .
 COPY src/library/client ../library/client
+COPY src/library/rag ../library/rag
 
 RUN pip install . &&\
     pip install --no-cache-dir ../library/client &&\
+    pip install --no-cache-dir ../library/rag &&\
     rm -rf ../../.git
 
 # Install the multi-chat-client and the entrypoint
@@ -67,6 +69,8 @@ ENV EXECUTOR_TYPE="debug"
 ENV EXECUTOR_ACCESS_CODE="debug"
 ENV EXECUTOR_NAME="Debug Executor"
 ENV EXECUTOR_IMAGE=""
+ENV EXECUTOR_ORDER=""
+ENV EXECUTOR_CREATE_BOT="true"
 ENV ADD_EXECUTOR_TO_MULTI_CHAT="true"
 ENV KERNEL_URL="http://kernel:9000/"
 ENTRYPOINT [ "docker-entrypoint" ]

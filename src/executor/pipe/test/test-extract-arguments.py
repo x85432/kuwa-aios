@@ -1,11 +1,12 @@
 import os
 import sys
 import unittest
-sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 from main import extract_arguments
 
-class TestExtractArguments(unittest.TestCase):
 
+class TestExtractArguments(unittest.TestCase):
     def test_empty_input(self):
         user_input = ""
         expected_arguments = ""
@@ -54,5 +55,6 @@ class TestExtractArguments(unittest.TestCase):
         self.assertEqual(arguments, expected_arguments)
         self.assertEqual(prompt, expected_prompt)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

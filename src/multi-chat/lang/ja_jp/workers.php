@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'modal.start.title' => 'タスクワーカーを開始',
+    'modal.start.label' => 'ワーカー数：',
+    'modal.stop.title' => 'すべてのタスクワーカーを停止',
+    'modal.stop.confirm' => 'すべてのタスクワーカーを停止しますか？',
+    'button.new_executor' => '新しい実行者レコードを追加',
+    'button.start' => 'タスクワーカーを開始',
+    'button.stop' => 'すべてのタスクワーカーを停止',
+    'button.confirm' => '確認',
+    'button.cancel' => 'キャンセル',
+    'label.loading' => '読み込み中...',
+    'label.no_workers_boot' => '実行中のタスクワーカーがありません。クリックして開始',
+    'label.last_refresh' => '最終更新日時：:time',
+    'label.current_worker_count' => '現在のタスクワーカー数',
+    'label.error_fetching_worker_count' => 'タスクワーカー数の取得に失敗しました。',
+    'label.last_refresh_time' => '最終更新',
+    'label.seconds_ago' => '秒前',
+    'label.error' => 'エラー',
+    'label.valid_worker_count' => '有効なタスクワーカー数を入力してください。',
+    'label.worker_started' => 'タスクワーカーが正常に開始されました',
+    'label.worker_start_failed' => 'タスクワーカーの開始に失敗しました：',
+    'label.no_workers' => '起動中のタスクワーカーがありません',
+    'label.worker_stopped' => 'タスクワーカーは停止しました',
+];

@@ -15,11 +15,20 @@
   <a href="http://makeapullrequest.com">
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg">
   </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square">
-  </a>
   <a href="https://laravel.com/docs/10.x/releases">
     <img src="https://img.shields.io/badge/maintained%20with-Laravel-cc00ff.svg">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/github/v/release/kuwaai/kuwa-aios">
+  </a>
+  <!--<a href="#">
+    <img src="https://img.shields.io/github/downloads/kuwaai/kuwa-aios/total">
+  </a>-->
+  <a href="#">
+    <img src="https://img.shields.io/github/license/kuwaai/kuwa-aios">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/github/stars/kuwaai">
   </a>
 </p>
 
@@ -51,11 +60,11 @@
 ### 快速安裝
 可下載單一Script或檔案，依指示操作即可快速安裝
 * **Windows**
-下載最新版本GenAI OS的[Windows版單一執行檔](https://github.com/kuwaai/genai-os/releases)
+下載最新版本GenAI OS的[Windows版單一執行檔](https://github.com/kuwaai/kuwa-aios/releases)
 * **Linux/Docker**
 可下載 [build.sh](./docker/build.sh) 後執行 **sudo build.sh**，或在Linux下執行以下指令即可自動下載及安裝Docker、CUDA及Kuwa。安裝CUDA後需重開機，安裝完成前會設定管理者及資料庫密碼，全部安裝完成後會執行 run.sh 自動啟動Kuwa，預設用 admin@localhost 帳號登入。
   ```
-  curl -fsSL https://raw.githubusercontent.com/kuwaai/genai-os/main/docker/build.sh | sudo bash
+  curl -fsSL https://raw.githubusercontent.com/kuwaai/kuwa-aios/main/docker/build.sh | sudo bash
   ```
 ### 手動安裝
 可參考安裝文件逐步進行手動安裝
@@ -67,7 +76,7 @@ Kuwa透過Executor來支援多種模型架設及應用串接方式，安裝後�
 
 ## 下載
 
-您可以[下載](https://github.com/kuwaai/genai-os/releases)最新版本的Kuwa GenAI OS，支持Windows和Linux。
+您可以[下載](https://github.com/kuwaai/kuwa-aios/releases)最新版本的Kuwa GenAI OS，支持Windows和Linux。
 
 ## 社區
 
@@ -102,14 +111,6 @@ Kuwa透過Executor來支援多種模型架設及應用串接方式，安裝後�
 - [Marked](https://github.com/chjj/marked)
 - [highlight.js](https://highlightjs.org/)
 - [NVIDIA CUDA](https://developer.nvidia.com/cuda-toolkit)
-
-## 致謝
-在此感謝國科會TAIDE計畫、台灣人工智慧學校對本計畫初期開發時的協助。
-<a href="https://www.nuk.edu.tw/"><img src="./src/multi-chat/public/images/logo_NUK.jpg" height="100px"></a>
-<a href="https://taide.tw/"><img src="./src/multi-chat/public/images/logo_taide.jpg" height="100px"></a>
-<a href="https://www.nstc.gov.tw/"><img src="./src/multi-chat/public/images/logo_NSTCpng.jpg" height="100px"></a>
-<a href="https://www.narlabs.org.tw/"><img src="./src/multi-chat/public/images/logo_NARlabs.jpg" height="100px"></a>
-<a href="https://aiacademy.tw/"><img src="./src/multi-chat/public/images/logo_AIA.jpg" height="100px"></a>
 
 ## 授權條款
 [MIT](./LICENSE)

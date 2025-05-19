@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\GroupPermissions;
 use App\Models\Group;
+use App\Notifications\ResetPassword;
 
 class User extends Authenticatable implements MustVerifyEmail, LdapAuthenticatable
 {
@@ -33,7 +34,7 @@ class User extends Authenticatable implements MustVerifyEmail, LdapAuthenticatab
         'require_change_password',
         'google_token',
         'third_party_token'
-    ];
+    , 'nim_token'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -73,4 +74,8 @@ class User extends Authenticatable implements MustVerifyEmail, LdapAuthenticatab
         return false;
     }
     
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPassword($token));
+    }
 }

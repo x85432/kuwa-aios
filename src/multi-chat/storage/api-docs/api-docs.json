@@ -1,0 +1,674 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Kuwa API",
+        "description": "API definition for KuwaClient service",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/user/create/bot": {
+            "post": {
+                "tags": [
+                    "Bots"
+                ],
+                "summary": "Create a bot",
+                "operationId": "f3e2fbb5bc1ec98f7cf05a51185c8f8e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateBotRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bot created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/read/bots": {
+            "get": {
+                "tags": [
+                    "Bots"
+                ],
+                "summary": "List all bots available to the user",
+                "operationId": "76609044293e45c254f20813f139af52",
+                "responses": {
+                    "200": {
+                        "description": "Successful response returns a list of bots",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Indicates the status of the response",
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "result": {
+                                            "description": "An array of bot objects",
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "description": "Unique identifier for the bot",
+                                                        "type": "integer",
+                                                        "example": 4
+                                                    },
+                                                    "image": {
+                                                        "description": "URL of the bot's image (nullable)",
+                                                        "type": "string",
+                                                        "example": null,
+                                                        "nullable": true
+                                                    },
+                                                    "name": {
+                                                        "description": "Display name of the bot",
+                                                        "type": "string",
+                                                        "example": "ChineseConvert"
+                                                    },
+                                                    "access_code": {
+                                                        "description": "Access code required to use the bot",
+                                                        "type": "string",
+                                                        "example": "nihao"
+                                                    },
+                                                    "created_at": {
+                                                        "description": "Timestamp when the bot was created",
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2024-05-21T12:23:48.000000Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "description": "Timestamp when the bot was last updated",
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-03-30T03:22:06.000000Z"
+                                                    },
+                                                    "order": {
+                                                        "description": "Used to determine the bot's display order. Lower is higher priority.",
+                                                        "type": "integer",
+                                                        "example": 8400
+                                                    },
+                                                    "enabled": {
+                                                        "description": "Indicates if the bot is enabled and available",
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "description": {
+                                                        "description": "Short description of the bot's functionality",
+                                                        "type": "string",
+                                                        "example": "簡繁轉換"
+                                                    },
+                                                    "config": {
+                                                        "description": "Configuration options as a JSON object",
+                                                        "properties": {
+                                                            "react_btn": {
+                                                                "description": "List of button types shown for this bot",
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "string",
+                                                                    "example": "feedback"
+                                                                }
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "healthy": {
+                                                        "description": "Indicates whether the bot is currently operational",
+                                                        "type": "boolean",
+                                                        "example": false
+                                                    },
+                                                    "type": {
+                                                        "description": "Type of bot (e.g., 'prompt')",
+                                                        "type": "string",
+                                                        "example": "prompt"
+                                                    },
+                                                    "visibility": {
+                                                        "description": "Visibility status (e.g., 0 = private)",
+                                                        "type": "integer",
+                                                        "example": 0
+                                                    },
+                                                    "model_id": {
+                                                        "description": "Identifier for the underlying language model used",
+                                                        "type": "integer",
+                                                        "example": 26
+                                                    },
+                                                    "owner_id": {
+                                                        "description": "User ID of the bot's owner, or null if system-owned",
+                                                        "type": "integer",
+                                                        "example": null,
+                                                        "nullable": true
+                                                    },
+                                                    "base_image": {
+                                                        "description": "Path to the base image shown for this bot",
+                                                        "type": "string",
+                                                        "example": "/storage/images/sXC8DggS9ncILAksVHZEAvVrloQT85nC4mIjLNmt.png"
+                                                    },
+                                                    "llm_name": {
+                                                        "description": "Name of the associated large language model (LLM)",
+                                                        "type": "string",
+                                                        "example": "ChineseConvert"
+                                                    },
+                                                    "group_id": {
+                                                        "description": "ID of the group this bot belongs to, if any",
+                                                        "type": "integer",
+                                                        "example": null,
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/read/cloud/{path}": {
+            "get": {
+                "tags": [
+                    "Cloud"
+                ],
+                "summary": "List cloud directory or file",
+                "operationId": "207dd29fc51284b704c88c97a636fe2f",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "The cloud directory or file path. If not provided, defaults to a single dot.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cloud data listed"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/delete/cloud/{path}": {
+            "delete": {
+                "tags": [
+                    "Cloud"
+                ],
+                "summary": "Delete cloud file or folder",
+                "operationId": "b81ad367dc284f3ac77aef58297ad717",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "Path to cloud item to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cloud item deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/create/base_model": {
+            "post": {
+                "tags": [
+                    "Models"
+                ],
+                "summary": "Create a base model",
+                "operationId": "c10fabc41138fda505a0a8e8a5210556",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BaseModel"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Model created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/read/models": {
+            "get": {
+                "tags": [
+                    "Models"
+                ],
+                "summary": "List base models",
+                "operationId": "432ffdc597ac392760cd65b5f1bc88c1",
+                "responses": {
+                    "200": {
+                        "description": "List of models"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/upload/file": {
+            "post": {
+                "tags": [
+                    "Cloud"
+                ],
+                "summary": "Upload a file",
+                "operationId": "27836cdf3f8571b7673e556dfee4a304",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "File uploaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1.0/chat/completions": {
+            "post": {
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Complete a chat (streaming or non-streaming)",
+                "operationId": "d34c10b7708f1ed7f5bf30b0631a545c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "model",
+                                    "messages"
+                                ],
+                                "properties": {
+                                    "model": {
+                                        "type": "string",
+                                        "example": "gpt-4"
+                                    },
+                                    "messages": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "role",
+                                                "content"
+                                            ],
+                                            "properties": {
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "user"
+                                                },
+                                                "content": {
+                                                    "type": "string",
+                                                    "example": "Hello"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "stream": {
+                                        "description": "Enable streaming mode",
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "options": {
+                                        "description": "Additional options for the completion",
+                                        "type": "object",
+                                        "additionalProperties": []
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Chat completion response (streamed or full)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "choices": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "oneOf": [
+                                                    {
+                                                        "properties": {
+                                                            "delta": {
+                                                                "properties": {
+                                                                    "content": {
+                                                                        "type": "string",
+                                                                        "example": "Hello, how can I assist?"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    {
+                                                        "properties": {
+                                                            "message": {
+                                                                "properties": {
+                                                                    "role": {
+                                                                        "type": "string",
+                                                                        "example": "assistant"
+                                                                    },
+                                                                    "content": {
+                                                                        "type": "string",
+                                                                        "example": "Hello, how can I assist you?"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/create/room": {
+            "post": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Create a room with bots",
+                "operationId": "2010119293e88f09eadc302b7efdb5af",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateRoomRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Room created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/read/rooms": {
+            "get": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "List rooms",
+                "operationId": "5b4f0bc7affee005c51cac7946d947a5",
+                "responses": {
+                    "200": {
+                        "description": "List of rooms"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/delete/room/message": {
+            "delete": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Delete a message",
+                "operationId": "77187b31926254a366567e98f405289f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "Message ID to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Message deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/delete/room": {
+            "delete": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Delete a room",
+                "operationId": "90012dec1d37b11446be435c343022d0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "Room ID to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Room deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "BaseModel": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "access_code": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "other_field": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "CreateRoomRequest": {
+                "properties": {
+                    "llm": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "CreateUserRequest": {
+                "properties": {
+                    "users": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "email": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                },
+                                "group": {
+                                    "type": "string"
+                                },
+                                "detail": {
+                                    "type": "string"
+                                },
+                                "require_change_password": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "CreateBotRequest": {
+                "properties": {
+                    "llm_access_code": {
+                        "type": "string"
+                    },
+                    "bot_name": {
+                        "type": "string"
+                    },
+                    "visibility": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Bots",
+            "description": "Bots"
+        },
+        {
+            "name": "Cloud",
+            "description": "Cloud"
+        },
+        {
+            "name": "Models",
+            "description": "Models"
+        },
+        {
+            "name": "Chat",
+            "description": "Chat"
+        },
+        {
+            "name": "Rooms",
+            "description": "Rooms"
+        },
+        {
+            "name": "Messages",
+            "description": "Messages"
+        }
+    ]
+}

@@ -5,17 +5,24 @@ confs=(
   "base"
   # "dev" # Increase the verbosity for debug
   "pgsql"
-  "copycat"
-  "sysinfo"
-  "pipe"
-  "uploader"
-  "token_counter"
   "gemini"
   "chatgpt"
+  "groq"
+  "nim"
+  # "ollama"
+
+  "sample/gemma3-1b"
+  "whisper"
+  
+  "rag"
+  "search"
+  
+  "copycat"
+  "uploader"
   "dall-e"
-  "llama3.1-70b-groq"
-  "docqa"
-  "searchqa"
+  "agent"
+  "pipe"
+  "base"
 )
 
 # Append "-f" before each element

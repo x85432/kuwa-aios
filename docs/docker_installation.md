@@ -139,7 +139,7 @@ sudo systemctl restart docker
 1. Download Kuwa Repository
 
 ```sh=
-git clone https://github.com/kuwaai/genai-os/
+git clone https://github.com/kuwaai/kuwa-aios/
 cd genai-os/docker
 ```
 
@@ -175,33 +175,6 @@ sudo ./run.sh
 
 By default, Kuwa will be deployed on `http://localhost`.
 
-### 6. (Optional) Building Docker Images from Source Code
+**Advanced Configuration:**
 
-Since version 0.3.4, Kuwa Docker Images are downloaded pre-built from Docker Hub by default. To build images from source code, follow these steps:
-
-1. Ensure the `.git` directory is present within the `genai-os` directory.
-2. Enable the containerd image store for [multi-platform builds](https://docs.docker.com/build/building/multi-platform/#enable-the-containerd-image-store)
-    Add the following configuration to your `/etc/docker/daemon.json` file:
-
-    ```json
-    {
-      "features": {
-        "containerd-snapshotter": true
-      }
-    }
-    ```
-    Restart the Docker daemon after saving the changes:
-    ```sh
-    sudo systemctl restart docker
-    ```
-3. **Build the Kuwa images using the following command:**
-    ```sh
-    sudo ./run.sh build
-    ```
-
-This command will create the following images: 
-
-- `kuwaai/model-executor`
-- `kuwaai/multi-chat`
-- `kuwaai/kernel`
-- `kuwaai/multi-chat-web`
+For advanced configuration options and customization, consult the document [docker_advanced.md](./docker_advanced.md).

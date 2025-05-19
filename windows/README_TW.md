@@ -12,7 +12,7 @@
 - 預設會啟用Gemini與ChatGPT兩個模型，如需連帶執行gguf模型可提前先丟至executors\llamacpp路徑下。
 - 過程會創建管理者權限帳號，如需重新創建，請參照[常見問題](#常見問題)第一項。
 ```bat
-git clone https://github.com/kuwaai/genai-os.git
+git clone https://github.com/kuwaai/kuwa-aios.git
 cd genai-os/windows
 "build & start.bat"
 ```
@@ -23,7 +23,7 @@ cd genai-os/windows
 
 1. **從Release下載，或用git bash執行以下指令複製專案並切換至專案內的 windows 資料夾：**
    ```bat
-   git clone https://github.com/kuwaai/genai-os.git
+   git clone https://github.com/kuwaai/kuwa-aios.git
    cd genai-os/windows
    ```
 

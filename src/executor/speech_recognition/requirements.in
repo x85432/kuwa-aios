@@ -1,0 +1,12 @@
+# Whisper
+# pywhispercpp
+whisper-s2t
+ctranslate2<=4.4.0
+huggingface_hub
+
+# Speaker separation
+# scipy
+# git+https://github.com/speechbrain/speechbrain.git@develop
+# pyannote.audio[separation]==3.3.0
+pyannote.audio
+torchaudio==2.3.0

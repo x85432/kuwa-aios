@@ -20,7 +20,9 @@ if /I "%userInput%"=="quit" (
 	echo Quit.
 ) else if /I "%userInput%"=="seed" (
     echo Running seed command...
-    call src\migration\20240402_seed_admin.bat
+    pushd ..\src\multi-chat\executables\bat\
+    call AdminSeeder.bat
+    popd
     goto loop
 ) else if /I "%userInput%"=="hf login" (
     echo Running huggingface login command...
@@ -36,7 +38,10 @@ if /I "%userInput%"=="quit" (
     goto loop
 ) else if /I "%userInput%"=="switch" (
 	set version=
-	set /p version="Switch to version (cpu | 12.3 | 12.2 | 12.1):"
+    pushd src\version_patch
+    for /D %%f in (*.*) do set "available_version=!available_version! | %%f"
+    popd
+	set /p version="Switch to version (!available_version:~3!):"
     pushd src
 	call switch.bat !version!
 	popd

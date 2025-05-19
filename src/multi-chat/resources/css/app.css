@@ -57,3 +57,7 @@
     }
   }
 }
+
+li > ul, li > ol {
+    margin-left: 1em;
+}

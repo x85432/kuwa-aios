@@ -1,8 +1,0 @@
-sqlalchemy
-psycopg2-binary
-fastapi
-aiohttp
-numpy
-requests
-uvicorn~=0.29.0
-python-dotenv

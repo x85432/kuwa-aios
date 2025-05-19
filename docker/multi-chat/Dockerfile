@@ -1,5 +1,7 @@
 FROM php:8.1-cli AS build
 
+RUN apt-get update
+
 # Install nodejs and composer
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - &&\
     apt-get install -y nodejs &&\
@@ -45,6 +47,7 @@ RUN usermod -u 101 www-data &&\
     groupmod -g 101 www-data
 
 # Configure PHP
+COPY docker/multi-chat/fpm-app-gateway-pool.conf /usr/local/etc/php-fpm.d/app-gateway-pool.conf
 COPY docker/multi-chat/php-override.ini ${PHP_INI_DIR}/conf.d/00-override.ini
 RUN mv "$PHP_INI_DIR/php.ini-production" "${PHP_INI_DIR}/php.ini"
 
@@ -58,7 +61,7 @@ RUN pear config-set http_proxy "${https_proxy:-${HTTPS_PROXY}}" &&\
     docker-php-ext-enable redis
 
 # Install tools to check service status
-RUN apt-get install -y netcat-openbsd wget &&\
+RUN apt-get install -y procps netcat-openbsd wget &&\
     wget -O /usr/local/bin/php-fpm-healthcheck \
       https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/master/php-fpm-healthcheck &&\
     chmod +x /usr/local/bin/php-fpm-healthcheck
@@ -75,11 +78,12 @@ RUN chmod +x docker-entrypoint multi-chat
 # Copy the bootstrap bots
 ENV KUWA_ROOT="/var/kuwa/docker/root"
 VOLUME ${KUWA_ROOT}
-COPY src/bot ${KUWA_ROOT}/../../src/bot
+COPY src/bot/*.bot ${KUWA_ROOT}/../../src/bot/
+COPY src/bot/init ${KUWA_ROOT}/../../src/bot/init
 RUN mkdir -p ${KUWA_ROOT}/bootstrap/bot
 
 # Setup the entry point
-ENV KUWA_MULTI_CHAT_VERSION="0.3.4-docker1"
+ENV KUWA_MULTI_CHAT_VERSION="0.4.0-docker1"
 
 ENV no_proxy="kernel,web,localhost,127.0.0.0/8,::1,${no_proxy}"
 ENV NO_PROXY="kernel,web,localhost,127.0.0.0/8,::1,${NO_PROXY}"
@@ -87,6 +91,7 @@ ENV KUWA_KERNEL_URL="http://kernel:9000"
 ENV APP_URL="http://localhost/"
 ENV APP_ENV="production"
 ENV APP_DEBUG="false"
+ENV KUWA_API_BASE_URLS="http://web/v1.0/;http://localhost/"
 
 ENV DB_CONNECTION="pgsql"
 ENV DB_HOST="db"

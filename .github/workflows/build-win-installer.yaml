@@ -1,89 +1,71 @@
 name: Build Windows Installer
+
 on: workflow_dispatch
+
 jobs:
   build:
-    name: Build the Inno Setup Installer
     runs-on: windows-latest
     defaults:
       run:
         shell: pwsh
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          fetch-tags: true
-      
-      - name: Remove extra header in git config
+
+      - name: Remove GitHub Actions extra header
         run: |
           git config --unset "http.https://github.com/.extraheader"
 
       - id: commit
         uses: prompt/actions-commit-hash@v3
 
-      - name: Install extra language file of Inno Setup 6
+      - name: Install Inno Setup extra language files
         run: |
-          $baseUri = 'https://raw.github.com/kuwaai/issrc/main/Files/Languages'
-          $downloadDir = "$env:ProgramFiles (x86)\Inno Setup 6\Languages"
-          $files = @(
-              @{
-                  Uri = "$baseUri/../Default.isl"
-                  OutFile = "$downloadDir\..\Default.isl"
-              },
-              @{
-                  Uri = "$baseUri/Czech.isl"
-                  OutFile = "$downloadDir\Czech.isl"
-              },
-              @{
-                  Uri = "$baseUri/French.isl"
-                  OutFile = "$downloadDir\French.isl"
-              },
-              @{
-                  Uri = "$baseUri/German.isl"
-                  OutFile = "$downloadDir\German.isl"
-              },
-              @{
-                  Uri = "$baseUri/Japanese.isl"
-                  OutFile = "$downloadDir\Japanese.isl"
-              },
-              @{
-                  Uri = "$baseUri/Korean.isl"
-                  OutFile = "$downloadDir\Korean.isl"
-              },
-              @{
-                  Uri = "$baseUri/Unofficial/ChineseTraditional.isl"
-                  OutFile = "$downloadDir\ChineseTraditional.isl"
-              },
-              @{
-                  Uri = "$baseUri/Unofficial/ChineseSimplified.isl"
-                  OutFile = "$downloadDir\ChineseSimplified.isl"
-              }
-          )
-
-          $jobs = @()
-          New-Item -ItemType Directory -Path $downloadDir -Force
-
-          foreach ($file in $files) {
-              $jobs += Start-ThreadJob -Name $file.OutFile -ScriptBlock {
-                  $params = $using:file
-                  Invoke-WebRequest @params
-              }
+          $baseUri = 'https://raw.githubusercontent.com/kuwaai/issrc/main/Files/Languages'
+          $langPath = "$env:ProgramFiles (x86)\Inno Setup 6\Languages"
+          $files = @{
+            Default = "..\Default.isl"
+            Czech = "Czech.isl"
+            French = "French.isl"
+            German = "German.isl"
+            Japanese = "Japanese.isl"
+            Korean = "Korean.isl"
+            ChineseTraditional = "Unofficial/ChineseTraditional.isl"
+            ChineseSimplified = "Unofficial/ChineseSimplified.isl"
+          }
+          New-Item -ItemType Directory -Path $langPath -Force | Out-Null
+          foreach ($name in $files.Keys) {
+            Invoke-WebRequest "$baseUri/$($files[$name])" -OutFile "$langPath\$name.isl"
           }
 
-          Write-Host "Downloads started..."
-          Wait-Job -Job $jobs
+      - name: Download Gemma-3B model file
+        run: |
+          $url = "https://huggingface.co/tetf/gemma-3-1b-it-qat-q4_0-GGUF/resolve/main/gemma-3-1b-it-q4_0.gguf?download=true"
+          $destDir = "windows/executors/gemma3-1b"
+          New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+          Invoke-WebRequest $url -OutFile "$destDir\gemma-3-1b-it-q4_0.gguf"
 
-          foreach ($job in $jobs) {
-              Receive-Job -Job $job
+      - name: Copy _run.bat to run.bat in executors
+        run: |
+          Get-ChildItem windows/executors -Directory -Recurse | ForEach-Object {
+            $src = "$($_.FullName)\_run.bat"
+            $dst = "$($_.FullName)\run.bat"
+            if (Test-Path $src) { Copy-Item $src $dst -Force }
           }
 
-      - name: Compile .ISS to .EXE installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+      - name: Copy requirements.txt.lock to src
+        run: Copy-Item windows\src\version_patch\11.8\windows\src\requirements.txt.lock windows\src -Force
+
+      - name: Compile installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
         with:
-          path: scripts/windows-setup-files/kuwa_genai_os.iss
+          path: scripts/windows-setup-files/Kuwa-AIOS-Online-Installer.iss
           options: /O+
-      
-      - name: Export the installer
+
+      - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: Kuwa-GenAI-OS-${{ github.ref_name }}${{ steps.commit.outputs.short }}
-          path: D:\a\genai-os\genai-os\scripts\windows-setup-files\Kuwa-GenAI-OS.exe
+          path: scripts/windows-setup-files/Kuwa-GenAI-OS.exe

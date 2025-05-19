@@ -3,14 +3,18 @@ services:
     image: kuwaai/model-executor
     environment:
       EXECUTOR_TYPE: geminipro
-      EXECUTOR_ACCESS_CODE: geminipro
+      EXECUTOR_ACCESS_CODE: .model/google/gemini
       EXECUTOR_NAME: Gemini
       EXECUTOR_IMAGE: gemini.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 401000
     depends_on:
       - executor-builder
       - kernel
       - multi-chat
-    command: ["--api_key", "<YOUR_GLOBAL_API_KEY_HERE>", "--log", "debug"]
+    command: [
+      #"--api_key", "<YOUR_GLOBAL_API_KEY_HERE>",
+      "--log", "debug"
+    ]
     restart: unless-stopped
     extra_hosts:
       - "localhost:host-gateway"

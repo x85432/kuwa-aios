@@ -1,5 +1,0 @@
-version: 1
-override-process:
-  class: 'web_adapter.DatabaseQaProcess'
-  args:
-    database_path: /database

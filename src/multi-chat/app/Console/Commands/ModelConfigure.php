@@ -9,11 +9,12 @@ use App\Models\Permissions;
 use App\Models\GroupPermissions;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use DB;
 
 class ModelConfigure extends Command
 {
-    protected $signature = 'model:config {access_code} {name} {--image=} {--do_not_create_bot} {--force}';
+    protected $signature = 'model:config {access_code} {name} {--image=} {--order=} {--do_not_create_bot} {--force}';
     protected $description = 'Quickly configure a model for admins';
     public function __construct()
     {
@@ -24,7 +25,8 @@ class ModelConfigure extends Command
     {
         $accessCode = $this->argument('access_code');
         $name = $this->argument('name');
-        $force = !!$this->option('do_not_create_bot');
+        $order = $this->option('order');
+        $force = !!$this->option('force');
 
         try {
             if (!$force && LLMs::where('access_code', '=', $accessCode)->exists()) {
@@ -41,12 +43,16 @@ class ModelConfigure extends Command
                     $path = 'public/images/' . $imageName;
                     Storage::put($path, $fileContents);
                 }
-                
+
                 $model = LLMs::where('access_code', '=', $accessCode);
-                if (!$model->exists()){
+                if (!$model->exists()) {
                     $model = new LLMs();
                 }
-                $model->fill(['name' => $name, 'access_code' => $accessCode, 'image' => $path]);
+                $fillData = ['name' => $name, 'access_code' => $accessCode, 'image' => $path, 'healthy' => Carbon::now()];
+                if ($this->option('order')) {
+                    $fillData['order'] = (int) $this->option('order');
+                }
+                $model->fill($fillData);
                 $model->save();
                 $perm = new Permissions();
                 $perm->fill(['name' => 'model_' . $model->id]);
@@ -58,9 +64,7 @@ class ModelConfigure extends Command
                 $groups = GroupPermissions::pluck('group_id')->toArray();
 
                 foreach ($groups as $group) {
-                    GroupPermissions::where('group_id', $group)
-                        ->where('perm_id', '=', $perm->id)
-                        ->delete();
+                    GroupPermissions::where('group_id', $group)->where('perm_id', '=', $perm->id)->delete();
                     if (GroupPermissions::where('group_id', $group)->where('perm_id', '=', $targetPermID)->exists()) {
                         GroupPermissions::insert([
                             'group_id' => $group,

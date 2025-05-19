@@ -7,14 +7,20 @@ services:
       dockerfile: docker/web/Dockerfile
     restart: unless-stopped
     environment:
-      DOMAIN_NAME: ${DOMAIN_NAME}
-    volumes: ["multi-chat-storage:/app/storage:ro"]
+      TRUST_DOWNSTREAM_PROXY: true
+      DEFAULT_HOST: ${DOMAIN_NAME}
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - multi-chat-storage:/app/storage:ro
+      - ../root:/app/storage/app/public/root:ro
     ports: ["80:80", "443:443"]
     depends_on: ["multi-chat"]
     networks: ["frontend"]
     healthcheck:
-      test: ["CMD-SHELL", "curl", "-f", "http://localhost/"]
+      test: ["CMD-SHELL", "curl", "-f", "http://${DOMAIN_NAME}/"]
       timeout: 10s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   
   multi-chat:
     image: kuwaai/multi-chat
@@ -26,6 +32,18 @@ services:
     depends_on:
       - redis
     environment:
+      # For nginx-proxy ("web" container) to generate configuration
+      VIRTUAL_PROTO: fastcgi
+      VIRTUAL_HOST_MULTIPORTS: |
+        ${DOMAIN_NAME}:
+          /index.php: {port: 9000}
+          /app/: {port: 9001}
+        web:
+          /index.php: {port: 9000}
+          /app/: {port: 9001}
+      VIRTUAL_ROOT: /app/public
+      VIRTUAL_PATH: /index.php
+      
       APP_ENV: production
       APP_DEBUG: false
       APP_URL: ${PUBLIC_BASE_URL}
@@ -37,13 +55,14 @@ services:
       ADMIN_NAME: ${ADMIN_NAME}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD_FILE: /run/secrets/admin-password
+      NVIDIA_VISIBLE_DEVICES: all
     secrets:
       - admin-password
-    volumes: [
-      "multi-chat-storage:/app/storage:rw",
-      "../root/custom:/app/resources/views/components/custom:ro",
-      "../root/bootstrap/bot:/var/kuwa/docker/root/bootstrap/bot:ro",
-    ]
+    volumes: 
+      - multi-chat-storage:/app/storage:rw
+      - ../root:/app/storage/app/public/root:rw
+      - ../root:/var/kuwa/docker/root:rw
+      - ../root/custom:/app/resources/views/components/custom:ro
     healthcheck:
       test: ["CMD-SHELL", "php-fpm-healthcheck"]
       timeout: 10s

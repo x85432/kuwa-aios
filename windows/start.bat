@@ -15,20 +15,117 @@ REM Include variables from separate file
 call src\variables.bat
 cd "%~dp0"
 
+REM Unpack offline resources
+if exist "../scripts/windows-setup-files/package.zip" (
+	echo Extracting all packages...
+    echo It may take a couple of minutes. Please wait.
+    pushd "../scripts/windows-setup-files/"
+	call build.bat restore
+    popd
+	if exist "packages\composer.phar" (
+        echo Unzipping successful.
+		pushd "../scripts/windows-setup-files/"
+		del package.zip
+		popd
+        echo Initializing the filesystem hierarchy of Kuwa.
+        mkdir "%KUWA_ROOT%\bin"
+        mkdir "%KUWA_ROOT%\database"
+        mkdir "%KUWA_ROOT%\custom"
+        mkdir "%KUWA_ROOT%\bootstrap\bot"
+        xcopy /s ..\src\bot\init "%KUWA_ROOT%\bootstrap\bot"
+        xcopy /s ..\src\tools "%KUWA_ROOT%\bin"
+        rd /S /Q "%KUWA_ROOT%\bin\test"
+        pushd "%KUWA_ROOT%\bin"
+        for %%f in (*) do (
+            attrib +r "%%f"
+            icacls "%%f" /grant Everyone:RX
+        )
+        popd
+
+        REM Check if .env file exists
+        if not exist "..\src\multi-chat\.env" (
+            REM Kuwa Chat
+            echo Preparing Kuwa Chat
+            copy ..\src\multi-chat\.env.dev ..\src\multi-chat\.env
+        ) else (
+            echo .env file already exists, skipping copy.
+        )
+        REM Prepare laravel
+        pushd "..\src\multi-chat"
+        call php artisan key:generate --force
+        call php artisan db:seed --class=InitSeeder --force
+        call php artisan migrate --force
+        rmdir /Q /S public\storage
+        call php artisan storage:link
+        call php ..\..\windows\packages\composer.phar dump-autoload --optimize
+        call php artisan route:cache
+        call php artisan view:cache
+        call php artisan optimize
+        call npm.cmd run build
+        call php artisan config:cache
+        call php artisan config:clear
+        if exist "..\..\.git\test_pack_perm.priv" (
+            call php artisan web:config --settings="updateweb_git_ssh_command=ssh -i .git/test_pack_perm.priv -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
+        )
+        popd
+    )
+)
+
+SET filePath=packages\composer.bat
+
+REM Check if the file exists
+IF NOT EXIST "%filePath%" (
+    REM Make executable file for Windows
+    echo :: in case DelayedExpansion is on and a path contains ! > "%filePath%"
+    echo setlocal DISABLEDELAYEDEXPANSION >> "%filePath%"
+    echo php "%%~dp0composer.phar" %%* >> "%filePath%"
+)
+
+:: Check if init.txt exists
+if exist init.txt (
+    :: Read init.txt
+    for /f "tokens=1,2 delims==" %%A in (init.txt) do (
+        set "%%A=%%B"
+    )
+
+    :: Extract name from email (username before @)
+    for /f "delims=@ tokens=1" %%E in ("!username!") do (
+        set "name=%%E"
+    )
+
+    pushd "..\src\multi-chat\"
+    php artisan create:admin-user --name=!name! --email=!username! --password=!password!
+    :: Check autologin is true
+	if /i "!autologin!"=="true" (
+		:: Append the line to .env
+		echo. >> ".env"
+		echo APP_AUTO_EMAIL=!username!>> ".env"
+	)
+    popd
+    del init.txt
+) else (
+    echo init.txt not found. Skipping seeding.
+)
+pushd "..\src\multi-chat"
+call php artisan config:cache
+call php artisan config:clear
+popd
+
 REM Redis Server
 pushd packages\%redis_folder%
 del dump.rdb
 start /b "" "redis-server.exe" redis.conf
 popd
 
-REM Define number of Redis workers
+pushd "..\src\multi-chat\"
+REM Remove web cache
+rmdir /S /Q storage\framework\cache
+REM Configure PATH for web
+start /b php artisan web:config --settings="updateweb_path=%PATH%"
+REM Define number of workers
 set numWorkers=10
-
-REM Redis workers
-for /l %%i in (1,1,%numWorkers%) do (
-	echo Started a model worker
-    start /b packages\%php_folder%\php.exe ..\src\multi-chat\artisan queue:work --verbose --timeout=6000
-)
+start /b php artisan worker:start %numWorkers%
+popd
 
 :launch_kernel_and_executors
 REM Kernel
@@ -77,11 +174,13 @@ if defined web_started (
     goto skip_web
 )
 
-REM Start web
-start http://127.0.0.1
 REM Remake public/storage
 pushd "%~dp0..\src\multi-chat"
 rmdir /Q /S "public\storage"
+rmdir /Q /S "storage\app\public\root\custom"
+rmdir /Q /S "storage\app\public\root\database"
+rmdir /Q /S "storage\app\public\root\bin"
+rmdir /Q /S "storage\app\public\root\bot"
 call php artisan storage:link
 popd
 
@@ -111,6 +210,13 @@ set "web_started=True"
 
 start /b src\import_bots.bat
 
+pushd "..\src\multi-chat"
+call php artisan model:reset-health
+popd
+REM Start web, Waited 5 seconds to make sure executors all started
+timeout /t 5 >nul
+start http://127.0.0.1
+
 REM Loop to wait for commands
 :loop
 set userInput=
@@ -121,11 +227,13 @@ if /I "%userInput%"=="stop" (
 	call src\stop.bat
 ) else if /I "%userInput%"=="seed" (
     echo Running seed command...
-    call src\migration\20240402_seed_admin.bat
+    pushd ..\src\multi-chat\executables\bat\
+    call AdminSeeder.bat
+    popd
     goto loop
 ) else if /I "%userInput%"=="hf login" (
     echo Running huggingface login command...
-    call src\migration\20240403_login_huggingface.bat
+    huggingface-cli.exe login
     goto loop
 ) else if /I "%userInput%"=="reload" (
     echo Reloading kernel and executors...

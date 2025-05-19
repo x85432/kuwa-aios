@@ -9,7 +9,7 @@ Content-Type: application/vnd.kuwabot;
 KUWABOT version 0.3.3
 KUWABOT name "DocumentQA (Llama3.1)"
 KUWABOT description "Upload a file or paste a URL for Q&A."
-KUWABOT base "doc-qa"
+KUWABOT base ".tool/kuwa/doc-qa"
 PARAMETER generator_model llama3.1-8b-instruct
 PARAMETER generator_limit 129024
 PARAMETER retriever_mmr_k 252

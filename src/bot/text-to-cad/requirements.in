@@ -1,0 +1,5 @@
+kittycad
+python-dotenv
+gradio ~= 5.27.1
+gradio-i18n
+# gradio_toggle

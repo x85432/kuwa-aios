@@ -15,6 +15,30 @@ class Bots extends Model
     protected $table = 'bots';
     protected $fillable = ['image', 'name', 'type', 'visibility', 'model_id', 'owner_id', 'description', 'config'];
 
+    static function getBots($group_id, $enabled = true)
+    {
+        return self::Join('llms', function ($join) {
+            $join->on('llms.id', '=', 'bots.model_id');
+        })
+            ->leftjoin('users', 'users.id', '=', 'bots.owner_id')
+            ->wherein('bots.model_id', DB::table('group_permissions')->join('permissions', 'group_permissions.perm_id', '=', 'permissions.id')->select(DB::raw('substring(permissions.name, 7) as model_id'), 'perm_id')->where('group_permissions.group_id', $group_id)->where('permissions.name', 'like', 'model_%')->get()->pluck('model_id'))
+            ->where('llms.enabled', '=', $enabled)
+            ->select('llms.*', 'bots.*', DB::raw('COALESCE(bots.description, llms.description) as description'), DB::raw('COALESCE(bots.config, llms.config) as config'), 'bots.image as image', 'llms.image as base_image', 'llms.name as llm_name', 'users.group_id', 'llms.updated_at as updated_at', 'healthy')
+            ->get();
+    }
+
+    static function getBotsFromIds($ids)
+    {
+        return Bots::whereIn('bots.id', array_map('intval', $ids))
+            ->join('llms', function ($join) {
+                $join->on('llms.id', '=', 'bots.model_id');
+            })
+            ->leftJoin('users', 'users.id', '=', 'bots.owner_id')
+            ->select('llms.*', 'bots.*', DB::raw('COALESCE(bots.description, llms.description) as description'), DB::raw('COALESCE(bots.config, llms.config) as config'), 'bots.image as image', 'llms.image as base_image', 'llms.name as llm_name', 'users.group_id', 'llms.updated_at as updated_at', 'healthy')
+            ->orderBy('bots.id')
+            ->get();
+    }
+
     static function sortBotsByDate($bots)
     {
         /*
@@ -34,7 +58,7 @@ class Bots extends Model
             ->sortBy('order', SORT_NUMERIC)
             ->groupBy('order')
             ->map(function ($subSet) {
-                return Bots::sortBotsByDate($subSet);
+                return Bots::sortBotsByName($subSet);
             })
             ->collapse();
         return $bots;
@@ -159,7 +183,7 @@ class Bots extends Model
                         $query->where('bots.visibility', '=', 2)->where('users.group_id', '=', Auth::user()->group_id);
                     });
             })
-            ->select('llms.*', 'bots.*', DB::raw('COALESCE(bots.description, llms.description) as description'), DB::raw('COALESCE(bots.config, llms.config) as config'), DB::raw('COALESCE(bots.image, llms.image) as image'), 'llms.name as llm_name')
+            ->select('llms.*', 'bots.*', DB::raw('COALESCE(bots.description, llms.description) as description'), DB::raw('COALESCE(bots.config, llms.config) as config'), DB::raw('COALESCE(bots.image, llms.image) as image'), 'llms.name as llm_name', 'llms.updated_at as updated_at', 'healthy')
             ->orderby('llms.order')
             ->orderby('bots.created_at')
             ->get();

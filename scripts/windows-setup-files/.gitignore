@@ -1,1 +1,3 @@
-Kuwa-GenAI-OS.exe
+*.exe
+*.bin
+package.zip

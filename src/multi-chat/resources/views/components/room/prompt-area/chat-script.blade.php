@@ -6,24 +6,22 @@
     <div class="w-64 hidden sm:block"></div>
     <div class="flex flex-col pb-20">
         <div class="flex justify-center items-center"><i
-                class="fas fa-wifi text-white animate-pulse bg-green-500 rounded-full p-4"></i></div>
-        <span class="text-black dark:text-white animate-bounce pt-2">{{ __('room.connecting.hint') }}</span>
+                class="fas fa-hourglass-end animate-spin text-white animate-pulse bg-green-500 rounded-full p-4"></i></div>
+        <span class="text-black dark:text-white animate-bounce pt-2">{{ __('room.placeholder.connecting') }}</span>
     </div>
 </div>
 
 @php
-    use Illuminate\Support\Facades\Cache;
-    use App\Models\SystemSetting;
-
     $verify_uploaded_file = !request()->user()->hasPerm('Room_update_ignore_upload_constraint');
     if (!$verify_uploaded_file) {
         $upload_max_size_mb = PHP_INT_MAX;
         $upload_allowed_extensions = '*';
         $upload_max_file_count = -1;
     } else {
-        $upload_max_size_mb = SystemSetting::where('key', 'upload_max_size_mb')->first()->value;
-        $upload_allowed_extensions = SystemSetting::where('key', 'upload_allowed_extensions')->first()->value;
-        $upload_max_file_count = \App\Models\SystemSetting::where('key', 'upload_max_file_count')->first()->value;
+        $upload_max_size_mb = App\Models\SystemSetting::where('key', 'upload_max_size_mb')->first()->value;
+        $upload_allowed_extensions = App\Models\SystemSetting::where('key', 'upload_allowed_extensions')->first()
+            ->value;
+        $upload_max_file_count = App\Models\SystemSetting::where('key', 'upload_max_file_count')->first()->value;
     }
 @endphp
 <script>
@@ -46,12 +44,12 @@
     function uploadcheck() {
         if (!$("#upload")[0].files || $("#upload")[0].files[0].length <= 0) return;
         if ({{ $upload_max_file_count == '0' ? 'true' : 'false' }}) {
-            showErrorMsg("{{ __('chat.hint.upload_disabled_by_admin') }}");
+            showErrorMsg("{{ __('chat.placeholder.upload_disabled_by_admin') }}");
             return;
         }
 
         if ($("#upload")[0].files[0].size > {{ $upload_max_size_mb * 2 ** 20 }}) {
-            showErrorMsg("{{ __('chat.hint.upload_file_too_large') }}");
+            showErrorMsg("{{ __('chat.placeholder.upload_file_too_large') }}");
             return;
         }
         @if ($upload_allowed_extensions === '*')
@@ -60,21 +58,19 @@
             file_regex = /\.({{ str_replace(',', '|', $upload_allowed_extensions) }})$/;
         @endif
         if (!$("#upload")[0].files[0].name.match(file_regex)) {
-            showErrorMsg("{{ __('chat.hint.upload_not_allowed_ext') }}");
+            showErrorMsg("{{ __('chat.placeholder.upload_not_allowed_ext') }}");
             return;
         }
         $("#attachment").show();
         $("#attachment button").text($("#upload")[0].files[0].name)
     }
-</script>
-
-<script>
     if ($("#chat_input")) {
         $("#chat_input").prop("readonly", true)
-        $("#chat_input").val("{{ __('chat.hint.processing') }}")
+        $("#chat_input").val("{{ __('chat.placeholder.processing') }}")
         $("#submit_msg").hide()
         if ($("#upload_btn")) $("#upload_btn").hide()
         if ($("#abort_btn")) $("#abort_btn").hide()
+        if ($('#recordButton')) $("#recordButton").hide();
         $chattable = false
     }
     if ($("#prompt_area")) {
@@ -89,13 +85,13 @@
             });
 
             if ($chattable && $("#chat_input").val().trim() == "" && quoted.length == 1) {
-                $("#chat_input").val(`"""${histories[quoted[0][1]]}"""`)
+                $("#chat_input").val(histories[quoted[0][1]]);
                 this.submit();
                 $chattable = false
                 $("#submit_msg").hide()
                 if ($("#upload_btn")) $("#upload_btn").hide()
                 if (!isMac) {
-                    $("#chat_input").val("{{ __('chat.hint.processing') }}")
+                    $("#chat_input").val("{{ __('chat.placeholder.processing') }}")
                 }
                 $("#chat_input").prop("readonly", true)
             } else if ($chattable && (($("#chat_input").val().trim() != "") || quoted.length != 0)) {
@@ -119,7 +115,7 @@
                 $("#submit_msg").hide()
                 if ($("#upload_btn")) $("#upload_btn").hide()
                 if (!isMac) {
-                    $("#chat_input").val("訊息處理中...請稍後...")
+                    $("#chat_input").val("{{__('chat.placeholder.processing')}}")
                 }
                 $("#chat_input").prop("readonly", true)
             } else if ($("#upload")[0].files.length > 0) {
@@ -128,21 +124,21 @@
                 $("#submit_msg").hide()
                 if ($("#upload_btn")) $("#upload_btn").hide()
                 if (!isMac) {
-                    $("#chat_input").val("{{ __('chat.hint.processing') }}")
+                    $("#chat_input").val("{{ __('chat.placeholder.processing') }}")
                 }
                 $("#chat_input").prop("readonly", true)
             } else {
                 if ($("#chat_input").val().trim() == "") {
                     $("#error_alert >span").text(
-                        "{{ __('chat.hint.send.empty') }}")
+                        "{{ __('chat.placeholder.send.empty') }}")
                 } else if (!$chattable) {
                     $("#error_alert >span").text(
-                        "{{ __('chat.hint.send.still_processing') }}")
+                        "{{ __('chat.placeholder.send.still_processing') }}")
                 } else if (allDisabled) {
                     $("#error_alert >span").text(
-                        "{{ __('chat.hint.must_select_llm') }}")
+                        "{{ __('chat.placeholder.must_select_llm') }}")
                 } else {
-                    $("#error_alert >span").text("{{ __('chat.hint.please_refresh') }}")
+                    $("#error_alert >span").text("{{ __('chat.placeholder.please_refresh') }}")
                 }
                 $("#error_alert").fadeIn();
                 setTimeout(function() {
@@ -161,7 +157,7 @@
             setTimeout(() => {
                 if (finsihed || task.readyState === EventSource.OPEN) {
                     console.log('Connected')
-                    $('#connection_indicator span').text('{{ __('room.connected.hint') }}')
+                    $('#connection_indicator span').text('{{ __('room.placeholder.connected') }}')
                     $('#connection_indicator').fadeOut();
                 }
             }, 1);
@@ -191,7 +187,9 @@
                 $chattable = true
                 $("#submit_msg").show()
                 if ($("#abort_btn")) $("#abort_btn").hide();
-                if ($("#upload_btn")) $("#upload_btn").show()
+                if ($("#upload_btn")) $("#upload_btn").show();
+                if (location.protocol !== 'https:') $("#recordButton").remove();
+                if ($('#recordButton')) $("#recordButton").show();
                 $("#chat_input").prop("readonly", false)
                 $("#chat_input").val("")
                 adjustTextareaRows($("#chat_input"))
@@ -199,14 +197,14 @@
                 hljs.configure({
                     languages: hljs.listLanguages()
                 }); //enable auto detect
-                $('#chatroom div.text-sm.space-y-3.break-words pre >div').remove()
-                $('#chatroom div.text-sm.space-y-3.break-words pre code.language-undefined').each(function() {
+                $('#chatroom div.msg-content pre > div').remove()
+                $('#chatroom div.msg-content pre code.language-undefined').each(function() {
                     $(this).text($(this).text())
                     $(this)[0].dataset.highlighted = '';
                     $(this)[0].classList = ""
                     hljs.highlightElement($(this)[0]);
                 });
-                $('#chatroom div.text-sm.space-y-3.break-words pre').each(function() {
+                $('#chatroom div.msg-content pre').each(function() {
                     let languageClass = '';
                     $(this).children("code")[0].classList.forEach(cName => {
                         if (cName.startsWith('language-')) {
@@ -241,7 +239,7 @@ xmlns="http://www.w3.org/2000/svg">
                 data = JSON.parse(event.data)
                 number = parseInt(data["history_id"]);
                 $('#task_' + number).text(data["msg"]);
-                histories[number] = $("#history_" + number + " div.text-sm.space-y-3.break-words")
+                histories[number] = $("#history_" + number + " div.msg-content")
                     .text()
                 hljs.configure({
                     languages: []
@@ -249,12 +247,111 @@ xmlns="http://www.w3.org/2000/svg">
                 chatroomFormatter($("#history_" + data["history_id"])[0]);
                 if ($("#abort_btn")) $("#abort_btn").show();
                 if ($("#upload_btn")) $("#upload_btn").hide()
+                if ($('#recordButton')) $("#recordButton").hide();
             }
         });
 
     }
+    let mediaRecorder, audioChunks = [],
+        isRecording = false,
+        startTime, intervalId;
+    const MAX_RECORD_TIME = 43200;
 
-    // Initial connection
+    $('#recordButton').on('click', async function() {
+        const recordIcon = $('#recordIcon');
+        isRecording = !$(this).data('isRecording');
+        $(this).data('isRecording', isRecording);
+
+        if (isRecording) {
+            try {
+                if (!navigator.mediaDevices?.getUserMedia || location.protocol !== 'https:') {
+                    isRecording = !$(this).data('isRecording');
+                    $(this).data('isRecording', isRecording);
+                    $('#recordButton').remove();
+                    return alert(
+                        "{{ __('room.hint.recording_not_supported') }}");
+                }
+
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+                recordIcon.toggleClass("fa-circle fa-stop-circle");
+
+                const mimeType = ['audio/webm', 'audio/ogg', 'audio/wav'].find(type => MediaRecorder
+                    .isTypeSupported(type));
+                if (!mimeType) return alert("{{ __('room.hint.recording_no_supported_format') }}");
+
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType
+                });
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => handleRecordingStop(mimeType, stream);
+
+                mediaRecorder.start();
+                startTime = Date.now();
+                $('#recording').show().find('div').text(formatDuration(0));
+                intervalId = setInterval(updateRecordingTime, 1000);
+            } catch (error) {
+                recordIcon.toggleClass("fa-stop-circle fa-circle");
+                $(this).data('isRecording', false);
+                alert(handleError(error));
+            }
+        } else {
+            stopRecording();
+        }
+    });
+
+    function handleRecordingStop(mimeType, stream) {
+        const audioBlob = new Blob(audioChunks, {
+            type: mimeType
+        });
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const file = new File([audioBlob], `recorded_audio_${timestamp}.${mimeType.split('/')[1]}`, {
+            type: mimeType
+        });
+
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        $('#upload').prop('files', dataTransfer.files);
+        $("#attachment").show().find("button").text(file.name);
+
+        clearInterval(intervalId);
+        $('#recording').hide();
+        stream.getTracks().forEach(track => track.stop());
+    }
+
+    function updateRecordingTime() {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        if (elapsedTime >= MAX_RECORD_TIME) {
+            mediaRecorder.stop();
+            alert("{{ __('room.hint.recording_duration_reach_limit') }}");
+        }
+        $('#recording > div').text(formatDuration(elapsedTime));
+    }
+
+    function stopRecording() {
+        if (mediaRecorder?.state === "recording") mediaRecorder.stop();
+        $('#recordIcon').toggleClass("fa-stop-circle fa-circle");
+        mediaRecorder?.stream.getTracks().forEach(track => track.stop());
+    }
+
+    function handleError(error) {
+        switch (error.name) {
+            case "NotAllowedError":
+                return "{{ __('room.hint.recording_failed_permission') }}";
+            default:
+                return "{{ __('room.hint.recording_no_microphone') }}";
+        }
+    }
+
+    function formatDuration(seconds) {
+        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+        const secs = String(seconds % 60).padStart(2, '0');
+        return `${hours}:${minutes}:${secs}`;
+    }
+
     connect();
 
     if ($("#chat_input")) {

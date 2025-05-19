@@ -2,21 +2,7 @@
     @php
         $bots = App\Models\Bots::getSortedBots();
         $sorting_methods = App\Models\Bots::getBotSortingMethods();
-        $result = DB::table(function ($query) {
-            $query
-                ->select(DB::raw('substring(name, 7) as model_id'), 'perm_id')
-                ->from('group_permissions')
-                ->join('permissions', 'perm_id', '=', 'permissions.id')
-                ->where('group_id', Auth()->user()->group_id)
-                ->where('name', 'like', 'model_%')
-                ->get();
-        }, 'tmp')
-            ->join('llms', 'llms.id', '=', DB::raw('CAST(tmp.model_id AS BIGINT)'))
-            ->select('tmp.*', 'llms.*')
-            ->where('llms.enabled', true)
-            ->orderby('llms.order')
-            ->orderby('llms.created_at')
-            ->get();
+        $result = App\Models\LLMs::getLLMs(Auth()->user()->group_id);
     @endphp
     @env('arena')
     @php
@@ -27,9 +13,6 @@
     <x-store.modal.bot-detail :result="$result" />
     @if (request()->user()->hasPerm('Room_delete_chatroom'))
         <x-room.modal.delete_confirm />
-    @endif
-    @if (request()->user()->hasPerm('Room_update_new_chat'))
-        <x-room.modal.group-chat :result="$bots" :$sorting_methods />
     @endif
     @if (!(request()->route('room_id') || session('llms')))
         <x-room.rooms.drawer :result="$bots" />
@@ -43,34 +26,7 @@
             @endif
         @endif
         @php
-            $DC = App\Models\ChatRoom::leftJoin('chats', 'chatrooms.id', '=', 'chats.roomID')
-                ->where('chats.user_id', Auth::user()->id)
-                ->select('chatrooms.*', DB::raw('count(chats.id) as counts'))
-                ->groupBy('chatrooms.id');
-
-            // Fetch the ordered identifiers based on `bot_id` for each database
-            $DC = $DC->selectSub(function ($query) {
-                if (config('database.default') == 'sqlite') {
-                    $query
-                        ->from('chats')
-                        ->selectRaw("group_concat(bot_id, ',') as identifier")
-                        ->whereColumn('roomID', 'chatrooms.id')
-                        ->orderByRaw('bot_id');
-                } elseif (config('database.default') == 'mysql') {
-                    $query
-                        ->from('chats')
-                        ->selectRaw('group_concat(bot_id separator \',\' order by bot_id) as identifier')
-                        ->whereColumn('roomID', 'chatrooms.id');
-                } elseif (config('database.default') == 'pgsql') {
-                    $query
-                        ->from('chats')
-                        ->selectRaw('string_agg(bot_id::text, \',\' order by bot_id) as identifier')
-                        ->whereColumn('roomID', 'chatrooms.id');
-                }
-            }, 'identifier');
-
-            // Get the final result and group by the ordered identifiers
-            $DC = $DC->get()->groupBy('identifier');
+            $DC = App\Models\ChatRoom::getChatRoomsWithIdentifiers(Auth::user()->id);
 
             try {
                 if (!session('llms')) {
@@ -78,81 +34,55 @@
                         ->where('id', '=', request()->route('room_id'))
                         ->first()['identifier'];
                     $DC = $DC[$identifier];
-                    $llms = App\Models\Bots::whereIn('bots.id', array_map('intval', explode(',', $identifier)))
-                        ->join('llms', function ($join) {
-                            $join->on('llms.id', '=', 'bots.model_id');
-                        })
-                        ->leftjoin('users', 'users.id', '=', 'bots.owner_id')
-                        ->where('llms.enabled', '=', true)
-                        ->select(
-                            'llms.*',
-                            'bots.*',
-                            DB::raw('COALESCE(bots.description, llms.description) as description'),
-                            DB::raw('COALESCE(bots.config, llms.config) as config'),
-                            'bots.image as image',
-                            'llms.image as base_image',
-                            'llms.name as llm_name',
-                            'users.group_id',
-                        )
-                        ->orderby('bots.id')
-                        ->get();
+                    $llms = App\Models\Bots::getBotsFromIds(explode(',', $identifier));
                 } else {
-                    $llms = App\Models\Bots::whereIn('bots.id', session('llms'))
-                        ->Join('llms', function ($join) {
-                            $join->on('llms.id', '=', 'bots.model_id');
-                        })
-                        ->leftjoin('users', 'users.id', '=', 'bots.owner_id')
-                        ->select(
-                            'llms.*',
-                            'bots.*',
-                            DB::raw('COALESCE(bots.description, llms.description) as description'),
-                            DB::raw('COALESCE(bots.config, llms.config) as config'),
-                            'bots.image as image',
-                            'llms.image as base_image',
-                            'llms.name as llm_name',
-                            'users.group_id',
-                        )
-                        ->orderby('bots.id')
-                        ->get();
+                    $llms = App\Models\Bots::getBotsFromIds(session('llms'));
                     $DC = $DC[implode(',', $llms->pluck('id')->toArray())];
                 }
             } catch (Exception $e) {
-                $llms = App\Models\Bots::whereIn('bots.id', session('llms'))
-                    ->Join('llms', function ($join) {
-                        $join->on('llms.id', '=', 'bots.model_id');
-                    })
-                    ->leftjoin('users', 'users.id', '=', 'bots.owner_id')
-                    ->select(
-                        'llms.*',
-                        'bots.*',
-                        DB::raw('COALESCE(bots.description, llms.description) as description'),
-                        DB::raw('COALESCE(bots.config, llms.config) as config'),
-                        'bots.image as image',
-                        'llms.image as base_image',
-                        'llms.name as llm_name',
-                        'users.group_id',
-                    )
-                    ->orderby('bots.id')
-                    ->get();
+                $llms = App\Models\Bots::getBotsFromIds(session('llms'));
                 $DC = null;
             }
         @endphp
-        <x-room.rooms.drawer :llms="$llms" :DC="$DC" />
+        <x-room.rooms.drawer/>
+    @endif
+    @if (request()->user()->hasPerm('Room_update_new_chat'))
+        <x-room.modal.group-chat :result="$bots" :$sorting_methods :$llms />
     @endif
     @if (request()->user()->hasPerm('Room_update_import_chat'))
         <x-chat.modals.import_history :llms="$llms ?? []" />
     @endif
-    <div class="flex h-full max-w-7xl mx-auto py-2">
-        <div
-            class="bg-white dark:bg-gray-800 text-white w-64 hidden sm:flex flex-shrink-0 relative rounded-l-lg overflow-hidden">
-            <div class="p-3 flex flex-1 flex-col h-full overflow-y-auto scrollbar">
-                @if ($bots->count() == 0)
-                    <div
-                        class="flex-1 h-full flex flex-col w-full text-center rounded-r-lg overflow-hidden justify-center items-center text-gray-700 dark:text-white">
-                        {!! __('chat.hint.no_llms') !!}
-                    </div>
-                @else
-                    @if (request()->route('room_id') || session('llms'))
+    <div class="flex h-full mx-auto">
+        @if (count($llms) == 1 && $llms[0]->type === 'server')
+            @php
+                $modelfile = json_decode($llms[0]->config)->modelfile;
+                $url = null;
+                foreach ($modelfile as $item) {
+                    if (isset($item->args)) {
+                        $parts = explode(' ', $item->args);
+                        if (count($parts) >= 2 && trim($parts[0]) === 'redirect_url') {
+                            $url = trim($parts[1]);
+                            break;
+                        }
+                    }
+                }
+            @endphp
+            @if ($url)
+                <div id="app-window"
+                    class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
+                    <iframe src="{{ $url }}" style="height:100%;width:100%" frameborder="0"></iframe>
+                </div>
+            @endif
+        @else
+            <div
+                class="bg-white dark:bg-gray-800 text-white w-64 hidden sm:flex flex-shrink-0 relative rounded-l-lg overflow-hidden">
+                <div class="p-3 flex flex-1 flex-col h-full overflow-y-auto scrollbar">
+                    @if ($bots->count() == 0)
+                        <div
+                            class="flex-1 h-full flex flex-col w-full text-center rounded-r-lg overflow-hidden justify-center items-center text-gray-700 dark:text-white">
+                            {!! __('chat.placeholder.no_llms') !!}
+                        </div>
+                    @else
                         <div class="mb-2">
                             <div class="border border-black dark:border-white border-1 rounded-lg flex overflow-hidden">
                                 <a href="{{ route('room.home') }}"
@@ -169,81 +99,16 @@
                                 @if (request()->user()->hasPerm('Room_update_import_chat'))
                                     <button data-modal-target="importModal" data-modal-toggle="importModal"
                                         class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 {{ request()->user()->hasPerm('Room_update_new_chat') ? 'rounded-r-lg ' : 'rounded-lg w-full' }} flex items-center justify-center transition duration-300">
-                                        {{ request()->user()->hasPerm('Room_update_new_chat') ? '' : '匯入對話　' }}
+                                        {{ request()->user()->hasPerm('Room_update_new_chat') ? '' : __('chat.button.header.import') }}
                                         <i class="fas fa-file-import"></i>
                                     </button>
                                 @endif
                             </div>
                         </div>
-
-                        <x-room.rooms.list :llms="$llms" :DC="$DC" />
-                    @else
-                        <h2 class="block sm:hidden text-xl text-center text-black dark:text-white">
-                            {{ __('room.route') }}
-                        </h2>
-                        <p class="block sm:hidden text-center text-black dark:text-white">
-                            {{ __('chat.hint.select_a_chatroom') }}</p>
-                        <div class="mb-2">
-                            <div class="border border-black dark:border-white border-1 rounded-lg flex overflow-hidden">
-                                @if (request()->user()->hasPerm('Room_update_new_chat'))
-                                    <button data-modal-target="create-model-modal"
-                                        data-modal-toggle="create-model-modal"
-                                        class="flex w-full border-r border-1 border-black dark:border-white menu-btn flex items-center justify-center h-12 dark:hover:bg-gray-700 hover:bg-gray-200 transition duration-300">
-
-                                        <p class="flex-1 text-center text-gray-700 dark:text-white">
-                                            {{ __('room.button.create_room') }}
-                                        </p>
-                                    </button>
-                                @endif
-                                @if (request()->user()->hasPerm('Room_update_import_chat'))
-                                    <button data-modal-target="importModal" data-modal-toggle="importModal"
-                                        class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 {{ request()->user()->hasPerm('Room_update_new_chat') ? 'rounded-r-lg ' : 'rounded-lg w-full' }} flex items-center justify-center transition duration-300">
-                                        {{ request()->user()->hasPerm('Room_update_new_chat') ? '' : '匯入對話　' }}
-                                        <i class="fas fa-file-import"></i>
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-                        <x-room.llm :result="$bots" />
+                        <x-room.rooms.list/>
                     @endif
-                @endif
-            </div>
-        </div>
-        @if (!request()->route('room_id') && !session('llms'))
-            <div id="histories_hint"
-                class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
-                <button
-                    class="absolute sm:hidden text-center text-black hover:text-black dark:text-white hover:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 focus:ring-4 focus:ring-blue-300 font-medium text-sm px-5 py-5 focus:outline-none dark:focus:ring-blue-800"
-                    type="button" data-drawer-target="chatlist_drawer" data-drawer-show="chatlist_drawer"
-                    aria-controls="chatlist_drawer">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="flex justify-end">
-                    <x-sorted-list.control-menu :$sorting_methods />
-                </div>
-
-                <div
-                    class="mb-4 grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 mb-auto overflow-y-auto scrollbar">
-                    @foreach ($bots as $bot)
-                        <x-sorted-list.item html_tag="form" :$sorting_methods :record="$bot" method="post"
-                            class="text-black dark:text-white h-[135px] p-2 hover:bg-gray-200 dark:hover:bg-gray-500 transition"
-                            action="{{ route('room.new') }}">
-                            @csrf
-                            <button class="h-full w-full flex flex-col items-center justify-start">
-                                <img class="rounded-full mx-auto bg-black" width="50px" height="50px"
-                                    src="{{ $bot->image ? asset(Storage::url($bot->image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
-                                <p class="text-sm line-clamp-2">{{ $bot->name }}</p>
-                                @if ($bot->description)
-                                    <p class="text-gray-500 dark:text-gray-300 line-clamp-1 max-w-full text-xs">
-                                        {{ $bot->description }}</p>
-                                @endif
-                                <input name="llm[]" value="{{ $bot->id }}" style="display:none;">
-                            </button>
-                        </x-sorted-list.item>
-                    @endforeach
                 </div>
             </div>
-        @else
             <div id="histories"
                 class="flex-1 h-full flex flex-col w-full bg-gray-200 dark:bg-gray-600 shadow-xl rounded-r-lg overflow-hidden">
                 <x-room.header :llms="$llms" />
@@ -257,88 +122,10 @@
                     @if (!session('llms'))
                         @php
                             $tasks = \Illuminate\Support\Facades\Redis::lrange('usertask_' . Auth::user()->id, 0, -1);
-
-                            $roomId = request()->route('room_id');
-
-                            $roomId = Illuminate\Support\Facades\Request::route('room_id');
-
-                            $botChats = App\Models\Chats::join('histories', 'chats.id', '=', 'histories.chat_id')
-                                ->leftJoin('feedback', 'history_id', '=', 'histories.id')
-                                ->join('bots', 'bots.id', '=', 'chats.bot_id')
-                                ->Join('llms', function ($join) {
-                                    $join->on('llms.id', '=', 'bots.model_id');
-                                })
-                                ->where('isbot', true)
-                                ->whereIn('chats.id', App\Models\Chats::where('roomID', $roomId)->pluck('id'))
-                                ->select(
-                                    'histories.chained as chained',
-                                    'chats.id as chat_id',
-                                    'histories.id as id',
-                                    'chats.bot_id as bot_id',
-                                    'histories.created_at as created_at',
-                                    'histories.msg as msg',
-                                    'histories.isbot as isbot',
-                                    DB::raw('COALESCE(bots.description, llms.description) as description'),
-                                    DB::raw('COALESCE(bots.config, llms.config) as config'),
-                                    DB::raw('COALESCE(bots.image, llms.image) as image'),
-                                    DB::raw('COALESCE(bots.name, llms.name) as name'),
-                                    'feedback.nice',
-                                    'feedback.detail',
-                                    'feedback.flags',
-                                    'access_code',
-                                );
-
-                            $nonBotChats = App\Models\Chats::join('histories', 'chats.id', '=', 'histories.chat_id')
-                                ->leftjoin('bots', 'bots.id', '=', 'chats.bot_id')
-                                ->Join('llms', function ($join) {
-                                    $join->on('llms.id', '=', 'bots.model_id');
-                                })
-                                ->where('isbot', false)
-                                ->whereIn('chats.id', App\Models\Chats::where('roomID', $roomId)->pluck('id'))
-                                ->select(
-                                    'histories.chained as chained',
-                                    'chats.id as chat_id',
-                                    'histories.id as id',
-                                    'chats.bot_id as bot_id',
-                                    'histories.created_at as created_at',
-                                    'histories.msg as msg',
-                                    'histories.isbot as isbot',
-                                    DB::raw('COALESCE(bots.description, llms.description) as description'),
-                                    DB::raw('COALESCE(bots.config, llms.config) as config'),
-                                    DB::raw('COALESCE(bots.image, llms.image) as image'),
-                                    DB::raw('COALESCE(bots.name, llms.name) as name'),
-                                    DB::raw('NULL as nice'),
-                                    DB::raw('NULL as detail'),
-                                    DB::raw('NULL as flags'),
-                                    'access_code',
-                                );
-
-                            $mergedChats = $botChats
-                                ->union($nonBotChats)
-                                ->get()
-                                ->sortBy(function ($chat) {
-                                    return [$chat->created_at, $chat->id, $chat->bot_id, -$chat->history_id];
-                                });
-                            $mergedMessages = [];
-                            // Filter and merge the chats based on the condition
-                            $filteredChats = $mergedChats->filter(function ($chat) use (&$mergedMessages) {
-                                if (!$chat->isbot && !in_array($chat->msg, $mergedMessages)) {
-                                    // Add the message to the merged messages array
-                                    $mergedMessages[] = $chat->msg;
-                                    return true; // Keep this chat in the final result
-                                } elseif ($chat->isbot) {
-                                    $mergedMessages = [];
-                                    return true; // Keep bot chats in the final result
-                                }
-                                return false; // Exclude duplicate non-bot chats
-                            });
-
-                            // Sort the filtered chats
-                            $mergedChats = $filteredChats->sortBy(function ($chat) {
-                                return [$chat->created_at, $chat->bot_id, -$chat->id];
-                            });
-                            $refers = $mergedChats->where('isbot', '=', true);
+                            $mergedChats = \App\Models\Chatroom::getMergedChats(request()->route('room_id'));
+                            $refers = $mergedChats->where('isbot', true);
                         @endphp
+
                         @env('arena')
                         @php
                             $output = collect();
@@ -389,14 +176,20 @@
 
                     @if (count($llms) == 1)
                         <div class="text-black dark:text-white p-2 mb-auto">
-                            <img id="llm_img" class="rounded-full mx-auto bg-black" width="100px" height="100px"
-                                src="{{ $llms[0]->image ?? $llms[0]->base_image ? asset(Storage::url($llms[0]->image ?? $llms[0]->base_image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
-                            <p class="text-center text-sm line-clamp-4 py-1">{{ $llms[0]->name }}</p>
-                            @if ($llms[0]->description)
-                                <p
-                                    class="text-gray-500 dark:text-gray-300 line-clamp-4 max-w-full text-xs text-center py-1">
-                                    {{ $llms[0]->description }}</p>
-                            @endif
+                            <div class="relative w-[100px] h-[100px] mx-auto">
+                                <div class="flex justify-center items-center h-full">
+                                    <img class="rounded-full bg-black w-full h-full overflow-hidden"
+                                        src="{{ $llms[0]->image ?? $llms[0]->base_image ? asset(Storage::url($llms[0]->image ?? $llms[0]->base_image)) : '/' . config('app.LLM_DEFAULT_IMG') }}">
+                                </div>
+
+                                <div class="absolute bottom-0 right-0 z-2 opacity-90">
+                                    @if (time() - strtotime($llms[0]->healthy) > 300)
+                                        <div class="bg-red-500 rounded-full w-6 h-6"
+                                            data-updated-at="{{ $llms[0]->updated_at }}"></div>
+                                    @endif
+                                </div>
+                            </div>
+                            <p class="text-center text-sm line-clamp-2 py-1">{{ $llms[0]->name }}</p>
                         </div>
                     @endif
                 </div>

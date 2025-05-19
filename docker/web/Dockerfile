@@ -1,11 +1,13 @@
-FROM nginx:stable-alpine
+FROM nginxproxy/nginx-proxy:1.6-alpine
 
-RUN apk --no-cache add curl
-RUN mkdir -p /var/log/php-fpm
+RUN apk update && apk --no-cache add curl dnsmasq
+
+COPY docker/web/vhost.d/ /etc/nginx/vhost.d/
+COPY docker/web/fastcgi.conf /etc/nginx/fastcgi.conf
 
 WORKDIR /app
-RUN rm -rf /etc/nginx/templates
-COPY docker/web/templates /etc/nginx/templates
-
+COPY docker/web/nginx-proxy/ /app/
 COPY --from=kuwaai/multi-chat:latest /app/public /app/public
 RUN chown -R nginx:nginx /app
+
+ENV DEFAULT_ROOT=none

@@ -27,6 +27,7 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        Auth::logoutOtherDevices($request->get('password'));
         $request->session()->regenerate();
         if ($request->input("_token") == null){
             return response()->noContent();

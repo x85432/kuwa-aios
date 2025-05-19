@@ -1,4 +1,5 @@
 @echo off
+chcp 65001
 cd "%~dp0.."
 
 if "%KUWA_ENV_INIT%" neq "" (exit /b)
@@ -17,19 +18,19 @@ set "node_folder=%filename_NodeJS:~0,-4%"
 for /f "tokens=2 delims=-" %%v in ("%filename_NodeJS%") do set "version_NodeJS=%%v"
 
 REM Variables for PHP
-set "url_PHP=https://windows.php.net/downloads/releases/php-8.1.29-Win32-vs16-x64.zip"
+set "url_PHP=https://windows.php.net/downloads/releases/php-8.1.32-Win32-vs16-x64.zip"
 for %%I in ("%url_PHP%") do set "filename_PHP=%%~nxI"
 set "php_folder=%filename_PHP:~0,-4%"
 for /f "tokens=2 delims=-" %%v in ("%filename_PHP%") do set "version_PHP=%%v"
 
-REM Variables for PHP archive
-set "url_PHP_Archive=https://windows.php.net/downloads/releases/archives/php-8.1.28-Win32-vs16-x64.zip"
-for %%I in ("%url_PHP%") do set "filename_PHP_Archive=%%~nxI"
-set "php_folder_Archive=%filename_PHP_Archive:~0,-4%"
-for /f "tokens=2 delims=-" %%v in ("%filename_PHP_Archive%") do set "version_PHP_Archive=%%v"
+REM Variables for fallback version of PHP
+set "url_PHP_Fallback=https://windows.php.net/downloads/releases/archives/php-8.1.31-Win32-vs16-x64.zip"
+for %%I in ("%url_PHP_Fallback%") do set "filename_PHP_Fallback=%%~nxI"
+set "php_folder_Fallback=%filename_PHP_Fallback:~0,-4%"
+for /f "tokens=2 delims=-" %%v in ("%filename_PHP_Fallback%") do set "version_PHP_Fallback=%%v"
 
 REM Variables for Nginx
-set "url_Nginx=https://nginx.org/download/nginx-1.24.0.zip"
+set "url_Nginx=https://nginx.org/download/nginx-1.26.3.zip"
 for %%I in ("%url_Nginx%") do set "filename_Nginx=%%~nxI"
 set "nginx_folder=%filename_Nginx:~0,-4%"
 for /f "tokens=2 delims=-" %%v in ("%filename_Nginx%") do set "version_Nginx=%%v"
@@ -45,19 +46,6 @@ set "url_Redis=https://github.com/redis-windows/redis-windows/releases/download/
 for %%I in ("%url_Redis%") do set "filename_Redis=%%~nxI"
 set "redis_folder=%filename_Redis:~0,-4%"
 for /f "tokens=2 delims=-" %%v in ("%filename_Redis%") do set "version_Redis=%%v"
-
-REM Variables for XpdfReader
-set "url_XpdfReader=https://github.com/kuwaai/xpdf/releases/download/4.05-kuwa1/xpdf-tools-4.05-kuwa1-win-x64.zip"
-for %%I in ("%url_XpdfReader%") do set "filename_XpdfReader=%%~nxI"
-set "xpdfreader_folder=%filename_XpdfReader:~0,-4%"
-for /f "tokens=2 delims=-" %%v in ("%filename_XpdfReader%") do set "version_XpdfReader=%%v"
-
-REM Variables for Antiword
-set "url_antiword=http://web.archive.org/web/20240812110344/https://softpedia-secure-download.com/dl/127df4c3450903e8d13e0d4784017069/66b9eb8d/100136188/software/office/antiword-0_37-windows.zip"
-for %%I in ("%url_antiword%") do set "filename_antiword=%%~nxI"
-set "antiword_folder=antiword"
-for /f "tokens=2 delims=-" %%v in ("%filename_antiword%") do set "version_antiword=%%v"
-set "HOME=%~dp0..\packages\%antiword_folder%\"
 
 REM Variables for git bash
 set "url_gitbash=https://github.com/git-for-windows/git/releases/download/v2.45.1.windows.1/PortableGit-2.45.1-64-bit.7z.exe"
@@ -81,6 +69,7 @@ set "CSIDL_LOCAL_APPDATA=%KUWA_CACHE%\appdata"
 set "HF_HOME=%KUWA_CACHE%\huggingface"
 set "CACHE_PATH_ENV=%KUWA_CACHE%\selenium"
 set "PYANNOTE_CACHE=%KUWA_CACHE%\torch\pyannote"
+set "HOME=%~dp0.."
 
 REM Kuwa env
 set "KUWA_ROOT=%~dp0..\root"
@@ -95,7 +84,7 @@ REM Prepare packages folder
 mkdir packages 2>nul
 
 REM init env
-set "PATH=%~dp0\bin;%~dp0..\packages\%xpdfreader_folder%\bin64;%~dp0..\packages\%python_folder%\Scripts;%~dp0..\packages\%python_folder%;%~dp0..\packages\%php_folder%;%~dp0..\packages\%node_folder%;%~dp0..\packages\%gitbash_folder%\cmd;%~dp0..\packages\%antiword_folder%\;%~dp0..\packages\%ffmpeg_folder%\bin;%PATH%"
+set "PATH=%~dp0\bin;%~dp0..\packages\;%~dp0..\packages\%xpdfreader_folder%\bin64;%~dp0..\packages\%python_folder%\Scripts;%~dp0..\packages\%python_folder%;%~dp0..\packages\%php_folder%;%~dp0..\packages\%node_folder%;%~dp0..\packages\%gitbash_folder%\cmd;%~dp0..\packages\%antiword_folder%\;%~dp0..\packages\%ffmpeg_folder%\bin;%PATH%"
 
 if "%1"=="no_migrate" (
     echo Skipped migration

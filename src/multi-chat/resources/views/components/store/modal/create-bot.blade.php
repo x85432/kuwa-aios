@@ -58,7 +58,7 @@
                                                 $radioItems[] = [
                                                     'id' => 'visibility_system_option',
                                                     'title' => __('store.button.system'),
-                                                    'description' => __('store.hint.button.system'),
+                                                    'description' => __('store.placeholder.button.system'),
                                                     'value' => '0',
                                                     'checked' => request()
                                                         ->user()
@@ -76,7 +76,7 @@
                                                 $radioItems[] = [
                                                     'id' => 'visibility_community_option',
                                                     'title' => __('store.button.community'),
-                                                    'description' => __('store.hint.button.community'),
+                                                    'description' => __('store.placeholder.button.community'),
                                                     'value' => '1',
                                                     'checked' => true,
                                                     'onchange' =>
@@ -90,7 +90,7 @@
                                                 $radioItems[] = [
                                                     'id' => 'visibility_group_option',
                                                     'title' => __('store.button.groups'),
-                                                    'description' => __('store.hint.button.groups'),
+                                                    'description' => __('store.placeholder.button.groups'),
                                                     'value' => '2',
                                                     'checked' => request()
                                                         ->user()
@@ -108,7 +108,7 @@
                                                 $radioItems[] = [
                                                     'id' => 'visibility_private_option',
                                                     'title' => __('store.button.private'),
-                                                    'description' => __('store.hint.button.private'),
+                                                    'description' => __('store.placeholder.button.private'),
                                                     'value' => '3',
                                                     'checked' => request()
                                                         ->user()
@@ -132,8 +132,11 @@
                                 <script>
                                     $('#visibility_list input[checked]:last()').click()
                                 </script>
+                                <button type="button" disabled
+                                    class="server-bot hidden cursor-not-allowed text-gray-400 bg-gray-300 rounded-r-lg font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:text-gray-400">{{ __('store.bot.react_buttons') }}
+                                </button>
                                 <button id="react_button" data-dropdown-toggle="react_button_list"
-                                    class="text-white rounded-r-lg bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700"
+                                    class="prompt-bot agent-bot text-white rounded-r-lg bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700"
                                     type="button">{{ __('store.bot.react_buttons') }}
                                 </button>
                                 <div id="react_button_list"
@@ -141,7 +144,7 @@
                                     <ul class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200"
                                         aria-labelledby="react_button">
 
-                                        @foreach (['Feedback', 'Translate', 'Quote', 'Other'] as $label)
+                                        @foreach (['Feedback', 'Quote', 'Other'] as $label)
                                             @php $id = strtolower($label); @endphp
                                             <li>
                                                 <div class="flex rounded hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -166,10 +169,34 @@
                         <div class="w-full md:w-2/3">
                             <div class="w-full">
                                 <label class="block uppercase tracking-wide dark:text-white text-xs font-bold mb-2"
+                                    for="bot_type">
+                                    {{ __('store.bot.type') }}
+                                </label>
+                                <select name="bot_type" id="bot_type" onchange="showBotConfigLayout()"
+                                    autocomplete="off"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                    <option value="prompt" selected>{{ __('store.bot.type.desc.prompt') }}</option>
+                                    <option value="server">{{ __('store.bot.type.desc.server') }}</option>
+                                    <option value="agent">{{ __('store.bot.type.desc.agent') }}</option>
+                                </select>
+                            </div>
+                            <div class="w-full mt-2 server-bot hidden">
+                                <div class="w-full">
+                                    <label for="bot_server"
+                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ __('store.bot.server_url') }}</label>
+                                    <input type="text" id="bot_server_url" autocomplete="off"
+                                        oninput="alterBotfile('parameter', ['redirect_url', $(this).val()]); adjustTextareaRows(this)"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        placeholder="{{ __('store.bot.server_url.label') }}">
+                                </div>
+                            </div>
+                            <div class="w-full mt-2 prompt-bot">
+                                <label class="block uppercase tracking-wide dark:text-white text-xs font-bold mb-2"
                                     for="llm_name">
                                     {{ __('store.bot.base_model') }}
                                 </label>
-                                <input type="text" list="llm-list" name="llm_name" autocomplete="off" id="llm_name"
+                                <input type="text" list="llm-list" name="llm_name" autocomplete="off"
+                                    id="llm_name"
                                     oninput="change_bot_image('#llm_img', '#create-bot_image', $(this).val())"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     placeholder="{{ __('store.bot.base_model.label') }}">
@@ -184,15 +211,15 @@
                                     </datalist>
                                 @endonce
                             </div>
-                            <div class="w-full mt-2">
-                                <div class="w-full">
-                                    <label for="bot_name"
-                                        class="block uppercase tracking-wide dark:text-white text-xs font-bold mb-2">{{ __('store.bot.name') }}</label>
-                                    <input type="text" id="bot_name" name="bot_name" autocomplete="off"
-                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        placeholder="{{ __('store.bot.name.label') }}">
-                                </div>
-                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
+                        <div class="w-full">
+                            <label for="bot_name"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ __('store.bot.name') }}</label>
+                            <input type="text" id="bot_name" name="bot_name" autocomplete="off"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="{{ __('store.bot.name.label') }}">
                         </div>
                     </div>
                     <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
@@ -204,60 +231,176 @@
                                 placeholder="{{ __('store.bot.description.label') }}">
                         </div>
                     </div>
+                    <hr class="agent-bot hidden my-4 border-gray-300 dark:border-gray-600">
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="input-bot">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-input-bot">{{ __('store.bot.input_bot') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="bots-list" autocomplete="off" id="bot-input_bot"
+                                    oninput="alterBotfile('input-bot', $(this).val());"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.input_bot.label') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="input_prefix">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-input_prefix">{{ __('store.bot.input_prefix') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-input_prefix" type="text"
+                                    oninput="alterBotfile('input-prefix', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.input_prefix.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="input_suffix">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-input_suffix">{{ __('store.bot.input_suffix') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-input_suffix" type="text"
+                                    oninput="alterBotfile('input-suffix', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.input_suffix.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="agent-bot hidden my-4 border-gray-300 dark:border-gray-600">
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="process-bot">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-process-bot">{{ __('store.bot.process_bot') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="bots-list" autocomplete="off" id="bot-input_bot"
+                                    oninput="alterBotfile('from', $(this).val());"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.process_bot.label') }}">
+                            </div>
+                        </div>
+                    </div>
                     <div
-                        class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle">
+                        class="prompt-bot modelfile-toggle w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                 for="bot-system_prompt">{{ __('store.bot.system_prompt') }}</label>
                             <div class="flex items-center">
                                 <textarea id="bot-system_prompt" type="text"
-                                    oninput="ace.edit('bot-modelfile-editor').setValue(modelfile_to_string((modelfile_parse(ace.edit('bot-modelfile-editor').getValue()).some(obj => obj.name === 'system') ? modelfile_parse(ace.edit('bot-modelfile-editor').getValue()) : [...modelfile_parse(ace.edit('bot-modelfile-editor').getValue()), { name: 'system', args: 'uwu' }])
-                                    .map(obj => obj.name === 'system' ? { ...obj, args: $(this).val() } : obj))); adjustTextareaRows(this);ace.edit('modelfile-editor').gotoLine(0);"
-                                    rows="1" max-rows="4" placeholder="{{ __('store.bot.system_prompt.label') }}"
+                                    oninput="alterBotfile('system', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.system_prompt.label') }}"
                                     class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
                         </div>
                     </div>
-                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot agent-bot modelfile-toggle w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="before_prompt">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                 for="bot-before_prompt">{{ __('store.bot.before_prompt') }}</label>
                             <div class="flex items-center">
                                 <textarea id="bot-before_prompt" type="text"
-                                    oninput="ace.edit('bot-modelfile-editor').setValue(modelfile_to_string((modelfile_parse(ace.edit('bot-modelfile-editor').getValue()).some(obj => obj.name === 'before-prompt') ? modelfile_parse(ace.edit('bot-modelfile-editor').getValue()) : [...modelfile_parse(ace.edit('bot-modelfile-editor').getValue()), { name: 'before-prompt', args: 'uwu' }])
-                                    .map(obj => obj.name === 'before-prompt' ? { ...obj, args: $(this).val() } : obj))); adjustTextareaRows(this);ace.edit('modelfile-editor').gotoLine(0);"
-                                    rows="1" max-rows="4" placeholder="{{ __('store.bot.before_prompt.label') }}"
+                                    oninput="alterBotfile('before-prompt', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.before_prompt.label') }}"
                                     class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
                         </div>
                     </div>
-                    <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                    <div class="prompt-bot agent-bot modelfile-toggle w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
                         id="after_prompt">
                         <div class="w-full">
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                 for="bot-after_prompt">{{ __('store.bot.after_prompt') }}</label>
                             <div class="flex items-center">
                                 <textarea id="bot-after_prompt" type="text"
-                                    oninput="ace.edit('bot-modelfile-editor').setValue(
-                                        modelfile_to_string(
-                                            (modelfile_parse(ace.edit('bot-modelfile-editor').getValue())
-                                            .some(obj => obj.name === 'after-prompt') ? 
-                                            modelfile_parse(ace.edit('bot-modelfile-editor').getValue()) : [...modelfile_parse(ace.edit('bot-modelfile-editor').getValue())
-                                            , { name: 'after-prompt', args: 'uwu' }])
-                                    .map(obj => obj.name === 'after-prompt' ? { ...obj, args: $(this).val() } : obj))); adjustTextareaRows(this);ace.edit('modelfile-editor').gotoLine(0);"
-                                    rows="1" max-rows="4" placeholder="{{ __('store.bot.after_prompt.label') }}"
+                                    oninput="alterBotfile('after-prompt', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.after_prompt.label') }}"
                                     class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
                             </div>
                         </div>
                     </div>
+
+                    <hr class="agent-bot hidden my-4 border-gray-300 dark:border-gray-600">
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="output-bot">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-output-bot">{{ __('store.bot.output_bot') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="bots-list" autocomplete="off" id="bot-output_bot"
+                                    oninput="alterBotfile('output-bot', $(this).val());"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.output_bot.label') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="output_prefix">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-output_prefix">{{ __('store.bot.output_prefix') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-output_prefix" type="text"
+                                    oninput="alterBotfile('output-prefix', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.output_prefix.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="output_suffix">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-output_suffix">{{ __('store.bot.output_suffix') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-output_suffix" type="text"
+                                    oninput="alterBotfile('output-suffix', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.output_suffix.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="agent-bot hidden my-4 border-gray-300 dark:border-gray-600">
+                    <div class="agent-bot modelfile-toggle hidden w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap"
+                        id="agent_script">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-script">{{ __('store.bot.script') }}</label>
+                            <div class="flex items-center">
+                                <textarea id="bot-script" type="text"
+                                    oninput="alterBotfile('script', $(this).val()); adjustTextareaRows(this);" rows="1" max-rows="4"
+                                    placeholder="{{ __('store.bot.script.label') }}"
+                                    class="bg-gray-50 border scrollbar border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prompt-bot w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap modelfile-toggle"
+                        id="knowledge">
+                        <div class="w-full">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                for="bot-knowledge">{{ __('store.bot.knowledge') }}</label>
+                            <div class="flex items-center">
+                                <input type="text" list="knowledge-list" autocomplete="off" id="bot-knowledge"
+                                    oninput="alterBotfile('parameter', ['retriever_database', $(this).val()]);"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="{{ __('store.bot.knowledge.label') }}">
+                            </div>
+                        </div>
+                    </div> 
                     <div class="w-full px-3 mt-2 flex justify-center items-center flex-wrap md:flex-nowrap">
                         <div class="w-full">
                             <label
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white cursor-pointer bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-800 p-2 rounded-lg"
-                                onclick="$('.modelfile-toggle').toggle()"
-                                for="modelfile">{{ __('store.bot.modelfile') }}</label>
-                            <div class="flex items-center modelfile-toggle" style="display:none">
+                                onclick="toggleModelfile()" for="modelfile">{{ __('store.bot.modelfile') }}</label>
+                            <div class="botfile prompt-bot server-bot agent-bot flex items-center modelfile-toggle" style="display:none">
                                 <textarea name="modelfile" hidden></textarea>
                                 <div id="bot-modelfile-editor" class="w-full h-64"></div>
                             </div>
@@ -281,27 +424,117 @@
     </div>
 </div>
 
+<datalist id="knowledge-list"></datalist>
+<datalist id="bots-list"></datalist>
+
 <script>
-    function checkCreateBotForm() {
-        if ($("#create_room input[name='llm_name']").val() && $("#create_room input[name='bot_name']").val()) {
-            $('#create-bot-modal textarea[name=modelfile]').val(modelfile_to_string(modelfile_parse(ace.edit(
-                    'bot-modelfile-editor')
-                .getValue())))
-            ace.edit('bot-modelfile-editor').setValue(modelfile_to_string(modelfile_parse(ace.edit(
-                    'bot-modelfile-editor')
-                .getValue())))
-            ace.edit('bot-modelfile-editor').gotoLine(0);
-            return true;
-        }
-        if (!$("#create_room input[name='llm_name']").val()) $("#create_error").text(
-            "{{ __('store.hint.must_select_base_model') }}")
-        else if (!$("#create_room input[name='bot_name']").val()) $("#create_error").text(
-            "{{ __('You must name your bot') }}")
-        $("#create_error").show().delay(3000).fadeOut();
-        return false;
+    const BOT_TYPES = ['prompt', 'server', 'agent'];
+
+    function getCurrentBotType(){
+        return $('#bot_type').val();
     }
 
-    function importBotModelfile(modelfile) {
+    function getBotElements(bot_type){
+        bot_type = typeof bot_type !== "undefined" ? bot_type : getCurrentBotType();
+        if (!BOT_TYPES.includes(bot_type)) {
+            console.error(`Unsupported bot type "${bot_type}"`);
+            return [];
+        }
+        return $(`.${bot_type}-bot`);
+    }
+
+    function toggleModelfile() {
+        // To trigger botfile conversion.
+        getBotElements().each((i, e) => $(e).find('textarea, input').trigger("input"));
+
+        // Toggle visibility.
+        getBotElements().filter('.modelfile-toggle').toggle();
+    }
+
+    function showBotConfigLayout() {
+        BOT_TYPES.forEach(x => getBotElements(x).hide());
+        getBotElements().filter(':not(.botfile)').show();
+
+        let bot_type = getCurrentBotType();
+        if (bot_type === "server") {
+            $("#llm_name").val("Weblet");
+            change_bot_image('#llm_img', '#create-bot_image', "Weblet");
+        }
+        if (bot_type === "agent") {
+            $("#llm_name").val("Agent");
+            change_bot_image('#llm_img', '#create-bot_image', "Agent");
+        }
+    }
+
+    function checkCreateBotForm() {
+        let error_messages = {
+            bot_name: "{{ __('You must name your bot') }}",
+            llm_name: "{{ __('store.placeholder.must_select_base_model') }}",
+        }
+        if ($("#bot_type").val() === "server") {
+            $("#llm_name").val("Weblet");
+            error_messages["bot_server_url"] = "{{ __('store.hint.must_enter_server_url') }}";
+        }
+        
+        if ($("#bot_type").val() === "agent") {
+            $("#llm_name").val("Agent");
+            error_messages["bot-input_bot"] = "{{ __('store.hint.must_enter_input_bot') }}";
+        }
+
+        for (let field_id in error_messages) {
+            if (!$(`#${field_id}`).val()) {
+                $("#create_error").text(error_messages[field_id]);
+                $("#create_error").show().delay(3000).fadeOut();
+                return false;
+            }
+        }
+
+        $('#create-bot-modal textarea[name=modelfile]').val(modelfile_to_string(modelfile_parse(ace.edit(
+                'bot-modelfile-editor')
+            .getValue())))
+        ace.edit('bot-modelfile-editor').setValue(modelfile_to_string(modelfile_parse(ace.edit(
+                'bot-modelfile-editor')
+            .getValue())))
+        ace.edit('bot-modelfile-editor').gotoLine(0);
+        return true;
+    }
+
+    function alterBotfile(inst, args) {
+        /*
+         * Change append the line "<inst> <args>" to the botfile.
+         * If the instruction existed, replace the existed one.
+         * 
+         * Arguments:
+         *   - inst: The instruction
+         *   - args: The arguments of the instruction
+         */
+
+        if (typeof args === 'string' || args instanceof String) {
+            args = [args];
+        }
+
+        
+        let is_parameter = inst.toLowerCase() === "parameter";
+        if (args.join(' ').trim() === "" || (is_parameter && args.slice(1).join(' ').trim() === "")){
+            return;
+        }
+        
+      
+        parsed_modelfile = modelfile_parse(ace.edit('bot-modelfile-editor').getValue());
+        new_modelfile = parsed_modelfile.filter(
+            (item) =>
+                item.name.toLowerCase() !== inst.toLowerCase() ||
+                (is_parameter && item.args.toLowerCase().split(' ').find(e => true) !== args.find(e => true).toLowerCase())
+        );
+        new_modelfile.push({
+            name: inst,
+            args: args.join(' ').trim()
+        });
+        ace.edit('bot-modelfile-editor').setValue(modelfile_to_string(new_modelfile));
+        ace.edit('modelfile-editor').gotoLine(0);
+    }
+
+    function importBotfile(modelfile) {
         modelfile = modelfile_parse(modelfile);
         console.debug(modelfile);
         let get_bot_config = function(modelfile, k) {
@@ -374,7 +607,7 @@
             let modelfile = new TextDecoder().decode(parts[0].data);
             let avatar_part = parts.filter((x) => x.headers["Content-Location"] === "/bot-avatar");
 
-            importBotModelfile(modelfile);
+            importBotfile(modelfile);
 
             if (avatar_part.length != 0) {
                 console.debug(avatar_part);
@@ -383,14 +616,56 @@
                 importBotAvatar(avatar_type, avatar_base64_data)
             }
 
-
-            $(".create-bot-btn").click();
+            const create_bot_modal = FlowbiteInstances.getInstance('Modal', 'create-bot-modal');
+            create_bot_modal.show();
         }
 
         reader.onload = handleFileLoad;
         reader.readAsText(files[0]);
     }
 
+    async function updateDataListFromAPI(apiUrl, dataListElementId) {
+        try {
+            // Fetch data from the API
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            // Update the data list element
+            const dataListElement = document.getElementById(dataListElementId);
+
+            // Clear existing content
+            dataListElement.innerHTML = '';
+
+            // Add new data to the list
+            data.forEach(item => {
+                const listItem = document.createElement('option');
+                listItem.textContent = item.name ||
+                    item; // Assuming 'name' property or default to the entire item
+                listItem.value = item.value || item.name || item;
+                dataListElement.appendChild(listItem);
+            });
+
+            // dataListElement.focus();
+
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            // Handle error, display message to the user, etc.
+        }
+    }
+    updateDataListFromAPI("store/bots", "bots-list");
+    updateDataListFromAPI("store/knowledge", "knowledge-list");
+
+    window.addEventListener('load', function() {
+        // To prevent "Blocked aria-hidden on an element because its descendant retained focus."
+        initFlowbite();
+        const create_bot_modal = FlowbiteInstances.getInstance('Modal', 'create-bot-modal');
+        create_bot_modal.updateOnHide(function(e){
+            console.log("model hidden")
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        })
+    })
     var editor = ace.edit($('#bot-modelfile-editor')[0], {
         mode: "ace/mode/dockerfile",
         selectionStyle: "text"
@@ -424,25 +699,26 @@
         }
     });
     @once
+
     function change_bot_image(bot_image_elem, user_upload_elem, new_base_bot_name) {
-            /**
-             * Dynamically updates the bot's displayed image based on user interaction.
-             *
-             * Image selection priority:
-             * 1. User-uploaded image (highest)
-             * 2. Base bot image (if the bot image hasn't been changed)
-             * 3. Original image (lowest)
-             */
-            const [user_uploaded_image] = $(user_upload_elem)[0].files;
-            const follow_base_bot = $(bot_image_elem).data("follow-base-bot") ?? true;
-            let bot_image_uri = $(bot_image_elem).attr("src");
-            if (user_uploaded_image) {
-                bot_image_uri = URL.createObjectURL(user_uploaded_image);
-            } else if (follow_base_bot && new_base_bot_name) {
-                const fallback_image_uri = "{{ asset('/' . config('app.LLM_DEFAULT_IMG')) }}";
-                bot_image_uri = $(`#llm-list option[value="${new_base_bot_name}"]`).attr("src") ?? fallback_image_uri;
-            }
-            $(bot_image_elem).attr("src", bot_image_uri);
+        /**
+         * Dynamically updates the bot's displayed image based on user interaction.
+         *
+         * Image selection priority:
+         * 1. User-uploaded image (highest)
+         * 2. Base bot image (if the bot image hasn't been changed)
+         * 3. Original image (lowest)
+         */
+        const [user_uploaded_image] = $(user_upload_elem)[0].files;
+        const follow_base_bot = $(bot_image_elem).data("follow-base-bot") ?? true;
+        let bot_image_uri = $(bot_image_elem).attr("src");
+        if (user_uploaded_image) {
+            bot_image_uri = URL.createObjectURL(user_uploaded_image);
+        } else if (follow_base_bot && new_base_bot_name) {
+            const fallback_image_uri = "{{ asset('/' . config('app.LLM_DEFAULT_IMG')) }}";
+            bot_image_uri = $(`#llm-list option[value="${new_base_bot_name}"]`).attr("src") ?? fallback_image_uri;
         }
+        $(bot_image_elem).attr("src", bot_image_uri);
+    }
     @endonce
 </script>

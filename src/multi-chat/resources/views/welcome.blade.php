@@ -16,14 +16,16 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
+    <link href="{{ asset('css/fontBunny.css') }}" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('css/font_awesome..all.min.css') }}" />
 
     <!-- Styles -->
     <link href="{{ asset('css/flowbite.min.css') }}" rel="stylesheet" />
     <script src="{{ asset('js/flowbite.min.js') }}"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Scripts -->
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
 </head>
 
 <body class="antialiased scrollbar">
@@ -36,13 +38,17 @@
                     @auth
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            @if (Auth::user()->hasPerm('tab_Dashboard'))
-                                <a href="{{ url('/dashboard') }}"
-                                    class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">{{ __('dashboard.route') }}</a>
+                            @if (Auth::user()->hasPerm('tab_Manage'))
+                                <a href="{{ url('/manage') }}"
+                                    class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">{{ __('manage.route') }}</a>
                             @endif
                             @if (Auth::user()->hasPerm('tab_Room'))
                                 <a href="{{ route('room.home') }}"
                                     class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">{{ __('room.route') }}</a>
+                            @endif
+                            @if (Auth::user()->hasPerm('tab_Store'))
+                                <a href="{{ route('store.home') }}"
+                                    class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">{{ __('store.route') }}</a>
                             @endif
                             <a href="{{ route('logout') }}"
                                 onclick="event.preventDefault(); this.closest('form').submit();"
@@ -53,7 +59,7 @@
                             class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">{{ __('login.button.sign_in') }}</a>
 
                         @if (Route::has('register') &&
-                                \App\Models\SystemSetting::where('key', 'allowRegister')->where('value', 'true')->exists())
+                                \App\Models\SystemSetting::where('key', 'allow_register')->where('value', 'true')->exists())
                             <a href="{{ route('register') }}"
                                 class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">{{ __('login.button.sign_up') }}</a>
                         @endif
@@ -73,8 +79,6 @@
                     class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:rounded-sm focus:outline-red-500">
                     <div class="flex items-center">
                         <i class="fas fa-language mr-2"></i>
-                        <p>{{ $languages[session('locale') ?? config('app.locale')] }}</p>
-                        <i class="fas fa-chevron-up mx-2 rotate-180" style="font-size:14px;"></i>
                     </div>
                 </button>
             </div>
@@ -84,18 +88,27 @@
             id="language-dropdown-menu">
             <ul class="py-2 font-medium" role="none">
                 @foreach ($languages as $key => $value)
-                    @unless ($key == session('locale', config('app.locale')))
-                        <li>
-                            <a href="/lang/{{ $key }}"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-                                role="menuitem">
-                                <div class="inline-flex items-center">
-                                    {{ $value }}
-                                </div>
-                            </a>
-                        </li>
-                    @endunless
+					<li>
+						<a href="#" onclick="changeLanguage('{{ $key }}')"
+							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white {{$value == ($languages[session('locale') ?? config('app.locale')]) ? 'bg-gray-100 dark:bg-gray-600' : ''}}"
+							role="menuitem">
+							<div class="inline-flex items-center">
+								{{ $value }}
+							</div>
+						</a>
+					</li>
                 @endforeach
+                <script>
+                    function changeLanguage(locale) {
+                        $.ajax({
+                            url: '/lang/' + locale,
+                            type: 'GET',
+                            success: function() {
+                                location.reload();
+                            }
+                        });
+                    }
+                </script>
             </ul>
         </div>
 

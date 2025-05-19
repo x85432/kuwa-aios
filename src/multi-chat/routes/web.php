@@ -2,14 +2,18 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatController;
-use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\ManageController;
 use App\Http\Controllers\BotController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CloudController;
+use App\Http\Controllers\AppGatewayController;
+use App\Http\Controllers\KernelController;
+use App\Http\Controllers\WorkerController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\LanguageMiddleware;
+use App\Http\Middleware\AutoLogin;
 use App\Http\Middleware\AuthCheck;
 use BeyondCode\LaravelSSE\Facades\SSE;
 use Illuminate\Support\Facades\Route;
@@ -30,22 +34,29 @@ use App\Models\LLMs;
 |
 */
 
-Route::middleware(LanguageMiddleware::class)->group(function () {
+Route::middleware([AutoLogin::class, LanguageMiddleware::class])->group(function () {
     Route::get('/', function () {
         return view('welcome');
     })->name('/');
 
     Route::get('/lang/{lang}', function ($lang) {
         session()->put('locale', $lang);
-        return back();
+        return response()->json(['message' => 'Locale updated successfully.'], 200); 
     })->name('lang');
-
+    
     Route::get('/IPNotAllowed', function () {
         return view('errors.IPNotAllowed');
     })->name('errors.ipnotallowed');
 
+    Route::get('/storage/pdfs/{any}', function ($any) {
+        return redirect("/storage/homes/{$any}");
+    })->where('any', '.*');
+
+    Route::get('/storage/homes/{any}', function ($any) {
+        return redirect("/storage/root/homes/{$any}");
+    })->where('any', '.*');
     Route::post('/api/register', [ProfileController::class, 'api_register'])->name('api.register');
-    
+
     Route::middleware('ipCheck')->group(function () {
         # This will auth the user token that is used to connect.
         Route::post('/v1.0/chat/completions', [ProfileController::class, 'api_auth']);
@@ -60,26 +71,35 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
             });
 
             Route::prefix('create')->group(function () {
-                Route::post('/base_model', [ManageController::class, 'api_create_base_model'])->name('api.user.create.base_model');
                 Route::post('/bot', [BotController::class, 'api_create_bot'])->name('api.user.create.bot');
                 Route::post('/room', [RoomController::class, 'api_create_room'])->name('api.user.create.room');
+                // Manage api
+                Route::post('/base_model', [ManageController::class, 'api_create_base_model'])->name('api.user.create.base_model');
+                Route::post('/user', [ManageController::class, 'api_create_user'])->name('api.user.create.user');
             });
 
             Route::prefix('read')->group(function () {
                 Route::get('/rooms', [RoomController::class, 'api_read_rooms'])->name('api.user.read.rooms');
                 Route::get('/models', [ManageController::class, 'api_read_models'])->name('api.user.read.models');
                 Route::get('/bots', [BotController::class, 'api_read_bots'])->name('api.user.read.bots');
+                Route::get('/cloud/{paths?}', [CloudController::class, 'api_read_cloud'])
+                    ->where('paths', '.*')
+                    ->name('api.user.read.cloud');
             });
 
             Route::prefix('delete')->group(function () {
+                Route::delete('/cloud/{paths?}', [CloudController::class, 'api_delete_cloud'])
+                    ->where('paths', '.*')
+                    ->name('api.user.delete.cloud');
                 Route::prefix('room')->group(function () {
                     Route::delete('/', [RoomController::class, 'api_delete_room'])->name('api.user.delete.room');
+                    Route::delete('/message', [RoomController::class, 'api_delete_message'])->name('api.user.delete.room.message');
                 });
             });
         });
 
         # Admin routes, require admin permission
-        Route::middleware('auth', 'verified', AdminMiddleware::class . ':tab_Dashboard', 'auth.check')->group(function () {
+        Route::middleware('auth', 'auth.session', 'verified', AdminMiddleware::class . ':tab_Dashboard', 'auth.check')->group(function () {
             Route::group(['prefix' => 'dashboard'], function () {
                 Route::get('/', [DashboardController::class, 'home'])->name('dashboard.home');
                 Route::middleware(AdminMiddleware::class . ':Dashboard_read_feedbacks')
@@ -97,7 +117,7 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
         });
 
         # User routes, required email verified
-        Route::middleware('auth', 'verified')->group(function () {
+        Route::middleware('auth', 'auth.session', 'verified')->group(function () {
             Route::get('/change_password', function () {
                 if (request()->user()->require_change_password) {
                     return view('profile.change_password');
@@ -139,6 +159,9 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
                             ->patch('/google/api', [ProfileController::class, 'google_update'])
                             ->name('profile.google.api.update');
                         Route::middleware(AdminMiddleware::class . ':Profile_update_external_api_token')
+                            ->patch('/nim/api', [ProfileController::class, 'nim_update'])
+                            ->name('profile.nim.api.update');
+                        Route::middleware(AdminMiddleware::class . ':Profile_update_external_api_token')
                             ->patch('/third-party/api', [ProfileController::class, 'third_party_update'])
                             ->name('profile.third_party.api.update');
 
@@ -147,19 +170,6 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
                             ->delete('/', [ProfileController::class, 'destroy'])
                             ->name('profile.destroy');
                     });
-                #---Archives, disabled, should be updated like inspecter or just deleted and replaced by export all data button
-                /*Route::middleware(AdminMiddleware::class . ':tab_Archive')
-            ->prefix('archive')
-            ->group(function () {
-                Route::get('/', function () {
-                    return view('archive');
-                })->name('archive.home');
-
-                Route::get('/{chat_id}', [ArchiveController::class, 'main'])->name('archive.chat');
-                Route::post('/edit', [ArchiveController::class, 'edit'])->name('archive.edit');
-                Route::delete('/delete', [ArchiveController::class, 'delete'])->name('archive.delete');
-            })
-            ->name('archive');*/
 
                 #---Room
                 Route::middleware(AdminMiddleware::class . ':tab_Room')
@@ -214,8 +224,17 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
                         Route::middleware(AdminMiddleware::class . ':Store_delete_delete_bot')
                             ->delete('/delete', [BotController::class, 'delete'])
                             ->name('store.delete');
+                        Route::get('/knowledge', [BotController::class, 'listKnowledge'])->name('store.list_knowledge');
+                        Route::get('/bots', [BotController::class, 'listBots'])->name('store.bots');
                     })
                     ->name('store');
+                #---Cloud
+                Route::middleware(AdminMiddleware::class . ':tab_Cloud')
+                    ->prefix('cloud')
+                    ->group(function () {
+                        Route::get('/', [CloudController::class, 'home'])->name('cloud.home');
+                    });
+
                 #---Manage
                 Route::middleware(AdminMiddleware::class . ':tab_Manage')
                     ->prefix('manage')
@@ -243,6 +262,9 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
                         Route::prefix('setting')
                             ->group(function () {
                                 Route::get('/resetRedis', [SystemController::class, 'ResetRedis'])->name('manage.setting.resetRedis');
+                                Route::get('/updateProject', [SystemController::class, 'updateProject'])->name('manage.setting.updateWeb');
+                                Route::post('/sendUpdateInput', [SystemController::class, 'sendUpdateInput'])->name('manage.setting.sendUpdateInput');
+                                Route::post('/checkUpdate', [SystemController::class, 'checkUpdate'])->name('manage.setting.checkUpdate');
                                 Route::patch('/update', [SystemController::class, 'update'])->name('manage.setting.update');
                             })
                             ->name('manage.user');
@@ -256,8 +278,42 @@ Route::middleware(LanguageMiddleware::class)->group(function () {
                             })
                             ->name('manage.llms');
 
+                        Route::prefix('kernel')
+                            ->group(function () {
+                                Route::prefix('record')->group(function () {
+                                    Route::get('/fetch-data', [KernelController::class, 'fetchData'])->name('manage.kernel.record.fetchData');
+                                    Route::post('/update-data', [KernelController::class, 'updateData'])->name('manage.kernel.record.updateData');
+                                    Route::post('/delete-data', [KernelController::class, 'deleteData'])->name('manage.kernel.record.deleteData');
+                                    Route::post('/shutdown', [KernelController::class, 'shutdown'])->name('manage.kernel.record.shutdown');
+                                    Route::post('/update-field', [KernelController::class, 'updateField'])->name('manage.kernel.record.updateField');
+                                    Route::post('/create-data', [KernelController::class, 'createData'])->name('manage.kernel.record.createData');
+                                });
+                                Route::prefix('storage')->group(function () {
+                                    Route::get('/', [KernelController::class, 'storage'])->name('manage.kernel.storage');
+                                    Route::get('/jobs', [KernelController::class, 'storage_job'])->name('manage.kernel.storage.jobs');
+                                    Route::get('/download', [KernelController::class, 'storage_download'])->name('manage.kernel.storage.download');
+                                    Route::post('/abort', [KernelController::class, 'storage_abort'])->name('manage.kernel.storage.abort');
+                                    Route::post('/remove', [KernelController::class, 'storage_remove'])->name('manage.kernel.storage.remove');
+                                    Route::post('/start', [KernelController::class, 'storage_start'])->name('manage.kernel.storage.start');
+                                    Route::post('/hf_login', [KernelController::class, 'storage_hf_login'])->name('manage.kernel.storage.hf_login');
+                                    Route::post('/hf_logout', [KernelController::class, 'storage_hf_logout'])->name('manage.kernel.storage.hf_logout');
+                                });
+                            });
+
+                        Route::prefix('workers')
+                            ->group(function () {
+                                Route::post('/start', [WorkerController::class, 'start'])->name('manage.workers.start');
+                                Route::post('/stop', [WorkerController::class, 'stop'])->name('manage.workers.stop');
+                                Route::get('/get', [WorkerController::class, 'get'])->name('manage.workers.get');
+                            })
+                            ->name('manage.workers');
+
                         Route::post('/tab', [ManageController::class, 'tab'])->name('manage.tab');
                     });
+
+                # Third-party app proxy route.
+                Route::any('/app/{app_name}/{app_path_segment?}', [AppGatewayController::class, 'gateway'])
+                    ->where(['app_name' => '[^/\?]+', 'app_path_segment' => '.*']);
             });
         });
     });

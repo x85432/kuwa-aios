@@ -1,10 +1,42 @@
 #!/bin/bash
-set -xeu
+set -u
 
 init_kuwa_filesystem_hierarchy(){
     mkdir -p ${KUWA_ROOT}/bin
     mkdir -p ${KUWA_ROOT}/database
     mkdir -p ${KUWA_ROOT}/custom
+}
+
+wait_multi_chat_ready(){
+    # Set the maximum number of attempts to ping
+    MAX_ATTEMPTS=60
+
+    # Set the interval between ping attempts (in seconds)
+    INTERVAL=10
+
+    # Initialize the attempt counter
+    ATTEMPT=1
+
+    # Loop until the service is alive or the maximum attempts are reached
+    while [[ $ATTEMPT -le $MAX_ATTEMPTS ]]; do
+        # Execute the ping command and check the exit status
+        multi-chat-client ping > /dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            echo "Multi-chat is alive!"
+            break
+        else
+            echo "Attempt $ATTEMPT: multi-chat is not reachable. Retrying in $INTERVAL seconds..."
+            sleep $INTERVAL
+        fi
+
+        # Increment the attempt counter
+        ATTEMPT=$((ATTEMPT + 1))
+    done
+
+    # Check if the service is still unreachable after the maximum attempts
+    if [[ $ATTEMPT -gt $MAX_ATTEMPTS ]]; then
+        echo "Error: multi-chat is unreachable after $MAX_ATTEMPTS attempts."
+    fi
 }
 
 add_executor(){
@@ -15,6 +47,8 @@ add_executor(){
     IFS=';' read -r -a access_code_arr <<< "${EXECUTOR_ACCESS_CODE}"
     IFS=';' read -r -a name_arr <<< "${EXECUTOR_NAME}"
     IFS=';' read -r -a image_arr <<< "${EXECUTOR_IMAGE}"
+    IFS=';' read -r -a order_arr <<< "${EXECUTOR_ORDER}"
+    IFS=';' read -r -a create_bot_arr <<< "${EXECUTOR_CREATE_BOT}"
     for idx in "${!name_arr[@]}"
     do
         access_code="${access_code_arr[idx]}"
@@ -25,13 +59,34 @@ add_executor(){
         else
             image=""
         fi
-        multi-chat-client add-executor "${access_code}" "${name}" ${image} || true
+
+        if [ "$idx" -lt "${#create_bot_arr[@]}" ]
+        then
+            create_bot="--create_bot=${create_bot_arr[idx]}"
+        else
+            create_bot=""
+        fi
+        
+        if [ "$idx" -lt "${#order_arr[@]}" ]
+        then
+            order="--order=${order_arr[idx]}"
+        else
+            order=""
+        fi
+        echo "Trying to add Executor \"${name}\"(${access_code}) to multi-chat."
+        multi-chat-client add-executor "${access_code}" "${name}" ${image} ${order} ${create_bot} || true
+        if [[ $? -eq 0 ]]; then
+            echo "Successfully add Executor \"${name}\"(${access_code}) to multi-chat."
+        else
+            echo "Failed to add Executor \"${name}\"(${access_code}) to multi-chat."
+        fi
     done
 }
 
 init_kuwa_filesystem_hierarchy
 if [ "${ADD_EXECUTOR_TO_MULTI_CHAT}" = true ]
 then
+    wait_multi_chat_ready
     add_executor
 fi
 
@@ -41,7 +96,7 @@ then
 exec kuwa-executor ${EXECUTOR_TYPE} \
     --kernel_url ${KERNEL_URL} \
     --access_code ${EXECUTOR_ACCESS_CODE_ARR[@]} \
-    $@ 2>&1
+    "$@" 2>&1
 else
 dir_name="$(dirname "${CUSTOM_EXECUTOR_PATH}")"
 file_name="$(basename "${CUSTOM_EXECUTOR_PATH}")"
@@ -49,5 +104,5 @@ cd ${dir_name}
 exec python "${file_name}" \
     --kernel_url ${KERNEL_URL} \
     --access_code ${EXECUTOR_ACCESS_CODE_ARR[@]} \
-    $@ 2>&1
+    "$@" 2>&1
 fi

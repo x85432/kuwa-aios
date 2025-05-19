@@ -21,9 +21,9 @@ class AdminSeeder extends Seeder
             DB::beginTransaction(); // Start a database transaction
 
             // Admin user does not exist, prompt user to enter details
-            $name = $this->command->ask('Enter admin username');
-            $email = $this->command->ask('Enter admin email');
-            $password = $this->command->secret('Enter admin password');
+            $name = $this->option('name') ?? $this->command->ask('Enter admin username');
+            $email = $this->option('email') ?? $this->command->ask('Enter admin email');
+            $password = $this->option('password') ?? $this->command->secret('Enter admin password');
 
             // Create a new admin user
             $admin_group = Groups::firstOrCreate(['name' => 'Admins'], ['describe' => 'Default seeded Admin group']);

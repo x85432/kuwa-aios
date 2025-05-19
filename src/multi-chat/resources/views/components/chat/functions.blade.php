@@ -1,11 +1,13 @@
 <style>
-@keyframes gradient-shift {
+    @keyframes gradient-shift {
         0% {
             background-position: 0% 50%;
         }
+
         50% {
             background-position: 100% 50%;
         }
+
         100% {
             background-position: 0% 50%;
         }
@@ -25,10 +27,10 @@
 
     function translate_msg($msg) {
         let msgTranslations = {
-            "[Oops, the LLM returned empty message, please try again later or report to admins!]": "{{ __('chat.hint.llm_returned_empty') }}",
-            "[Sorry, something is broken, please try again later!]": "{{ __('chat.hint.please_retry_later') }}",
-            "[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]": "{{ __('chat.hint.no_worker') }}",
-            "[Sorry, The input message is too huge!]": "{{ __('chat.hint.input_too_large') }}"
+            "[Oops, the LLM returned empty message, please try again later or report to admins!]": "{{ __('chat.placeholder.llm_returned_empty') }}",
+            "[Sorry, something is broken, please try again later!]": "{{ __('chat.placeholder.please_retry_later') }}",
+            "[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]": "{{ __('chat.placeholder.no_worker') }}",
+            "[Sorry, The input message is too huge!]": "{{ __('chat.placeholder.input_too_large') }}"
         };
 
         for (let original in msgTranslations) {
@@ -60,9 +62,9 @@
                 $("#language_list").prepend(`<option value="${$val}">`)
             })
         }
-        $(node).find('div.text-sm.space-y-3.break-words').each(function() {
-            if ($(this).text() == "<pending holder>") {
-                $(this).html(`<svg aria-hidden="true"
+        $(node).find('div.msg-content').each(function(_, msg_elem) {
+            if ($(msg_elem).text() === "<pending holder>") {
+                $(msg_elem).html(`<svg aria-hidden="true"
 class="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-400 fill-blue-800 w-[16px] h-[16px]"
 viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path
@@ -72,116 +74,111 @@ fill="currentColor" />
 d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
 fill="currentFill" />
 </svg>`);
-            } else {
-                let warnings = /&lt;&lt;&lt;WARNING&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g
-                    .exec(this.innerHTML);
+                return;
+            }
+            let display_raw_message = false;
+            if (display_raw_message){
+                let raw_msg = DOMPurify.sanitize(msg_elem.innerHTML);
+                console.log(raw_msg); 
+                $(msg_elem).html(`<p class="whitespace-pre-wrap">${raw_msg}</p>`);
+                return;
+            }
 
-                let infos = /&lt;&lt;&lt;INFO&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/INFO&gt;&gt;&gt;/g
-                    .exec(this.innerHTML);
+            let warnings = /&lt;&lt;&lt;WARNING&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g
+                .exec(this.innerHTML);
 
-                function parseProgressBar(line) {
-                    if (line.startsWith('[PROGRESS_BAR]')) {
-                        //Render as progress bar
-                        datas = line.replace('[PROGRESS_BAR]', '').split('%/')
-                        return `${datas[1]}<div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-    <div class="bg-blue-600 h-2.5 rounded-full animate-pulse animate-gradient-left-to-right" style="width: ${datas[0]}%"></div>
+            let infos = /&lt;&lt;&lt;INFO&gt;&gt;&gt;([\s\S]*?)&lt;&lt;&lt;\/INFO&gt;&gt;&gt;/g
+                .exec(this.innerHTML);
+
+            function parseProgressBar(line) {
+                if (line.startsWith('[PROGRESS_BAR]')) {
+                    datas = line.replace('[PROGRESS_BAR]', '').split('%/')
+                    return `${datas[1]}<div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+<div class="bg-blue-600 h-2.5 rounded-full animate-pulse animate-gradient-left-to-right" style="width: ${datas[0]}%"></div>
 </div>`
-                    }
-                    return line;
                 }
-                $(this).html(this.innerHTML.replace(
-                        /&lt;&lt;&lt;WARNING&gt;&gt;&gt;[\s\S]*?&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g, '')
-                    .replace(
-                        /&lt;&lt;&lt;INFO&gt;&gt;&gt;[\s\S]*?&lt;&lt;&lt;\/INFO&gt;&gt;&gt;/g, ''));
-                $msg = this
-                if ($(this).hasClass("bot-msg")) {
-                    if (warnings) {
-                        warnings = warnings.filter(function(line){return !line.startsWith('&lt;&lt;&lt;WARNING&gt;&gt;&gt;')}).map(function(line) {
-                            return parseProgressBar(line);
-                        })
-                        var listItems = warnings.map(function(line) {
-                            return `<div class="warning_msg mt-2 flex items-center p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
-  <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-  </svg>
-  <div class="ml-2 flex-1 overflow-hidden flex">
-    <span class="font-medium overflow-hidden flex-1">` + line + `</span>
-  </div>
-</div>`;
-                        });
-                        //Clear previous warning
-                        $(this).parent().find("div.warning_msg").remove();
-                        // Append the list items after the target element
-                        $(this).after(listItems.join(''));
-                    }
-                    if (infos) {
-                        infos = infos.filter(function(line){return !line.startsWith('&lt;&lt;&lt;INFO&gt;&gt;&gt;')}).map(function(line) {
-                            return parseProgressBar(line);
-                        })
-                        var listItems = infos.map(function(line) {
-                            return `<div class="info_msg mt-2 flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:text-blue-400 bg-blue-400" role="alert">
-  <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-  </svg>
-  <div class="ml-2 flex-1 overflow-hidden flex">
-    <span class="font-medium overflow-hidden flex-1">` + line + `</span>
-  </div>
-</div>`;
-                        });
-                        //Clear previous warning
-                        $(this).parent().find("div.info_msg").remove();
-                        // Append the list items after the target element
-                        $(this).after(listItems.join(''));
-                        console.log(infos);
-                    }
-                    $msg = translate_msg($msg.innerHTML);
-                }else{
-                    // Render user uploaded image
-                    $msg = replaceImageUrlWithMarkdown($msg.innerHTML)
-                }
-                $(this).html(marked.parse(DOMPurify.sanitize($('<div>').html($msg).text())));
-                $(node).find('div.text-sm.space-y-3.break-words table').addClass('table-auto');
-                $(node).find('div.text-sm.space-y-3.break-words table *').addClass(
-                    'border border-2 border-gray-500 border-solid p-1');
-                $(node).find('div.text-sm.space-y-3.break-words ul').addClass('list-inside list-disc');
-                $(node).find('div.text-sm.space-y-3.break-words ol').addClass('list-inside list-decimal');
-                $(node).find('div.text-sm.space-y-3.break-words > p').addClass('whitespace-pre-wrap');
-                var links = $(node).find('div.text-sm.space-y-3.break-words a');
-
-                // Add classes and set target attribute
-                links.addClass('text-blue-700 hover:text-blue-900').prop('target', '_blank');
-
-                // Display decoded URL
-                links.filter(function(){return isValidURL($(this).text());})
-                     .each(function() {
-                    // Get the current href attribute
-                    var originalUrl = $(this).attr('href');
-
-                    // Decode the URL
-                    var decodedUrl = decodeURIComponent(originalUrl);
-
-                    // Set the decoded URL back to the href attribute
-                    $(this).text(decodedUrl);
-                });
-                $(node).find('div.text-sm.space-y-3.break-words pre code').each(function() {
-                    $(this).html(this.textContent)
-                    hljs.highlightElement($(this)[0]);
-                });
-                $(node).find('div.text-sm.space-y-3.break-words pre code').addClass(
-                    "scrollbar scrollbar-3 rounded-b-lg")
-                $(node).find('div.text-sm.space-y-3.break-words pre').each(function() {
-                    let languageClass = '';
-                    $(this).children("code")[0].classList.forEach(cName => {
-                        if (cName.startsWith('language-')) {
-                            languageClass = cName.replace('language-', '');
-                            return;
-                        }
+                return line;
+            }
+            $(msg_elem).html(msg_elem.innerHTML.replace(
+                    /&lt;&lt;&lt;WARNING&gt;&gt;&gt;[\s\S]*?&lt;&lt;&lt;\/WARNING&gt;&gt;&gt;/g, '')
+                .replace(
+                    /&lt;&lt;&lt;INFO&gt;&gt;&gt;[\s\S]*?&lt;&lt;&lt;\/INFO&gt;&gt;&gt;/g, ''));
+            let msg = "";
+            if ($(msg_elem).hasClass("bot-msg")) {
+                if (warnings) {
+                    warnings = warnings.filter(function(line) {
+                        return !line.startsWith('&lt;&lt;&lt;WARNING&gt;&gt;&gt;')
+                    }).map(function(line) {
+                        return parseProgressBar(line);
                     })
-                    verilog = languageClass == "verilog" ?
-                        `<button onclick="compileVerilog(this)" class="flex items-center hover:bg-gray-900 px-2 py-2 "><span>{{ __('chat.button.verilog_compile_test') }}</span></button>` :
-                        ``
-                    $(this).prepend(
-                        `<div class="flex items-center text-gray-200 bg-gray-800 rounded-t-lg overflow-hidden">
+                    var listItems = warnings.map(function(line) {
+                        return `<div class="warning_msg mt-2 flex items-center p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+<svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+</svg>
+<div class="ml-2 flex-1 overflow-hidden flex">
+<span class="font-medium overflow-hidden flex-1">` + line + `</span>
+</div>
+</div>`;
+                    });
+                    $(msg_elem).parent().find("div.warning_msg").remove();
+                    $(msg_elem).after(listItems.join(''));
+                }
+                if (infos) {
+                    infos = infos.filter(function(line) {
+                        return !line.startsWith('&lt;&lt;&lt;INFO&gt;&gt;&gt;')
+                    }).map(function(line) {
+                        return parseProgressBar(line);
+                    })
+                    var listItems = infos.map(function(line) {
+                        return `<div class="info_msg mt-2 flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:text-blue-400 bg-blue-400" role="alert">
+<svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+</svg>
+<div class="ml-2 flex-1 overflow-hidden flex">
+<span class="font-medium overflow-hidden flex-1">` + line + `</span>
+</div>
+</div>`;
+                    });
+                    $(msg_elem).parent().find("div.info_msg").remove();
+                    $(msg_elem).after(listItems.join(''));
+                    console.log(infos);
+                }
+                msg = translate_msg(msg_elem.innerHTML);
+            } else {
+                msg = replaceImageUrlWithMarkdown(msg_elem.innerHTML)
+            }
+            $(msg_elem).html(marked.parse(DOMPurify.sanitize($('<div>').html(msg).text().replaceAll('<\?',
+                '&lt;?'))));
+            $(msg_elem).find('table').addClass('table-auto');
+            $(msg_elem).find('table').find('td, th').addClass(
+                'border border-2 border-gray-500 border-solid p-1');
+            $(msg_elem).find('ul').addClass('list-inside list-disc');
+            $(msg_elem).find('ol').addClass('list-inside list-decimal');
+            $(msg_elem).find('> p').addClass('whitespace-pre-wrap');
+
+            let links = $(msg_elem).find('a');
+            links.addClass('text-blue-700 hover:text-blue-900').prop('target', '_blank');
+            links.filter((_, x) => isValidURL($(x).text())).each(formatLink);
+
+            $(msg_elem).find('pre code').each(function(_, code_elem) {
+                $(code_elem).html(code_elem.textContent)
+                hljs.highlightElement($(code_elem)[0]);
+            });
+            $(msg_elem).find('pre code').addClass("scrollbar scrollbar-3 rounded-b-lg")
+            $(msg_elem).find('pre').each(function(_, pre_elem) {
+                let languageClass = '';
+                $(pre_elem).children("code")[0].classList.forEach(cName => {
+                    if (cName.startsWith('language-')) {
+                        languageClass = cName.replace('language-', '');
+                        return;
+                    }
+                })
+                verilog = languageClass == "verilog" ?
+                    `<button onclick="compileVerilog(this)" class="flex items-center hover:bg-gray-900 px-2 py-2 "><span>{{ __('chat.button.verilog_compile_test') }}</span></button>` :
+                    ``
+                $(pre_elem).prepend(
+                    `<div class="flex items-center text-gray-200 bg-gray-800 rounded-t-lg overflow-hidden">
 <span class="pl-4 py-2 mr-auto"><input class="bg-gray-900" list="language_list" oninput="switchLang(this)" value="${languageClass}"></span>
 ${verilog}
 <button onclick="copytext(this, $(this).parent().parent().children('code').text().trim())"
@@ -197,40 +194,57 @@ stroke-linejoin="round" class="icon-sm" style="display:none;" height="1em" width
 xmlns="http://www.w3.org/2000/svg">
 <polyline points="20 6 9 17 4 12"></polyline>
 </svg><span>{{ __('Copy') }}</span></button></div>`
-                    )
-                })
+                )
+            })
 
-                $(node).find("div.text-sm.space-y-3.break-words h5").each(function() {
-                    var pattern = /<%ref-(\d+)%>/;
-                    var match = DOMPurify.sanitize(this).replaceAll("&lt;", "<").replaceAll("&gt;", ">")
-                        .match(pattern);
-                    if (match) {
-                        var refNumber = match[1];
-                        $msg = DOMPurify.sanitize($("#history_" + refNumber).find("div:eq(3) div div")[
-                            0], {
-                            ALLOWED_TAGS: [],
-                            ALLOWED_ATTR: []
-                        }).trim()
-                        var $button = $("<button>")
-                            .addClass("bg-gray-700 rounded p-2 hover:bg-gray-800")
-                            .data("tooltip-target", "ref-tooltip")
-                            .data("tooltip-placement", "top")
-                            .attr("onmouseover", "refToolTip(" + refNumber + ")")
-                            .attr("onclick", "scrollToRef(" + refNumber + ")");
-                        $button.text($msg.substring(0, 30) + ($msg.length < 30 ? "" : "..."));
+            $(msg_elem).find("h5").each(function(_, h5_elem) {
+                var pattern = /<%ref-(\d+)%>/;
+                var match = DOMPurify.sanitize(h5_elem).replaceAll("&lt;", "<").replaceAll("&gt;", ">")
+                    .match(pattern);
+                if (match) {
+                    var refNumber = match[1];
+                    $msg = DOMPurify.sanitize($("#history_" + refNumber).find("div:eq(3) div div")[
+                        0], {
+                        ALLOWED_TAGS: [],
+                        ALLOWED_ATTR: []
+                    }).trim()
+                    var $button = $("<button>")
+                        .addClass("bg-gray-700 rounded p-2 hover:bg-gray-800")
+                        .data("tooltip-target", "ref-tooltip")
+                        .data("tooltip-placement", "top")
+                        .attr("onmouseover", "refToolTip(" + refNumber + ")")
+                        .attr("onclick", "scrollToRef(" + refNumber + ")");
+                    $button.text($msg.substring(0, 30) + ($msg.length < 30 ? "" : "..."));
 
-                        $(this).empty().append($button);
-                    }
-                });
-            }
+                    $(h5_elem).empty().append($button);
+                }
+            });
         });
+    }
+
+    function formatLink(index, elem) {
+        /**
+         * Format the links in the message content.
+         * 1. Replace the audio file URL with a preview component.
+         */
+        let original_url = $(elem).attr('href');
+        let decoded_url = decodeURIComponent(original_url);
+        let original_content = $(elem).text();
+        const audio_file_regex = /([^\s]*\.(?:mp3|wav|ogg|flac|aac|m4a|webm|aiff|alac|opus|wma|amr|midi))/g;
+        const matched_audios = [...new Set(original_content.match(audio_file_regex))];
+        if (!matched_audios) return;
+        for (const audio_url of matched_audios) {
+            const audio_preview_elem =
+                `<audio controls><source src="${audio_url}">Your browser does not support the audio element.</audio>`;
+            $(elem).html(original_content.replaceAll(audio_url, audio_preview_elem));
+        }
     }
 
     function isValidURL(url) {
         var urlPattern = /^(https?|ftp):\/\/(-\.)?([^\s/?\.#-]+\.?)+([^\s]*)$/;
         return urlPattern.test(url);
     }
-    
+
     function replaceImageUrlWithMarkdown(input) {
         const regex = /(https?:\/\/[^\s]*\.(?:jpeg|jpg|gif|png|avif|webp|bmp|ico|cur|tiff|tif))/g;
         const matches = [...new Set(input.match(regex))];
@@ -311,7 +325,7 @@ xmlns="http://www.w3.org/2000/svg">
     }
 
     function refToolTip(refID) {
-        $msg = $("#history_" + refID + " div.text-sm.space-y-3.break-words").text().trim()
+        $msg = $("#history_" + refID + " div.msg-content").text().trim()
         $('#ref-tooltip').text($msg);
     }
     let quoted = [];
@@ -338,108 +352,13 @@ xmlns="http://www.w3.org/2000/svg">
         }
     }
 
-    function translates(node, history_id, model) {
-        $(node).parent().children("button.translates").addClass("hidden")
-        $(node).removeClass("hidden")
-
-        $(node).children("svg").addClass("hidden");
-        $(node).children("svg").eq(1).removeClass("hidden");
-        $(node).prop("disabled", true);
-        const url = '{{ route('room.translate', '') }}/' + history_id + (model ? "?model=" + model : "");
-
-        fetch(url)
+    function delete_msg(history_id) {
+        client.deleteMessage(history_id)
             .then(response => {
-                const reader = response.body.getReader();
-                var output = "";
-
-                function streamRead() {
-                    reader.read().then(({
-                        done,
-                        value
-                    }) => {
-                        if (done) {
-                            // Stream has ended
-                            $(node).parent().children("button.translates").removeClass("hidden");
-                            return;
-                        }
-
-                        const content = new TextDecoder().decode(value);
-                        if (output ===
-                            "[Sorry, There're no machine to process this LLM right now! Please report to Admin or retry later!]"
-                        ) {
-                            $(node).children("svg").addClass("hidden");
-                            $(node).children("svg").eq(3).removeClass("hidden");
-                            $("#error_alert >span").text(
-                                "{{ __('chat.hint.no_worker') }}"
-                            )
-                            $("#error_alert").fadeIn();
-                            setTimeout(function() {
-                                $("#error_alert").fadeOut();
-                                $(node).parent().children("button.translates").each(function() {
-                                    $(this).removeClass("hidden");
-                                    $(this).children("svg").addClass("hidden");
-                                    $(this).children("svg").eq(0).removeClass("hidden");
-                                    $(this).prop("disabled", false);
-                                });
-                            }, 3000);
-                        } else {
-                            output += content
-                            $($(node).parent().parent().children()[0]).text(output +
-                                (model ? "" : '\n\n[此訊息經由該模型嘗試翻譯，瀏覽器重新整理後可復原]'));
-                            histories[history_id] = $($(node).parent().parent()
-                                .children()[0]).text()
-                            chatroomFormatter($("#history_" + history_id));
-                            $(node).parent().children("button.translates").each(function() {
-                                $(this).removeClass("hidden");
-                                $(this).children("svg").addClass("hidden");
-                                $(this).children("svg").eq(0).removeClass("hidden");
-                                $(this).prop("disabled", false);
-                            });
-                            $(node).prop("disabled", true);
-                            $(node).children("svg").addClass("hidden");
-                            $(node).children("svg").eq(2).removeClass("hidden");
-                            $(node).parent().children("button.translates").removeClass("hidden")
-                        }
-
-                        // Continue reading the stream
-                        streamRead();
-                    }).catch(error => {
-                        console.error('Error reading stream:', error);
-                        console.error(error);
-                        $(node).children("svg").addClass("hidden");
-                        $(node).children("svg").eq(3).removeClass("hidden");
-                        $("#error_alert >span").text(error)
-                        $("#error_alert").fadeIn();
-                        setTimeout(function() {
-                            $("#error_alert").fadeOut();
-                            $(node).parent().children("button.translates").each(function() {
-                                $(this).removeClass("hidden");
-                                $(this).children("svg").addClass("hidden");
-                                $(this).children("svg").eq(0).removeClass("hidden");
-                                $(this).prop("disabled", false);
-                            });
-                        }, 3000);
-                    });
-                }
-                streamRead();
+                console.log(response);
+                location.reload(); 
             })
-            .catch(error => {
-                console.error('Fetch error:', error);
-                console.error(error);
-                $(node).children("svg").addClass("hidden");
-                $(node).children("svg").eq(3).removeClass("hidden");
-                $("#error_alert >span").text(error)
-                $("#error_alert").fadeIn();
-                setTimeout(function() {
-                    $("#error_alert").fadeOut();
-                    $(node).parent().children("button.translates").each(function() {
-                        $(this).removeClass("hidden");
-                        $(this).children("svg").addClass("hidden");
-                        $(this).children("svg").eq(0).removeClass("hidden");
-                        $(this).prop("disabled", false);
-                    });
-                }, 3000);
-            })
+            .catch(error => console.error('Error:', error));
     }
 
     function copytext(node, text) {
@@ -488,7 +407,7 @@ xmlns="http://www.w3.org/2000/svg">
             // Handle the response
             $result = data
             if ($result.error == "Backend compiler offline") {
-                $($this).text("{{ __('chat.hint.backend_offline') }}")
+                $($this).text("{{ __('chat.placeholder.backend_offline') }}")
                 $($this).addClass("bg-orange-600 hover:bg-orange-700")
                 setTimeout(function() {
                     $($this).text("{{ __('chat.button.verilog_compile_test') }}")
@@ -499,10 +418,10 @@ xmlns="http://www.w3.org/2000/svg">
             } else {
                 if (JSON.parse(data).success) {
                     $($this).addClass("bg-green-600 hover:bg-green-700")
-                    $($this).text("{{ __('chat.hint.success') }}")
+                    $($this).text("{{ __('chat.placeholder.success') }}")
                 } else {
                     $($this).addClass("bg-red-600 hover:bg-red-700")
-                    $($this).text("{{ __('chat.hint.failed') }}")
+                    $($this).text("{{ __('chat.placeholder.failed') }}")
                 }
                 $($this).parent().after(
                     `<div class="flex ${JSON.parse(data).success ? 'bg-green-200' : 'bg-red-200'} whitespace-pre-wrap"></div>`

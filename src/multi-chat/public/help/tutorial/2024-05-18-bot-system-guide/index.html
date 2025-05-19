@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>2024 05 18 bot system guide - Kuwa Help Center</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "2024 05 18 bot system guide";
+        var mkdocs_page_input_path = "tutorial\\2024-05-18-bot-system-guide.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Kuwa Help Center
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Documentation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../community/">Community</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../configuration/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../contribution_guidelines/">Contributing Guidelines</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_installation/">Docker installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_model_setup/">Docker model setup</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../docker_quick_installation/">Docker quick installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequently Asked Questions</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../legal_information/">Legal Information</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../windows_installation/">Windows installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../windows_model_setup/">Windows model setup</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Release</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-08-first-stable-release-v0.1.0/">2024 04 08 first stable release v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-08-migration-from-old-to-v0.1.0/">2024 04 08 migration from old to v0.1.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-15-release-v0.2.0-beta/">2024 04 15 release v0.2.0 beta</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-15-release-v0.2.0-taide/">2024 04 15 release v0.2.0 taide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-29-migrate-to-v0.2.1/">2024 04 29 migrate to v0.2.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-04-29-release-v0.2.1-taide/">Kuwa TAIDE v0.2.1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-05-07-release-v0.3.0-beta1/">Kuwa TAIDE v0.3.0-beta1 is Released</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-05-19-release-v0.3.0/">2024 05 19 release v0.3.0</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-06-24-relese-v0.3.1/">2024 06 24 relese v0.3.1</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-07-05-release-v0.3.2/">2024 07 05 release v0.3.2</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../release/2024-08-12-release-v0.3.3/">2024 08 12 release v0.3.3</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-20-llama3-linux/">2024 04 20 llama3 linux</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-04-20-llama3-windows/">2024 04 20 llama3 windows</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">2024 05 18 bot system guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-apply-gemini/">2024 05 19 apply gemini</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-dbqa-setup/">2024 05 19 dbqa setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-05-19-searchqa-setup/">2024 05 19 searchqa setup</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-painter-tutorial/">2024 06 24 painter tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-vlm-tutorial/">2024 06 24 vlm tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-06-24-whisper-tutorial/">2024 06 24 whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-05-rag-param-tutorial/">2024 07 05 rag param tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-05-tool-tutorial/">2024 07 05 tool tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../2024-07-18-cool-whisper-tutorial/">2024 07 18 cool whisper tutorial</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../client_library/">Client library</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Kuwa Help Center</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorial</li>
+      <li class="breadcrumb-item active">2024 05 18 bot system guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p>In the latest 0.3.0 release, we have mainly added the Bot feature. Now you can create different Bots on the website, and this article will guide you step-by-step on how to set up your own Bot!</p>
+<p>First, you will see a Store section:\
+<img alt="" src="../img/2024-05-18-bot-system-guide/store.png" />\</p>
+<p>With a button outlined in green, clicking it will open the Bot creation menu.\
+<img alt="" src="../img/2024-05-18-bot-system-guide/bot-create-1.png" />\
+Here, you have a simple interface to set common Bot parameters, such as system prompts, user pre-prompts, and user post-prompts. If you want to set more detailed information, you can also open the model configuration file:\
+<img alt="" src="../img/2024-05-18-bot-system-guide/bot-create-2.png" />\
+Although this part does not have an auxiliary interface, you can more freely set all parameters. Please refer to the <a href="https://github.com/ollama/ollama/blob/main/docs/modelfile.md">Ollama Modelfile</a> for the format. Note that in the current 0.3.0 version, only some configuration parameters are supported. The following lists the relevant parameters and some example usages.</p>
+<ul>
+<li>SYSTEM \<prompt>\
+  The system prompt should serve as the main method to influence the model's output, preloading some knowledge or changing the response style.</li>
+<li>SYSTEM You are a helpful assistant.</li>
+<li>SYSTEM Please respond briefly.</li>
+<li>SYSTEM Your name is Bob, and you love learning other languages.</li>
+<li>TEMPLATE \<template>\
+  Specify the dialogue template to apply during inference. The template used by each model may vary, so it is recommended to refer to the relevant template for the model.</li>
+<li>TEMPLATE """
+    {% for message in messages %}\
+    {% if message['role'] == 'system' %}\
+    {{ '\<s>' + message['content'] }}\
+    {% endif %}\
+    {% if message['role'] == 'user' %}\
+    {{ 'USER: ' + message['content'] }}\
+    {% endif %}\
+    {% if message['role'] == 'assistant' %}\
+    {{ 'ASSISTANT: ' + message['content'] }}\
+    {% endif %}\
+    {% endfor %}\
+    {{ 'ASSISTANT: ' }}"""</li>
+<li>MESSAGE \<role> \<prompt>\
+  Preload some dialogue records. The User and Assistant parts must be paired.</li>
+<li>MESSAGE SYSTEM You are a helpful assistant.</li>
+<li>MESSAGE SYSTEM Please respond briefly.</li>
+<li>MESSAGE USER Hello.</li>
+<li>MESSAGE ASSISTANT """Hello! How can I assist you?"""</li>
+</ul>
+<p>In addition to the parameters supported by the original modelfile, we have also extended two additional parameters:</p>
+<ul>
+<li>BEFORE-PROMPT \<prompt>\
+  In the last message, this prompt will be placed before the user's message.</li>
+<li>BEFORE-PROMPT Please translate the following into Japanese: 「</li>
+<li>BEFORE-PROMPT 「</li>
+<li>AFTER-PROMPT \<prompt>\
+  In the last message, this prompt will be placed after the user's message.</li>
+<li>AFTER-PROMPT 」</li>
+<li>AFTER-PROMPT 」, please rephrase the above content.</li>
+</ul>
+<p>Here are some example modelfile configurations:</p>
+<p>Automatically add "Please translate into Japanese":</p>
+<pre><code>TEMPLATE &quot;&quot;&quot;{% for message in messages %}
+{% if message['role'] == 'system' %}
+{{ '&lt;s&gt;' + message['content'] }}
+{% endif %}
+{% if message['role'] == 'user' %}
+{{' USER: Please translate into Japanese: ' + message['content']}}
+{% endif %}
+{% if message['role'] == 'assistant' %}
+{{' ASSISTANT: ' + message['content']}}
+{% endif %}
+{% endfor %}
+{{' ASSISTANT: '}}&quot;&quot;&quot;
+</code></pre>
+<p>Pretend to be a cat:</p>
+<pre><code>SYSTEM You are a cat. Regardless of what I ask, you should only respond with &quot;meow&quot; or &quot;mew&quot; and not speak any human language or act like anything else.
+</code></pre>
+<p>Meow Translator:</p>
+<pre><code>BEFORE-PROMPT Please replace the following message entirely with &quot;meow&quot;: 「
+AFTER-PROMPT 」
+</code></pre>
+<p>Bilingual Teacher:</p>
+<pre><code>SYSTEM You are a helpful English teacher who corrects grammar and provides answers in both Chinese and English.
+</code></pre>
+<p>TAIDE Chinese Proofreader:</p>
+<pre><code>SYSTEM You are a professional Chinese teacher with expertise in proofreading and editing in fluent Traditional Chinese from Taiwan.
+BEFORE-PROMPT Please directly refine the following text in Chinese without explanation:
+</code></pre>
+<p>TAIDE Chinese to English Translator:</p>
+<pre><code>SYSTEM You are a professional English teacher helping translate content into English from a Taiwanese perspective.
+BEFORE-PROMPT Translate into English without explanation: 「
+AFTER-PROMPT 」
+</code></pre>
+<p>Chinese Chatting: (For use with ChatGPT, Gemini)</p>
+<pre><code>AFTER-PROMPT Please answer in Traditional Chinese from a Taiwanese perspective.
+</code></pre>
+<p>Taiwan Search QA: (For use with Search QA)</p>
+<pre><code>SYSTEM site:tw Answer in Traditional Chinese.
+</code></pre>
+<p>Define some preset knowledge:</p>
+<pre><code>SYSTEM Your name is Jeff.
+MESSAGE user What is your name?
+MESSAGE assistant My name is Jeff. Hello!
+MESSAGE user When I say ABCD, please respond with &quot;EFGH!!!!&quot;
+MESSAGE assistant Okay, I will shout &quot;EFGH!!!!&quot; when you mention ABCD.
+MESSAGE user ABCD?
+MESSAGE assistant EFGH!!!!
+MESSAGE user ABCDEFG?
+MESSAGE assistant EFGH!!!!
+MESSAGE user What comes after ABC?
+MESSAGE assistant DEFGHIJKLMNOPQRSTUVWXYZ
+MESSAGE user It rained heavily today.
+MESSAGE assistant Noted, it was a torrential rain today.
+</code></pre>
+<p>Please note that not all models support these parameters. For example, the current Gemini API does not support templates. The system prompt part is supported as a before-prompt.</p>
+<p>Additionally, ChatGPT does not support template settings. The effectiveness of these settings depends on the model's training. If the training for system prompts is insufficient, it may be challenging to influence the model's behavior using the system prompt alone. You can try to influence the model output using MESSAGE or Before/After prompt instead.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../2024-04-20-llama3-windows/" class="btn btn-neutral float-left" title="2024 04 20 llama3 windows"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../2024-05-19-apply-gemini/" class="btn btn-neutral float-right" title="2024 05 19 apply gemini">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../2024-04-20-llama3-windows/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../2024-05-19-apply-gemini/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
