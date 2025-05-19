@@ -19,7 +19,18 @@ if "!set_version!"=="" (
 			set "cuda_version=%%v"
 		)
 		echo Found CUDA !cuda_version! installed.
-		set "version=cu118"
+		rem Parse the version number
+		for /f "tokens=1,2,3 delims=." %%a in ("!cuda_version!") do (
+			set "major=%%a"
+			set "minor=%%b"
+			set "patch=%%c"
+		)
+		rem Set the variable based on the CUDA version
+		if !major:~1! geq 12 (
+			set "version=cu121"
+		) else (
+			set "version=cu118"
+		)
 	)
 ) else (
 	set "version=!set_version!"
