@@ -311,6 +311,7 @@ class GeminiExecutor(LLMExecutor):
             logger.debug(f"msg: {msg}")
 
             # Trim the history to fit into the context window
+            msg = rectify_chat_history(msg)
             while await self.count_token(msg) > self.limit:
                 msg = msg[1:]
                 msg = rectify_chat_history(msg)

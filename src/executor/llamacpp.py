@@ -328,7 +328,9 @@ class LlamaCppExecutor(LLMExecutor):
             prompt = ""
             while True:
                 prompt = self.synthesis_prompt(
-                    prepended_messages + history, system_prompt, modelfile.template
+                    rectify_chat_history(prepended_messages + history),
+                    system_prompt,
+                    modelfile.template,
                 )
                 prompt_length = len(
                     self.model.tokenize(
