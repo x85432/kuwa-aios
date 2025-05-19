@@ -161,25 +161,8 @@ popd
 
 REM Sync locked Python dependencies
 echo Syncing Python dependencies
-pushd ".\src"
-uv pip sync --system requirements.txt.lock
-popd
-
-REM Install Kernel, Library and Executor
-echo Installing the Kernel of Kuwa.
-pushd "..\src\kernel"
-uv pip install --system --force-reinstall --no-deps .
-popd
-echo Installing the internal library of Kuwa.
-pushd "..\src\library\client"
-uv pip install --system --force-reinstall --no-deps .
-popd
-pushd "..\src\library\rag"
-uv pip install --system --force-reinstall --no-deps .
-popd
-echo Installing the Executors of Kuwa.
-pushd "..\src\executor"
-uv pip install --system --force-reinstall --no-deps .
+pushd ".."
+uv pip sync --system windows\src\requirements.txt.lock
 popd
 
 REM Install dependency of whisper
@@ -190,11 +173,6 @@ call npm.cmd install -g "n8n@1.73.1"
 
 REM Install dependency of Mermaid Tool
 call npm.cmd install -g "@mermaid-js/mermaid-cli"
-
-REM Re-align windows-specified package version
-pushd ".\src"
-uv pip install --system -r requirements.txt.lock
-popd
 
 REM Download Embedding Model
 echo Downloading the embedding model.

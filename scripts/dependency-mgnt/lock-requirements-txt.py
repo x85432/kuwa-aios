@@ -8,22 +8,16 @@ from typing import List
 # Define source files and output paths based on platform (relative to project root).
 platforms = ["windows", "windows-cu118", "windows-ipex-llm", "docker", "docker-cu118"]
 common_sources = [
-    "src/executor/pyproject.toml",
-    "src/kernel/pyproject.toml",
-    "src/library/client/pyproject.toml",
-    "src/library/rag/pyproject.toml",
     "src/executor/agent/requirements.in",
     "src/executor/docqa/requirements.in",
     "src/executor/image_generation/requirements.in",
     "src/executor/speech_recognition/requirements.in",
     "src/executor/uploader/requirements.in",
+    "src/executor/mcp/requirements.in",
     "src/bot/text-to-cad/requirements.in",
     "src/toolchain/requirements.in",
     "src/tools/requirements.in",
-    "src/executor/mcp/requirements.in",
-    # "src/executor/requirements.in",
-    # "src/kernel/requirements.in",
-    # "src/library/rag/requirements.in",
+    "requirements.in"
 ]  # Shared dependency across platforms
 platform_sources = {
     "windows": ["windows/src/version_patch/cpu/windows/src/requirements.in"],
@@ -43,7 +37,7 @@ output_paths = {
     "docker": "/dev/null",
     "docker-cu118": "/dev/null",
 }
-cmd_opts = ["--color", "always", "--annotation-style=line"]
+cmd_opts = ["--color", "always", "--annotation-style=line", "--python-version", "3.10.11"]
 
 
 def compile_requirements(
