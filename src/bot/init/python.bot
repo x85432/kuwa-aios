@@ -8,7 +8,7 @@ Content-Type: application/vnd.kuwabot;
 #!
 KUWABOT version 0.3.3
 KUWABOT name "Python"
-KUWABOT description "This bot has the ability to run Python scripts created by other bots. [Important]: Remember that scripts can potentially access and change your data.  Only run code from sources you trust completely."
+KUWABOT description "Run Python scripts created by other bots. [Important]: Remember that scripts can potentially access and change your data.  Only run code from sources you trust completely."
 KUWABOT base ".tool/kuwa/pipe"
 PARAMETER pipe_program python
 PARAMETER pipe_extract_last_codeblock true

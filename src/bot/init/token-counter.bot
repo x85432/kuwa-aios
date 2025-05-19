@@ -8,7 +8,7 @@ Content-Type: application/vnd.kuwabot;
 #!
 KUWABOT version 0.3.3
 KUWABOT name "Token Counter"
-KUWABOT description "This tool can help counting number of tokens in a message."
+KUWABOT description "Count the number of tokens in a message."
 KUWABOT base ".tool/kuwa/pipe"
 PARAMETER pipe_program 'python'
 PARAMETER pipe_argv "token_counter.py"

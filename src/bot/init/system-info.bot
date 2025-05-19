@@ -8,7 +8,7 @@ Content-Type: application/vnd.kuwabot;
 #!
 KUWABOT version 0.3.3
 KUWABOT name "|System Info|"
-KUWABOT description "This tool will print the system information for debugging."
+KUWABOT description "Show the system information."
 KUWABOT base ".tool/kuwa/pipe"
 PARAMETER pipe_program 'python'
 PARAMETER pipe_argv "sysinfo.py"

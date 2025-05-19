@@ -8,7 +8,7 @@ Content-Type: application/vnd.kuwabot;
 #!
 KUWABOT version 0.3.3
 KUWABOT name "File Viewer"
-KUWABOT description "This tool can print the contents of text files, image files, or standard input."
+KUWABOT description "Show the contents of text files, image files, or standard input."
 KUWABOT base ".tool/kuwa/pipe"
 PARAMETER pipe_program 'python'
 PARAMETER pipe_argv "viewer.py"
