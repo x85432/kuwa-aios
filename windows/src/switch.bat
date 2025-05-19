@@ -26,7 +26,7 @@ if "!set_version!"=="" (
 			set "patch=%%c"
 		)
 		rem Set the variable based on the CUDA version
-		if !major:~1! gtr 12 (
+		if !major:~1! geq 12 (
 			set "version=cu121"
 		) else (
 			set "version=cu118"
