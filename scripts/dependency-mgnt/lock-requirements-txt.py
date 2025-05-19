@@ -22,7 +22,7 @@ common_sources = [
 platform_sources = {
     "windows": ["windows/src/version_patch/cpu/windows/src/requirements.in"],
     "windows-cu118": [
-        "windows/src/version_patch/11.8/windows/src/requirements.in",
+        "windows/src/version_patch/cu118/windows/src/requirements.in",
     ],
     "windows-ipex-llm": [
         "windows/src/version_patch/ipex-llm/windows/src/requirements.in",
@@ -32,7 +32,7 @@ platform_sources = {
 }
 output_paths = {
     "windows": "windows/src/version_patch/cpu/windows/src/requirements.txt.lock",
-    "windows-cu118": "windows/src/version_patch/11.8/windows/src/requirements.txt.lock",
+    "windows-cu118": "windows/src/version_patch/cu118/windows/src/requirements.txt.lock",
     "windows-ipex-llm": "windows/src/version_patch/ipex-llm/windows/src/requirements.txt.lock",
     "docker": "/dev/null",
     "docker-cu118": "/dev/null",
