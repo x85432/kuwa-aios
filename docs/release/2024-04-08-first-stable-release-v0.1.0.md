@@ -1,6 +1,6 @@
 Hello developers and users,
 
-After receiving feedback from many users since the initial release, we are pleased to announce the stable release of [v0.1.0](https://github.com/kuwaai/genai-os/tree/v0.1.0). In this version, we have made some adjustments to the installation process for the Windows version. We have also simultaneously released a Docker version, allowing users to quickly install and adjust the environment structure as needed. Additionally, we have fixed some minor bugs that were known in previous versions.
+After receiving feedback from many users since the initial release, we are pleased to announce the stable release of [v0.1.0](https://github.com/kuwaai/kuwa-aios/tree/v0.1.0). In this version, we have made some adjustments to the installation process for the Windows version. We have also simultaneously released a Docker version, allowing users to quickly install and adjust the environment structure as needed. Additionally, we have fixed some minor bugs that were known in previous versions.
 
 <!-- truncate -->
 

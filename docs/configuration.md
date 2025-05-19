@@ -123,5 +123,5 @@ safety_guard_update_interval_sec = 30 # Filter list update interval
 
 ## Kuwa Executors
 Please refer to the setup instructions in GitHub
-- [Setup Guide in Chinese](https://github.com/kuwaai/genai-os/blob/main/src/executor/README_TW.md)
-- [Setup Guide in English](https://github.com/kuwaai/genai-os/tree/main/src/executor#readme)
+- [Setup Guide in Chinese](https://github.com/kuwaai/kuwa-aios/blob/main/src/executor/README_TW.md)
+- [Setup Guide in English](https://github.com/kuwaai/kuwa-aios/tree/main/src/executor#readme)

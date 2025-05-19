@@ -109,7 +109,7 @@ install_kuwa() {
   # Download Kuwa repository if not exist
   cd "$(pwd)"
   if ! git rev-parse &>/dev/null; then
-    git clone https://github.com/kuwaai/genai-os/
+    git clone https://github.com/kuwaai/kuwa-aios/
     pushd genai-os/docker > /dev/null
   else
     pushd "$(dirname "$0")" > /dev/null

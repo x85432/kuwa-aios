@@ -12,7 +12,7 @@ Please follow the steps below to install:
 - Gemini and ChatGPT are enabled by default. If you need to run the gguf model, please drop it in the path: executors\llamacpp.
 - The process will create an admin account. If you need a new one, please refer to the first item in [FAQs](#faq).
 ```bat
-git clone https://github.com/kuwaai/genai-os.git
+git clone https://github.com/kuwaai/kuwa-aios.git
 cd genai-os/windows
 "build & start.bat"
 ```
@@ -23,7 +23,7 @@ cd genai-os/windows
 
 1. **Download from Release, or execute the following command in git bash to clone the project and switch to the windows folder in the project:**
    ```bat
-   git clone https://github.com/kuwaai/genai-os.git
+   git clone https://github.com/kuwaai/kuwa-aios.git
    cd genai-os/windows
    ```
 

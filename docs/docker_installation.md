@@ -139,7 +139,7 @@ sudo systemctl restart docker
 1. Download Kuwa Repository
 
 ```sh=
-git clone https://github.com/kuwaai/genai-os/
+git clone https://github.com/kuwaai/kuwa-aios/
 cd genai-os/docker
 ```
 

@@ -12,7 +12,7 @@ A: Freedom and diversity are the main features of Kuwa: it supports multiple lan
 A: Kuwa currently does not directly provide user account registration or application hosting services. Kuwa GenAI OS opens the entire platform system for everyone to use to build their own testing, development, or service deployment platform. Kuwa has been applied in the [TAIDE Exhibition Platform](https://chat.td.nchc.org.tw/), [National University of Kaohsiung Generative AI Service Platform](https://chat.nuk.edu.tw/), and other specific application platforms to provide services.
 
 1-4. Can Kuwa GenAI OS operate on-premises or only in the cloud?
-A: It can do both, as the entire system is open source, users can set up the entire system on-premises or in a private cloud. For detailed installation instructions, please refer to [Kuwa GenAI OS's GitHub](https://github.com/kuwaai/genai-os?#installation-guide).
+A: It can do both, as the entire system is open source, users can set up the entire system on-premises or in a private cloud. For detailed installation instructions, please refer to [Kuwa GenAI OS's GitHub](https://github.com/kuwaai/kuwa-aios?#installation-guide).
 
 1-5. Which type of users does Kuwa GenAI OS system building lean towards?
 A: Currently, the system building part leans more towards developers. If you encounter technical issues during the installation process, feel free to contact us for further assistance!
@@ -44,24 +44,24 @@ A: Since this system manages and allocates underlying model resources to the upp
 ## Installation and Configuration
 
 2-1. How to install the Kuwa system?  
-A: Please refer to the [installation instructions in the README.md file](https://github.com/kuwaai/genai-os/tree/main?tab=readme-ov-file#installation-guide). Feel free to message us if you encounter any problems!
+A: Please refer to the [installation instructions in the README.md file](https://github.com/kuwaai/kuwa-aios/tree/main?tab=readme-ov-file#installation-guide). Feel free to message us if you encounter any problems!
 
-- [Linux instructions](https://github.com/kuwaai/genai-os?#installation-guide)
-- [Windows instructions](https://github.com/kuwaai/genai-os/blob/main/windows/README.md)
+- [Linux instructions](https://github.com/kuwaai/kuwa-aios?#installation-guide)
+- [Windows instructions](https://github.com/kuwaai/kuwa-aios/blob/main/windows/README.md)
 
 2-2. How to integrate ChatGPT or Gemini?  
-A: Please refer to the instructions in [this document](https://github.com/kuwaai/genai-os/tree/main/executor). Feel free to contact us if you encounter any problems!
+A: Please refer to the instructions in [this document](https://github.com/kuwaai/kuwa-aios/tree/main/executor). Feel free to contact us if you encounter any problems!
 
 2-3. How to integrate on-premise models?  
-A: Please refer to [this tutorial](https://github.com/kuwaai/genai-os/tree/main/executor). Feel free to message us if you encounter any problems!
+A: Please refer to [this tutorial](https://github.com/kuwaai/kuwa-aios/tree/main/executor). Feel free to message us if you encounter any problems!
 
 2-4. I have trained my own model, how can I integrate it with Kuwa GenAI OS?  
-A: Please refer to the tutorial for setting up the model, load your model, and prepare the input and output functions to set it up on the system. [Documentation](https://github.com/kuwaai/genai-os/tree/main/executor)
+A: Please refer to the tutorial for setting up the model, load your model, and prepare the input and output functions to set it up on the system. [Documentation](https://github.com/kuwaai/kuwa-aios/tree/main/executor)
 2-5. Can I integrate other inference engines like TGI or vLLM?  
 A: Any inference engine that implements the OpenAI API can be integrated. Other types of APIs are planned for future versions, and we welcome anyone interested to assist in implementation.
 
 2-6. How to add new models?  
-A: Please refer to [this tutorial](https://github.com/kuwaai/genai-os/tree/main/executor). Feel free to message us if you encounter any problems!
+A: Please refer to [this tutorial](https://github.com/kuwaai/kuwa-aios/tree/main/executor). Feel free to message us if you encounter any problems!
 
 ## Usage
 3-1. How to deal with being stuck at "Message processing... please wait..."?  

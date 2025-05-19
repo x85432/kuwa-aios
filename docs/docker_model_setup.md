@@ -60,7 +60,7 @@ cp llamacpp.yaml llamacpp-taide.yaml
 
 Add `llamacpp-taide` into `confs` array and execute `run.sh` again.
 
-If you faced the error `ModuleNotFoundError: No module named 'llama_cpp'`, please refer to the [commit](https://github.com/kuwaai/genai-os/commit/00ff80b5983325f1736299d8abae671f72c3f6ca) to fix it.
+If you faced the error `ModuleNotFoundError: No module named 'llama_cpp'`, please refer to the [commit](https://github.com/kuwaai/kuwa-aios/commit/00ff80b5983325f1736299d8abae671f72c3f6ca) to fix it.
 
 ### 4. Others, using Ollama
 
