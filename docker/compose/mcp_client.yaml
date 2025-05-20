@@ -1,0 +1,17 @@
+services:
+  mcp-client-executor:
+    extends:
+      file: executor_base.yaml
+      service: executor-base
+    depends_on:
+      - executor-builder
+    environment:
+      CUSTOM_EXECUTOR_PATH: ./mcp/client/mcp-client.py
+      EXECUTOR_ACCESS_CODE: .tool.mcp/.default
+      EXECUTOR_NAME: MCP Client
+      EXECUTOR_IMAGE: mcp.png # Refer to src/multi-chat/public/images
+      EXECUTOR_ORDER: 999030
+      TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-0} # For embedding model
+    command: [
+      "--log", "debug",
+    ]

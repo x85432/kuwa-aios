@@ -1,6 +1,10 @@
 services:
   search-executor:
-    image: kuwaai/model-executor
+    extends:
+      file: executor_base.yaml
+      service: executor-base
+    depends_on:
+      - executor-builder
     environment:
       CUSTOM_EXECUTOR_PATH: ./docqa/searchqa.py
       EXECUTOR_ACCESS_CODE: .tool/kuwa/search
@@ -9,10 +13,6 @@ services:
       EXECUTOR_ORDER: 990020
       EXECUTOR_CREATE_BOT: false
       TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-0} # For embedding model
-    depends_on:
-      - executor-builder
-      - kernel
-      - multi-chat
     command: [
       "--log", "debug",
       "--api_base_url", "http://web/",
@@ -21,8 +21,3 @@ services:
       "--google_cse_id", "<YOUR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID>",
       #"--advanced_params", "site:example.tw site:example.com"
       ]
-    volumes: ["~/.cache/huggingface:/root/.cache/huggingface"]
-    extra_hosts:
-      - "localhost:host-gateway"
-    restart: unless-stopped
-    networks: ["backend", "frontend"]

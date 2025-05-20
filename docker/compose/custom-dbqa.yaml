@@ -1,6 +1,10 @@
 services:
   custom-dbqa-executor:
-    image: kuwaai/model-executor
+    extends:
+      file: executor_base.yaml
+      service: executor-base
+    depends_on:
+      - executor-builder
     environment:
       CUSTOM_EXECUTOR_PATH: ./docqa/docqa.py
       EXECUTOR_ACCESS_CODE: db-qa:custom-db
@@ -8,18 +12,10 @@ services:
       TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-0} # For embedding model
     volumes: [
       "</path/to/vector-database>:/var/database/",
-      "kuwa-root:/var/kuwa/docker/root:rw", # The root of Kuwa filesystem hierarchy to store user-uploaded data during runtime.
-      "~/.cache/huggingface:/root/.cache/huggingface"
     ]
-    depends_on:
-      - executor-builder
-      - kernel
-      - multi-chat
     command: [
       "--api_base_url", "http://web/",
       "--model", "geminipro",
       "--database", "/var/database/",
       "--log", "debug"
       ]
-    restart: unless-stopped
-    networks: ["backend", "frontend"]

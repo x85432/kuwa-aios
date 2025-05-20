@@ -1,6 +1,10 @@
 services:
   nim-executor:
-    image: kuwaai/model-executor
+    extends:
+      file: executor_base.yaml
+      service: executor-base
+    depends_on:
+      - executor-builder
     environment:
       EXECUTOR_TYPE: nim
       EXECUTOR_ACCESS_CODE: .model:nim/
@@ -8,9 +12,6 @@ services:
       EXECUTOR_IMAGE: nim.png # Refer to src/multi-chat/public/images
       EXECUTOR_ORDER: 401200
       EXECUTOR_CREATE_BOT: false
-    depends_on:
-      - executor-builder
-      - kernel
     command: [
       "--log", "debug",
       "--context_window", "131072",
@@ -20,7 +21,3 @@ services:
       # "--no_override_api_key", # Disable override the system API key with user API key.
       # "--api_key", "YOUR_API_KEY", # Input the API key that you have applied for
     ]
-    restart: unless-stopped
-    extra_hosts:
-      - "localhost:host-gateway"
-    networks: ["backend"]

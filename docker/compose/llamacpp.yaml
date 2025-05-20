@@ -1,23 +1,14 @@
 services:
   llamacpp-executor:
-    image: kuwaai/model-executor
+    extends:
+      file: executor_base.yaml
+      service: executor-base
+    depends_on:
+      - executor-builder
     environment:
       EXECUTOR_TYPE: llamacpp
       EXECUTOR_ACCESS_CODE: taide-4bit
       EXECUTOR_NAME: TAIDE 4bit
       EXECUTOR_IMAGE: llamacpp.png # Refer to src/multi-chat/public/images
-    depends_on:
-      - executor-builder
-      - kernel
-      - multi-chat
     command: ["--model_path", "/var/model/taide-4bit.gguf", "--ngl", "-1", "--temperature", "0"]
-    restart: unless-stopped
     volumes: ["/path/to/taide/model.gguf:/var/model/taide-4bit.gguf"]
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['0']
-            capabilities: [gpu]
-    networks: ["backend"]
