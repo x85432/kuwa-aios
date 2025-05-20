@@ -140,7 +140,8 @@ class SystemController extends Controller
                     chdir($projectRoot . dirname($scriptPath));
 
                     $gitHash = substr($this->runCommand('git merge-base @ @{u}', $projectRoot), 0, 8);
-                    $url = 'https://update.kuwaai.org/' . $gitHash . '/' . self::getMachineCode();
+                    $url = 'https://update.kuwaai.org/get_update/' . $gitHash . '/' . self::getMachineCode();
+                    $this->runCommand('curl -s ' . escapeshellarg($url), $projectRoot);
 
                     echo 'data: ' . json_encode(['status' => 'progress', 'output' => 'Current dir: ' . getcwd()]) . "\n\n";
                     ob_flush();
