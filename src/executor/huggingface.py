@@ -108,6 +108,7 @@ class KwargsParser(argparse.Action):
                     converted_v = kwarg_v
             getattr(namespace, self.dest)[kwarg_k] = converted_v
 
+
 def to_multi_modal_history(history: list[dict]) -> list[dict]:
     """
     Converts a chat history with text content into a multi-modal history,
@@ -489,7 +490,9 @@ class HuggingfaceExecutor(LLMExecutor):
         prompt_embedding = []
         while True:
             model_inputs = self.synthesis_prompt(
-                prepended_messages + history, system_prompt, modelfile.template
+                rectify_chat_history(prepended_messages + history),
+                system_prompt,
+                modelfile.template,
             )
             prompt_embedding = model_inputs["input_ids"]
             logger.debug(f"Length of prompt: {prompt_embedding.shape[1]}")

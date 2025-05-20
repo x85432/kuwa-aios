@@ -58,17 +58,15 @@ def to_openai_chat_format(history: list[dict]):
 
 def rectify_chat_history(history: list[dict]):
     """
-    Ensure the history begin with "user."
+    Ensure the history, exclude the system message, begin with "user".
     """
     if len(history) == 0:
         return history
-    first_user_idx = 0
-    while (
-        history[first_user_idx]["role"] != "user"
-        and first_user_idx + 1 < len(history) - 1
-    ):
-        first_user_idx += 1
-    history = history[first_user_idx:]
+    i = 0
+    while(history[i]["role"] not in {"user", "assistant"}):
+        i += 1
+    if history[i]["role"] != "user":
+        history.insert(i, {"role": "user", "content": ""})
     return history
 
 URL_REGEX = r"(https?://[^\s]+)"

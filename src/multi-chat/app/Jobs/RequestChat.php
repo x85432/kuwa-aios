@@ -272,11 +272,6 @@ class RequestChat implements ShouldQueue
         $ExecutionTime = $currentTimeInSeconds - $msgTimeInSeconds;
 
         if (!empty($msg) || !is_null($exitCode)) {
-            $sseGuardingTimeInSeconds = 5;
-            if ($ExecutionTime < $sseGuardingTimeInSeconds && $this->app_type == AppType::CHATROOM) {
-                sleep($sseGuardingTimeInSeconds - $ExecutionTime);
-            }
-
             Redis::publish($this->channel, 'New ' . json_encode(['msg' => $msg, 'exit_code' => $exitCode]));
         }
         if ($this->exit_when_finish) {

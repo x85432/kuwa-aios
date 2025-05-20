@@ -32,17 +32,17 @@
                         </x-nav-link>
                     </div>
                 @endif
-                @if (Auth::user()->hasPerm('tab_Manage'))
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-nav-link :href="route('manage.home')" :active="request()->routeIs('manage.*')">
-                            {{ __('manage.route') }}
-                        </x-nav-link>
-                    </div>
-                @endif
                 @if (Auth::user()->hasPerm('tab_Cloud'))
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-nav-link :href="route('cloud.home')" :active="request()->routeIs('cloud.*')">
                             {{ __('cloud.route') }}
+                        </x-nav-link>
+                    </div>
+                @endif
+                @if (Auth::user()->hasPerm('tab_Manage'))
+                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                        <x-nav-link :href="route('manage.home')" :active="request()->routeIs('manage.*')">
+                            {{ __('manage.route') }}
                         </x-nav-link>
                     </div>
                 @endif
@@ -63,7 +63,7 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <a href="/help" target="_blank"
+                        <a href="/help/index.html" target="_blank"
                         class="block w-full px-4 py-2 text-left text-sm leading-5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out">{{ __('welcome.button.help') }}</a>
 
                         <hr class="border-gray-300 dark:border-gray-600">
@@ -321,14 +321,14 @@
                     {{ __('store.route') }}
                 </x-responsive-nav-link>
             @endif
-            @if (Auth::user()->hasPerm('tab_Manage'))
-                <x-responsive-nav-link :href="route('manage.home')" :active="request()->routeIs('manage.*')">
-                    {{ __('manage.route') }}
-                </x-responsive-nav-link>
-            @endif
             @if (Auth::user()->hasPerm('tab_Cloud'))
                 <x-responsive-nav-link :href="route('cloud.home')" :active="request()->routeIs('cloud.*')">
                     {{ __('cloud.route') }}
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->hasPerm('tab_Manage'))
+                <x-responsive-nav-link :href="route('manage.home')" :active="request()->routeIs('manage.*')">
+                    {{ __('manage.route') }}
                 </x-responsive-nav-link>
             @endif
         </div>
@@ -341,7 +341,7 @@
             </div>
 
             <div class="mt-3 space-y-1">
-                <a href="/help" target="_blank"
+                <a href="/help/index.html" target="_blank"
                 class="block w-full pl-3 pr-4 py-2 border-l-4 border-transparent text-left text-base font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:text-gray-800 dark:focus:text-gray-200 focus:bg-gray-50 dark:focus:bg-gray-700 focus:border-gray-300 dark:focus:border-gray-600 transition duration-150 ease-in-out">{{ __('welcome.button.help') }}</a>
 
                 @if (env('INFORMATION_URL'))

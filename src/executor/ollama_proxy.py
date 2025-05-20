@@ -242,7 +242,7 @@ class OllamaExecutor(LLMExecutor):
                         after_prompt=modelfile.after_prompt,
                     )
                 )
-            history = prepended_messages + history
+            history = rectify_chat_history(prepended_messages + history)
             if system_prompt:
                 history.insert(0, {"role": "system", "content": system_prompt})
 
