@@ -22,5 +22,5 @@ return [
     'under_maintenance.header' => 'Service Suspended',
     'button.information' => 'More Information',
     'button.return_home' => 'Return Home',
-    'button.help' => 'How to use',
+    'button.help' => 'Help',
 ];
