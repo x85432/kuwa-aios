@@ -20,7 +20,7 @@ return [
     'opensource' => 'Open Source',
     'under_maintenance.label' => 'We are currently performing website maintenance,<br>Please come back later!',
     'under_maintenance.header' => 'Service Suspended',
-    'button.information' => 'More Information',
+    'button.information' => 'More',
     'button.return_home' => 'Return Home',
     'button.help' => 'Help',
 ];
