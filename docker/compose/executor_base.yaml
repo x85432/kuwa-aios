@@ -1,0 +1,21 @@
+services:
+  executor-base:
+    image: kuwaai/model-executor
+    volumes: [
+      "kuwa-root:/var/kuwa/docker/root:rw", # The root of Kuwa filesystem hierarchy to store user-uploaded data during runtime.
+      "~/.cache/huggingface:/root/.cache/huggingface",
+      "~/.cache/torch:/root/.cache/torch",
+      "~/.cache/whisper_s2t:/root/.cache/whisper_s2t",
+    ]
+    extra_hosts:
+      - "localhost:host-gateway"
+    restart: unless-stopped
+    networks: ["backend", "frontend"]
+    # Uncomment to use NVIDIA GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #       - driver: nvidia
+    #         device_ids: ['0']
+    #         capabilities: [gpu]

@@ -68,7 +68,9 @@ RUN apt-get install -y procps netcat-openbsd wget &&\
 
 COPY --from=build /app /app
 COPY docker/multi-chat/app.env /app/.env
-COPY docker/multi-chat/add-executor.php /app/add-executor.php
+COPY docker/multi-chat/add-executor.php /app/app/Console/add-executor.php
+COPY docker/multi-chat/check-update.php /app/app/Console/check-update.php
+COPY docker/multi-chat/update-project.php /app/app/Console/update-project.php
 
 # Copy the scripts
 COPY docker/multi-chat/docker-entrypoint docker/multi-chat/multi-chat /usr/local/bin/

@@ -21,6 +21,7 @@ if (isset($_POST["create_bot"]) && (strtolower($_POST["create_bot"]) == "false")
 } 
 
 $cmd = sprintf("php /app/artisan model:config %s %s %s %s %s 2>&1", $access_code, $name, $image, $order, $do_not_create_bot);
+echo "Cmd: " . $cmd;
 exec($cmd, $output, $retval);
 echo "Returned with status $retval and output:\n";
 print_r($output);

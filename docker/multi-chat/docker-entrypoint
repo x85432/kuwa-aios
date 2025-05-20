@@ -81,8 +81,7 @@ seed_admin() {
         return
     fi
 
-    printf "${ADMIN_NAME}\n${ADMIN_EMAIL}\n${ADMIN_PASSWORD}" \
-      | php artisan create:admin-user || return 0
+    php artisan create:admin-user --name="${ADMIN_NAME}" --email="${ADMIN_EMAIL}" --password="${ADMIN_PASSWORD}"
     printf "Admin \"${ADMIN_NAME}\" had been added\n"
 }
 
