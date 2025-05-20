@@ -16,6 +16,7 @@ use App\Jobs\RequestChat;
 use Illuminate\Support\Facades\File;
 use App\Models\LLMs;
 use Illuminate\Support\Collection;
+use App\Http\Controllers\SystemController;
 
 class CheckUpdate implements ShouldQueue
 {
@@ -104,7 +105,7 @@ class CheckUpdate implements ShouldQueue
             }
             $baseCommit = trim($baseCommitProcess->getOutput());
 
-            $url = 'https://update.kuwaai.org/get_update/' . $baseCommitProcess . '/' . SystemController::getMachineCode();
+            $url = 'https://update.kuwaai.org/check_update/' . $baseCommit . '/' . SystemController::getMachineCode();
             $getUpdateUrl = Process::fromShellCommandline('curl -s ' . escapeshellarg($url))->setEnv($env)->setTimeout(null);
             $getUpdateUrl->run();
 
