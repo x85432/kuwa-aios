@@ -1,4 +1,4 @@
-#define MyAppName "Kuwa GenAI OS"
+#define MyAppName "Kuwa GenAI OS Models"
 #define MyAppVersion "v0.4.0"
 #define MyAppPublisher "Kuwa AI"
 #define MyAppURL "https://kuwaai.tw/os/intro"
@@ -23,6 +23,8 @@ SetupIconFile={#MyAppIcon}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+CreateUninstallRegKey=no
+Uninstallable=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -61,10 +63,16 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 [Components]
 Name: "models"; Description: "Model Selection"; Types: full custom;Flags: fixed;
 Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-8_Q4_KM"; Types: custom; ExtraDiskSpaceRequired:5261727040;
+Name: "models\gemma_3_4b_it"; Description: "Gemma 3 4B"; Types: custom; ExtraDiskSpaceRequired:8639654085;
+; Name: "models\phi4_multimodal_it"; Description: "Phi 4 Multimodal"; Types: custom; ExtraDiskSpaceRequired:11177094757;
 
 [Files]
-Source: "{tmp}\models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: external; Components: "models\llama3_point_1_taide_lx_8_q4_km"
-Source: "..\..\windows\executors\taide\run.bat"; DestDir: "{app}\windows\executors\taide\"; Flags: ignoreversion; Components: "models\llama3_point_1_taide_lx_8_q4_km"
+Source: "{tmp}\models\taide\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: external;Components: "models\llama3_point_1_taide_lx_8_q4_km"
+Source: "{tmp}\models\gemma3-4b\*"; DestDir: "{app}\windows\executors\gemma3-4b\"; Flags: external;Components: "models\gemma_3_4b_it";
+; Source: "{tmp}\models\phi4\*"; DestDir: "{app}\windows\executors\phi4\"; Flags: external;Components: "models\phi4_multimodal_it";
+Source: "..\..\windows\executors\taide\run.bat"; DestDir: "{app}\windows\executors\taide\"; Flags: ignoreversion; Components: "models\llama3_point_1_taide_lx_8_q4_km";
+Source: "..\..\windows\executors\gemma3-4b\run.bat"; DestDir: "{app}\windows\executors\gemma3-4b\"; Flags: ignoreversion; Components: "models\gemma_3_4b_it";
+; Source: "..\..\windows\executors\phi4\run.bat"; DestDir: "{app}\windows\executors\phi4\"; Flags: ignoreversion; Components: "models\phi4_multimodal_it";
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}"
@@ -87,10 +95,45 @@ begin
     Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
   Result := True;
 end;
+procedure InitializeWizard;
+begin
+  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
+  DownloadPage.ShowBaseNameInsteadOfUrl := True;
+end;
+function SplitString(const Input, Delimiter: String): TArrayOfString;
+var
+  S, Temp: String;
+  I, Index: Integer;
+begin
+  SetArrayLength(Result, 0);
+  S := Input;
+  while Length(S) > 0 do
+  begin
+    I := Pos(Delimiter, S);
+    if I > 0 then
+    begin
+      Temp := Copy(S, 1, I - 1);
+      Delete(S, 1, I);
+    end
+    else
+    begin
+      Temp := S;
+      S := '';
+    end;
+    Index := GetArrayLength(Result);
+    SetArrayLength(Result, Index + 1);
+    Result[Index] := Temp;
+  end;
+end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   HasDownloads: Boolean;
+  i: Integer;
+  FileListStr: String;
+  FileList: TArrayOfString;
+  BaseURL: String;
+  TargetDir: String;
 begin
   if CurPageID = wpReady then
   begin
@@ -105,14 +148,71 @@ begin
     DownloadPage.Clear;
     HasDownloads := False;
 
+    // Keep your original LLaMA model
     if WizardIsComponentSelected('models\llama3_point_1_taide_lx_8_q4_km') then
     begin
       DownloadPage.Add(
         'https://huggingface.co/tetf/Llama-3.1-TAIDE-LX-8B-Chat-GGUF/resolve/main/Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf?download=true',
-        'models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf',
+        'models\taide\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf',
         ''
       );
       HasDownloads := True;
+    end;
+    if WizardIsComponentSelected('models\gemma_3_4b_it') then
+    begin
+      FileListStr :=
+        '.gitattributes LICENSE NOTICE README.md added_tokens.json chat_template.json config.json ' +
+        'generation_config.json model-00001-of-00002.safetensors model-00002-of-00002.safetensors ' +
+        'model.safetensors.index.json preprocessor_config.json processor_config.json ' +
+        'special_tokens_map.json tokenizer.json tokenizer.model tokenizer_config.json';
+
+      FileList := SplitString(FileListStr, ' ');
+
+      BaseURL := 'https://huggingface.co/tetf/gemma-3-4b-it/resolve/main/';
+      TargetDir := ExpandConstant('models\gemma3-4b\');
+
+      if not DirExists(TargetDir) then
+        ForceDirectories(TargetDir);
+
+      for i := 0 to GetArrayLength(FileList) - 1 do
+      begin
+        DownloadPage.Add(
+          BaseURL + FileList[i] + '?download=true',
+          TargetDir + FileList[i],
+          ''
+        );
+        HasDownloads := True;
+      end;
+    end;
+    if WizardIsComponentSelected('models\phi4_multimodal_it') then
+    begin
+      FileListStr :=
+        '.gitattributes CODE_OF_CONDUCT.md LICENSE README.md SECURITY.md SUPPORT.md ' +
+        'added_tokens.json config.json configuration_phi4mm.py generation_config.json merges.txt ' +
+        'model-00001-of-00003.safetensors model-00002-of-00003.safetensors model-00003-of-00003.safetensors ' +
+        'model.safetensors.index.json modeling_phi4mm.py phi_4_mm.tech_report.02252025.pdf ' +
+        'preprocessor_config.json processing_phi4mm.py processor_config.json ' +
+        'sample_finetune_speech.py sample_finetune_vision.py sample_inference_phi4mm.py ' +
+        'special_tokens_map.json speech_conformer_encoder.py tokenizer.json ' +
+        'tokenizer_config.json vision_siglip_navit.py vocab.json';
+
+      FileList := SplitString(FileListStr, ' ');
+
+      BaseURL := 'https://huggingface.co/microsoft/Phi-4-multimodal-instruct/resolve/main/';
+      TargetDir := ExpandConstant('models\phi4\');
+
+      if not DirExists(TargetDir) then
+        ForceDirectories(TargetDir);
+
+      for i := 0 to GetArrayLength(FileList) - 1 do
+      begin
+        DownloadPage.Add(
+          BaseURL + FileList[i] + '?download=true',
+          TargetDir + FileList[i],
+          ''
+        );
+        HasDownloads := True;
+      end;
     end;
 
     if HasDownloads then
@@ -142,4 +242,3 @@ begin
   else
     Result := True;
 end;
-
