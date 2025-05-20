@@ -105,7 +105,7 @@ class CheckUpdate implements ShouldQueue
             }
             $baseCommit = trim($baseCommitProcess->getOutput());
 
-            $url = 'https://update.kuwaai.org/check_update/' . $baseCommit . '/' . SystemController::getMachineCode();
+            $url = 'https://update.kuwaai.org/check_update/' . substr($baseCommit, 0, 8) . '/' . SystemController::getMachineCode();
             $getUpdateUrl = Process::fromShellCommandline('curl -s ' . escapeshellarg($url))->setEnv($env)->setTimeout(null);
             $getUpdateUrl->run();
 
