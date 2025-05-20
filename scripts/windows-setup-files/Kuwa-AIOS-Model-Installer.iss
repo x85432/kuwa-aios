@@ -64,6 +64,7 @@ Name: "models\llama3_point_1_taide_lx_8_q4_km"; Description: "Llama3.1 TAIDE LX-
 
 [Files]
 Source: "{tmp}\models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf"; DestDir: "{app}\windows\executors\taide\"; Flags: external; Components: "models\llama3_point_1_taide_lx_8_q4_km"
+Source: "..\..\windows\executors\taide\run.bat"; DestDir: "{app}\windows\executors\taide\"; Flags: ignoreversion; Components: "models\llama3_point_1_taide_lx_8_q4_km"
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}"
@@ -88,10 +89,21 @@ begin
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
+var
+  HasDownloads: Boolean;
 begin
   if CurPageID = wpReady then
   begin
+    Result := True;
+
+    if not Assigned(DownloadPage) then
+    begin
+      Log('DownloadPage is not initialized.');
+      Exit;
+    end;
+
     DownloadPage.Clear;
+    HasDownloads := False;
 
     if WizardIsComponentSelected('models\llama3_point_1_taide_lx_8_q4_km') then
     begin
@@ -100,25 +112,34 @@ begin
         'models\Llama-3.1-TAIDE-LX-8B-Chat-Q4_K_M.gguf',
         ''
       );
+      HasDownloads := True;
     end;
 
-    DownloadPage.Show;
+    if HasDownloads then
+    begin
+      DownloadPage.Show;
 
-    try
       try
-        DownloadPage.Download;
-        Result := True;
-      except
-        if DownloadPage.AbortedByUser then
-          Log('Aborted by user.')
-        else
-          SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
-        Result := False;
+        try
+          DownloadPage.Download;
+          Result := True;
+        except
+          if DownloadPage.AbortedByUser then
+            Log('Aborted by user.')
+          else
+            SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+          Result := False;
+        end;
+      finally
+        DownloadPage.Hide;
       end;
-    finally
-      DownloadPage.Hide;
+    end
+    else
+    begin
+      Log('No files to download.');
     end;
   end
   else
     Result := True;
 end;
+
