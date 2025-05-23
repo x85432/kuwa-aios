@@ -7,10 +7,23 @@ services:
       - executor-builder
     environment:
       EXECUTOR_TYPE: ollama
-      EXECUTOR_ACCESS_CODE: llama3
-      EXECUTOR_NAME: Llama3
+      EXECUTOR_ACCESS_CODE: .model:ollama
+      EXECUTOR_NAME: Ollama
+      EXECUTOR_ORDER: 318000
       EXECUTOR_IMAGE: ollama.png # Refer to src/multi-chat/public/images
+      EXECUTOR_CREATE_BOT: false
     command: [
-      "--ollama_host", "host.docker.internal", # The ollama server on host
-      "--model", "llama3"
+      "--ollama_host", "ollama",
+      "--model", "llama3.2"
     ]
+  
+  ollama:
+    image: ollama/ollama:latest
+    volumes: 
+      - ollama_volume:/root/.ollama
+    pull_policy: always
+    restart: unless-stopped
+    networks: ["backend"]
+
+volumes:
+  ollama_volume:

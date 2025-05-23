@@ -1,4 +1,4 @@
-kuwa-executor @ file:///./src/executor
-kuwa-kernel @ file:///./src/kernel
-kuwa-client @ file:///./src/library/client
-kuwa-rag @ file:///./src/library/rag
+kuwa-executor @ ./src/executor
+kuwa-kernel @ ./src/kernel
+kuwa-client @ ./src/library/client
+kuwa-rag @ ./src/library/rag

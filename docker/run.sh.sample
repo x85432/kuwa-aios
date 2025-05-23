@@ -13,6 +13,7 @@ confs=(
 
   "sample/gemma3-1b"
   "whisper"
+  "diffuser"
   
   "rag"
   "search"

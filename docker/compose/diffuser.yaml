@@ -7,8 +7,9 @@ services:
       - executor-builder
     environment:
       CUSTOM_EXECUTOR_PATH: ./image_generation/main.py
-      EXECUTOR_ACCESS_CODE: painter
-      EXECUTOR_NAME: Painter
+      EXECUTOR_ACCESS_CODE: .model:diffuser
+      EXECUTOR_NAME: Diffuser
+      EXECUTOR_ORDER: 321000
       EXECUTOR_IMAGE: painter.png # Refer to src/multi-chat/public/images
       HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN}
     command: []

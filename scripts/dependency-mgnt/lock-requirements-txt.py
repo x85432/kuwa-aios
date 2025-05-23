@@ -6,7 +6,15 @@ from pathlib import Path
 from typing import List
 
 # Define source files and output paths based on platform (relative to project root).
-platforms = ["windows", "windows-cu118", "windows-cu121", "windows-ipex-llm", "windows-qnn", "docker", "docker-cu118"]
+platforms = [
+    "windows",
+    "windows-cu118",
+    "windows-cu121",
+    "windows-ipex-llm",
+    "windows-qnn",
+    "docker-x86_64-cpu",
+    "docker-x86_64-cu121",
+]
 common_sources = [
     "src/executor/agent/requirements.in",
     "src/executor/docqa/requirements.in",
@@ -17,7 +25,7 @@ common_sources = [
     "src/bot/text-to-cad/requirements.in",
     "src/toolchain/requirements.in",
     "src/tools/requirements.in",
-    "requirements.in"
+    "requirements.in",
 ]  # Shared dependency across platforms
 platform_sources = {
     "windows": ["windows/src/version_patch/cpu/windows/src/requirements.in"],
@@ -35,8 +43,14 @@ platform_sources = {
         "src/executor/qnn_genie/requirements.in",
         "src/executor/speech_recognition/requirements-onnx.in",
     ],
-    "docker": [],
-    "docker-cu118": [],
+    "docker-x86_64-cpu": [
+        "docker/executor/multi-chat-client/requirements.in",
+        "docker/executor/requirements-x86_64-cpu.in",
+    ],
+    "docker-x86_64-cu121": [
+        "docker/executor/multi-chat-client/requirements.in",
+        "docker/executor/requirements-x86_64-cu121.in",
+    ],
 }
 output_paths = {
     "windows": "windows/src/version_patch/cpu/windows/src/requirements.txt.lock",
@@ -44,12 +58,55 @@ output_paths = {
     "windows-cu121": "windows/src/version_patch/cu121/windows/src/requirements.txt.lock",
     "windows-ipex-llm": "windows/src/version_patch/ipex-llm/windows/src/requirements.txt.lock",
     "windows-qnn": "windows/src/version_patch/qnn/windows/src/requirements.txt.lock",
-    "docker": "/dev/null",
-    "docker-cu118": "/dev/null",
+    "docker-x86_64-cpu": "docker/executor/requirements-x86_64-cpu.txt.lock",
+    "docker-x86_64-cu121": "docker/executor/requirements-x86_64-cu121.txt.lock",
 }
-default_cmd_opts = ["--color", "always", "--annotation-style=line", "--python-version", "3.10.11"]
+default_cmd_opts = [
+    "--color",
+    "always",
+    "--annotation-style=line",
+    "--python-version",
+    "3.10.11",
+]
 platform_cmd_opts = {
-    "windows-qnn": ["--color", "always", "--annotation-style=line", "--python-version", "3.10.11", "--no-emit-package", "onnxruntime"]
+    "windows-qnn": [
+        "--color",
+        "always",
+        "--annotation-style=line",
+        "--python-version",
+        "3.10.11",
+        "--no-emit-package",
+        "onnxruntime",
+    ],
+    "docker-x86_64-cpu": [
+        "--color",
+        "always",
+        "--annotation-style=line",
+        "--python-version",
+        "3.10",
+        "--no-emit-package",
+        "kuwa-kernel",
+        "--emit-index-url",
+        "--torch-backend",
+        "cpu",
+        "--preview",
+        "--python-platform",
+        "x86_64-manylinux_2_28",
+    ],
+    "docker-x86_64-cu121": [
+        "--color",
+        "always",
+        "--annotation-style=line",
+        "--python-version",
+        "3.10",
+        "--no-emit-package",
+        "kuwa-kernel",
+        "--emit-index-url",
+        "--torch-backend",
+        "cu121",
+        "--python-platform",
+        "x86_64-manylinux_2_28",
+    ],
 }
 
 
@@ -102,6 +159,11 @@ def compile_requirements(
             command, capture_output=True, text=True, check=True
         )  # check=True raises an exception on non-zero exit code.
         print(result.stdout)
+        with open(output_file, "a") as f:
+            version_result = subprocess.run(
+                ["uv", "--version"], capture_output=True, text=True, check=True
+            )
+            f.write(f"\n# uv version: {version_result.stdout}\n")
 
         print(f"Successfully compiled requirements to {output_file}")
 
