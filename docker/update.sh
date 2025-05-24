@@ -65,12 +65,12 @@ log "Updated commit: $updated_commit"
 
 # Build the Docker image
 log "Building the Docker image..."
-if ! ./run.sh build
+if ! ./script/build-image.sh
 then
   error "Failed to build the Docker image. Please check the build script."
   exit 1
 fi
 
-./sync-root.sh
+./script/sync-root.sh
 
 log "Update and build completed successfully."

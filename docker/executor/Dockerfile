@@ -1,12 +1,17 @@
 # syntax=docker/dockerfile:1
-FROM python:3.10-slim AS build
+# cpu: ubuntu:22.04
+# cu121: nvidia/cuda:12.1.1-runtime-ubuntu22.04
+ARG BASE_IMAGE=nvidia/cuda:12.1.1-runtime-ubuntu22.04
+FROM ${BASE_IMAGE} AS build
 # x86_64, aarch64
 ARG ARCH=x86_64
 # cpu, cu121
 ARG IMAGE_VARIANT="cpu"
 
 RUN apt-get update &&\
-    apt-get install -y --no-install-recommends cmake build-essential git
+    apt-get install -y --no-install-recommends \
+    python3-pip python3.10-dev python-is-python3 \
+    cmake build-essential git
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
@@ -22,7 +27,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --link-mode copy --index-strategy unsafe-best-match requirements.txt.lock
 
 # -----------------------------
-FROM python:3.10-slim
+ARG BASE_IMAGE=nvidia/cuda:12.1.1-runtime-ubuntu22.04
+FROM ${BASE_IMAGE}
 
 # Install dependency for:
 # llama-cpp-python: musl-dev
@@ -30,14 +36,16 @@ FROM python:3.10-slim
 # Whisper: ffmpeg
 # Ref: https://github.com/abetlen/llama-cpp-python/issues/1628
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends musl-dev libnss3-dev ffmpeg && \
+    apt-get install -y --no-install-recommends \
+    python3-pip python3.10-dev python-is-python3 \
+    musl-dev libnss3-dev ffmpeg && \
     ln -s /usr/lib/$(uname -m)-linux-musl/libc.so /lib/libc.musl-$(uname -m).so.1 &&\
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/kuwa-executor
 
 # Install source code of Kuwa Executors
-COPY --from=build /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=build /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
 COPY --from=build /usr/local/bin/kuwa-executor /usr/local/bin/kuwa-executor
 COPY src/executor .
 

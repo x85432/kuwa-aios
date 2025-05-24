@@ -4,7 +4,7 @@ function cleanup {
     popd >/dev/null
 }
 
-pushd "$(dirname "$0")" > /dev/null
+pushd $(dirname "$0") > /dev/null
 trap cleanup EXIT
 
 echo "Syncing Kuwa root..."

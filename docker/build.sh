@@ -143,13 +143,12 @@ install_kuwa() {
   echo "Database password set successfully."
 
   # Copy bots and tools
-  cp -i ../src/bots/init/*.bot ./root/bootstrap/bot/
-  cp -i ../src/tools/ ./root/bin
+  ./script/sync-root.sh
   
   # [Optional] Build the docker image from source.
   read -p "Would you like to build the Kuwa Docker image from its source code? [y/N]: " build_docker_image
   if [[ "$build_docker_image" == "y" || "$build_docker_image" == "Y" ]]; then
-    ./run.sh build
+    ./script/build-image.sh
   fi
   popd > /dev/null
 }
