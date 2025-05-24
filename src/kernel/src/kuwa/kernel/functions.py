@@ -30,6 +30,8 @@ async def async_health_check(url, session):
             return resp.status == 204
     except aiohttp.ClientConnectionError:
         return False
+    except asyncio.exceptions.TimeoutError:
+        return False
 
 # Asynchronously checks health status of all endpoints and maps results
 async def check_all_health(endpoints):
