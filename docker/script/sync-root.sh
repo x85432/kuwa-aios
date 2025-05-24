@@ -11,7 +11,7 @@ echo "Syncing Kuwa root..."
 echo pwd: $(pwd)
 
 echo -e "Copying tools..."
-rsync -av "../src/tools/" "./root/bin/"
+rsync -av "../../src/tools/" "../root/bin/"
 
 echo -e "----\nCopying default bots..."
-rsync -av "../src/bot/init/" "./root/bootstrap/bot/"
+rsync -av "../../src/bot/init/" "../root/bootstrap/bot/"

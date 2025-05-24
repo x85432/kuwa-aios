@@ -14,7 +14,7 @@ else
     image_variant=cpu
 fi
 image_variant=${1:-$image_variant}
-shift
+shift || true
 
 if [ "$image_variant" == "cu121" ]; then
     base_image=nvidia/cuda:12.1.1-runtime-ubuntu22.04
