@@ -9,6 +9,11 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
+    -t|--executor-warm-up-time)
+      EXECUTOR_WARM_UP_TIME=$2
+      shift # past argument
+      shift # past value
+      ;;
     -h|--help)
       echo "Usage: $0 [-n|--num-worker] [--help]"
       echo "Options:"
@@ -24,6 +29,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 NUM_WORKER=${NUM_WORKER:-1}
+EXECUTOR_WARM_UP_TIME=${EXECUTOR_WARM_UP_TIME:-30}
 echo "Number of redis workers: $NUM_WORKER"
 php artisan worker:start ${NUM_WORKER}
+import-bots $EXECUTOR_WARM_UP_TIME
 exec php-fpm

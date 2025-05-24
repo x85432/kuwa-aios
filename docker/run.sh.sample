@@ -3,27 +3,33 @@
 # Define the configuration array
 confs=(
   "base"
-  # "dev" # Increase the verbosity for debug
   "pgsql"
+  # "dev" # Increase the verbosity for debug
+
+  # Local models
+  "ollama"
+  "sample/gemma3-1b"
+  "whisper"
+  "diffuser"
+
+  # Cloud models
   "gemini"
   "chatgpt"
   "groq"
   "nim"
-  # "ollama"
-
-  "sample/gemma3-1b"
-  "whisper"
-  "diffuser"
+  "dall-e"
   
+  # RAG
   "rag"
   "search"
   
+  # Tools
   "copycat"
   "uploader"
-  "dall-e"
   "agent"
   "pipe"
-  "base"
+  "mcp_client"
+  "n8n"
 )
 
 # Append "-f" before each element

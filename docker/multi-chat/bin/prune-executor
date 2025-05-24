@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+OPTIONS=${@:-"--interact"}
+
+echo "Pruning Executors."
+php artisan model:prune $OPTIONS

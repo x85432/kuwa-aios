@@ -47,8 +47,8 @@ RUN usermod -u 101 www-data &&\
     groupmod -g 101 www-data
 
 # Configure PHP
-COPY docker/multi-chat/fpm-app-gateway-pool.conf /usr/local/etc/php-fpm.d/app-gateway-pool.conf
-COPY docker/multi-chat/php-override.ini ${PHP_INI_DIR}/conf.d/00-override.ini
+COPY docker/multi-chat/conf/fpm-app-gateway-pool.conf /usr/local/etc/php-fpm.d/app-gateway-pool.conf
+COPY docker/multi-chat/conf/php-override.ini ${PHP_INI_DIR}/conf.d/00-override.ini
 RUN mv "$PHP_INI_DIR/php.ini-production" "${PHP_INI_DIR}/php.ini"
 
 # Install required PHP extensions
@@ -67,22 +67,19 @@ RUN apt-get install -y procps netcat-openbsd wget &&\
     chmod +x /usr/local/bin/php-fpm-healthcheck
 
 COPY --from=build /app /app
-COPY docker/multi-chat/app.env /app/.env
-COPY docker/multi-chat/add-executor.php /app/app/Console/add-executor.php
-COPY docker/multi-chat/check-update.php /app/app/Console/check-update.php
-COPY docker/multi-chat/update-project.php /app/app/Console/update-project.php
+COPY docker/multi-chat/conf/app.env /app/.env
+COPY docker/multi-chat/src/*.php /app/app/Console/
 
 # Copy the scripts
-COPY docker/multi-chat/docker-entrypoint docker/multi-chat/multi-chat /usr/local/bin/
+COPY docker/multi-chat/bin/* /usr/local/bin/
 WORKDIR /usr/local/bin
-RUN chmod +x docker-entrypoint multi-chat
+RUN chmod +x docker-entrypoint multi-chat import-bots prune-executor upgrade
 
 # Copy the bootstrap bots
 ENV KUWA_ROOT="/var/kuwa/docker/root"
+ENV KUWA_BOT_DIR="${KUWA_ROOT}/bootstrap/bot"
 VOLUME ${KUWA_ROOT}
-COPY src/bot/*.bot ${KUWA_ROOT}/../../src/bot/
-COPY src/bot/init ${KUWA_ROOT}/../../src/bot/init
-RUN mkdir -p ${KUWA_ROOT}/bootstrap/bot
+COPY src/bot/init/*.bot ${KUWA_BOT_DIR}
 
 # Setup the entry point
 ENV KUWA_MULTI_CHAT_VERSION="0.4.0-docker1"
@@ -112,4 +109,4 @@ ENV ADMIN_PASSWORD_FILE=""
 
 WORKDIR /app
 ENTRYPOINT ["docker-entrypoint"]
-CMD ["multi-chat", "--num-worker", "10"]
+CMD ["multi-chat", "--num-worker", "10", "--executor-warm-up-time", "30"]

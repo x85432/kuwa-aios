@@ -1,0 +1,66 @@
+#!/bin/bash
+set -e
+
+# Optimize the laravel if the storage is empty
+optimize_laravel() {
+    php artisan config:clear
+    php artisan config:cache
+    php artisan route:cache
+    php artisan view:cache
+    php artisan optimize
+}
+
+# Forcely migrate the database
+migrate_database() {
+    if [ -z "${DB_HOST:-}" ] && [ -z "${DB_PORT:-}" ]
+    then
+        until nc -z -v -w30 ${DB_HOST} ${DB_PORT}
+        do
+            echo "Waiting for database connection..."
+            # wait for 5 seconds before check again
+            sleep 5
+        done
+    fi
+    php artisan migrate --force
+}
+
+# Add the Admin account if there is corresponding variables
+seed_admin() {
+    if [ -f ${ADMIN_PASSWORD_FILE:-} ]
+    then
+        ADMIN_PASSWORD=$(cat ${ADMIN_PASSWORD_FILE})
+    fi
+    if [ -z "${ADMIN_NAME:-}" ] || [ -z "${ADMIN_EMAIL:-}" ] || [ -z "${ADMIN_PASSWORD:-}" ]
+    then
+        return
+    fi
+
+    php artisan create:admin-user --name="${ADMIN_NAME}" --email="${ADMIN_EMAIL}" --password="${ADMIN_PASSWORD}"
+    printf "Admin \"${ADMIN_NAME}\" had been added\n"
+}
+
+# Store the Kernel API information
+seed_kernel() {
+    if [ -z "${KUWA_KERNEL_URL:-}" ]
+    then
+        return
+    fi
+    php artisan web:config --settings="kernel_location=${KUWA_KERNEL_URL}" || return 0
+}
+
+# Update the cache and database
+VERSION_FILE="/app/storage/app/VERSION"
+upgrade() {
+    optimize_laravel
+    migrate_database
+    echo ${KUWA_MULTI_CHAT_VERSION} > ${VERSION_FILE}
+    
+    echo "Try to seed the database."
+    seed_kernel || true
+    seed_admin || true
+    
+    printf "Successfully upgraded Kuwa Multi-Chat and it's database to version ${KUWA_MULTI_CHAT_VERSION}\n"
+    echo -e 'To remove old executors, run this command: `docker exec -it kuwa-multi-chat-1 docker-entrypoint prune-executor`'
+}
+
+upgrade

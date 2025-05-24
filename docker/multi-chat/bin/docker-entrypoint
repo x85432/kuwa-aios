@@ -1,0 +1,77 @@
+#!/bin/bash
+set -e
+
+executor_warm_up_sec=30
+
+# Ensure the storage directory have the proper structure
+construct_storage() {
+    mkdir -p storage/framework/sessions
+    mkdir -p storage/framework/views
+    mkdir -p storage/framework/cache
+    mkdir -p storage/app/public
+    mkdir -p storage/app/secret
+    mkdir -p storage/app/public/images
+    touch storage/database.sqlite
+}
+
+ensure_web_permission() {
+    chown -R www-data:www-data storage
+}
+
+# Load secrets
+load_db_password(){
+    if [ -f ${DB_PASSWORD_FILE:-} ]
+    then
+        export DB_PASSWORD=$(cat ${DB_PASSWORD_FILE})
+    fi
+}
+
+# Load or generate the APP_KEY
+load_app_key() {
+    APP_KEY_FILE="/app/storage/app/secret/APP_KEY"
+    if [ ! -f ${APP_KEY_FILE} ]
+    then
+        php artisan key:generate --show > ${APP_KEY_FILE}
+    fi
+    export APP_KEY=$(cat ${APP_KEY_FILE})
+}
+
+# Load or generate the API_Key
+# This function generates a random string with 32 digits that compatible with the
+# InitSeeder.php
+load_api_key() {
+    API_KEY_FILE="/app/storage/app/secret/API_KEY"
+    DIGITS=32
+    if [ ! -f ${API_KEY_FILE} ]
+    then
+        php -r "echo bin2hex(random_bytes(intdiv(${DIGITS}, 2)));" > ${API_KEY_FILE}
+    fi
+    export API_Key=$(cat ${API_KEY_FILE})
+}
+
+# Check whether should update 
+VERSION_FILE="/app/storage/app/VERSION"
+should_update() {
+    if [ ! -f ${VERSION_FILE} ]
+    then
+        return 0
+    else
+        dpkg --compare-versions $(cat ${VERSION_FILE}) "lt" "${KUWA_MULTI_CHAT_VERSION}"
+        return
+    fi
+}
+
+#=========================================
+
+construct_storage
+ensure_web_permission
+load_db_password
+load_app_key
+load_api_key
+
+if should_update "$@"
+then
+    upgrade
+fi
+
+exec "$@"

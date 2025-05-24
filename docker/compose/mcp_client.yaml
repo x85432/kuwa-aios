@@ -7,7 +7,7 @@ services:
       - executor-builder
     environment:
       CUSTOM_EXECUTOR_PATH: ./mcp/client/mcp-client.py
-      EXECUTOR_ACCESS_CODE: .tool.mcp/.default
+      EXECUTOR_ACCESS_CODE: .tool.mcp
       EXECUTOR_NAME: MCP Client
       EXECUTOR_IMAGE: mcp.png # Refer to src/multi-chat/public/images
       EXECUTOR_ORDER: 999030

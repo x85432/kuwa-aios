@@ -10,7 +10,7 @@ use DB;
 
 class ModelPrune extends Command
 {
-    protected $signature = 'model:prune {--force : Automatically confirm deletion} {--exclude=* : Exclude specific access codes}';
+    protected $signature = 'model:prune {--force : Automatically confirm deletion} {--exclude=* : Exclude specific access codes} {--interact : Choose which model to be delete interactively}';
     protected $description = 'Quickly cleanup all models';
     public function __construct()
     {
@@ -26,13 +26,23 @@ class ModelPrune extends Command
             return;
         }
 
+        if ($this->option('interact')) {
+            $model_to_be_delete = [];
+            foreach ($models as $model) {
+                if($this->confirm("Delete this model?\nID: " . $model->id . ', name: ' . $model->name . ', access_code: ' . $model->access_code . ', description: ' . $model->description)){
+                    array_push($model_to_be_delete, $model);
+                }
+            }
+            $models = $model_to_be_delete;
+        }
+
         $this->info('The following models will be deleted:');
         foreach ($models as $model) {
             $this->info('- ID: ' . $model->id . ', name: ' . $model->name . ', access_code: ' . $model->access_code . ', description: ' . $model->description);
         }
         if ($this->option('force')) {
             $this->info('Automatically confirming deletion.');
-        } elseif (!$this->confirm('Do you wish to continue?')) {
+        } elseif (!$this->confirm('Confirm deletion?')) {
             $this->info('Operation cancelled. No models have been deleted.');
             return;
         }
@@ -46,7 +56,7 @@ class ModelPrune extends Command
             }
 
             DB::commit();
-            $this->info('All models have been deleted successfully.');
+            $this->info(count($models).' models have been deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback the transaction in case of an exception
             $this->error('An error occurred while deleting models. Transaction rolled back.');
