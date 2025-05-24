@@ -10,7 +10,7 @@ services:
     extra_hosts:
       - "localhost:host-gateway"
     restart: unless-stopped
-    networks: ["backend", "frontend"]
+    networks: ["backend"]
     # Uncomment to use NVIDIA GPU
     # deploy:
     #   resources:

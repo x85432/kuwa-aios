@@ -5,7 +5,7 @@ services:
     build:
       context: ../../
       dockerfile: docker/web/Dockerfile
-    restart: unless-stopped
+    restart: always
     environment:
       TRUST_DOWNSTREAM_PROXY: true
       DEFAULT_HOST: ${DOMAIN_NAME}
@@ -15,7 +15,7 @@ services:
       - ../root:/app/storage/app/public/root:ro
     ports: ["80:80", "443:443"]
     depends_on: ["multi-chat"]
-    networks: ["frontend"]
+    networks: ["backend"]
     healthcheck:
       test: ["CMD-SHELL", "curl", "-f", "http://${DOMAIN_NAME}/"]
       timeout: 10s
@@ -67,7 +67,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "php-fpm-healthcheck"]
       timeout: 10s
-    networks: ["frontend", "backend"]
+    networks: ["backend"]
 
   kernel:
     image: kuwaai/kernel
@@ -80,8 +80,7 @@ services:
   redis:
     image: redis:6.0.20
     restart: always
-    networks:
-      - backend
+    networks: ["backend"]
 
   executor-builder:
     image: kuwaai/model-executor
@@ -111,5 +110,4 @@ secrets:
     file: ../.admin-password
 
 networks:
-  frontend: {}
   backend: {}
