@@ -1,2 +1,2 @@
-qai-appbuilder @ https://github.com/thuniverse-ai/qai-appbuilder/releases/download/v0.2.32%2Bkuwa/qai_appbuilder-2.32.0+kuwa-cp310-cp310-win_amd64.whl
 huggingface_hub[cli]
+transformers

@@ -113,10 +113,10 @@ julius==0.2.7             # via torch-audiomentations
 justext==3.0.2            # via trafilatura
 kittycad==0.7.7           # via -r src/bot/text-to-cad/requirements.in
 kiwisolver==1.4.8         # via matplotlib
-kuwa-client @ file:///./src/library/client  # via -r requirements.in
-kuwa-executor @ file:///./src/executor  # via -r requirements.in
-kuwa-kernel @ file:///./src/kernel  # via -r requirements.in
-kuwa-rag @ file:///./src/library/rag  # via -r requirements.in
+./src/library/client      # via -r requirements.in
+./src/executor            # via -r requirements.in
+./src/kernel              # via -r requirements.in
+./src/library/rag         # via -r requirements.in
 langchain==0.3.25         # via kuwa-rag, langchain-community, -r src/executor/docqa/requirements.in, -r src/toolchain/requirements.in
 langchain-community==0.3.24  # via kuwa-rag, -r src/executor/docqa/requirements.in, -r src/toolchain/requirements.in
 langchain-core==0.3.59    # via langchain, langchain-community, langchain-huggingface, langchain-text-splitters
@@ -219,7 +219,6 @@ pytorch-metric-learning==2.8.1  # via pyannote-audio
 pytz==2025.2              # via dateparser, pandas
 pywin32==310              # via oschmod
 pyyaml==6.0.2             # via accelerate, ctranslate2, datasets, gradio, gradio-i18n, huggingface-hub, hyperpyyaml, kuwa-executor, langchain, langchain-community, langchain-core, lightning, omegaconf, optuna, pyannote-database, pyannote-pipeline, python-i18n, pytorch-lightning, transformers, uvicorn
-qai-appbuilder @ https://github.com/thuniverse-ai/qai-appbuilder/releases/download/v0.2.32%2Bkuwa/qai_appbuilder-2.32.0+kuwa-cp310-cp310-win_amd64.whl  # via -r src/executor/qnn_genie/requirements.in
 qai-hub==0.29.0           # via qai-hub-models
 qai-hub-models==0.28.2    # via -r src/executor/speech_recognition/requirements-onnx.in
 rank-bm25==0.2.2          # via kuwa-rag
@@ -281,7 +280,7 @@ torchvision==0.18.0       # via kuwa-executor, qai-hub-models
 tqdm==4.67.1              # via datasets, gdown, google-generativeai, huggingface-hub, kuwa-rag, lightning, openai, openai-whisper, optuna, pyannote-pipeline, pytorch-lightning, pytorch-metric-learning, qai-hub, qai-hub-models, sentence-transformers, speechbrain, transformers, whisper-s2t, -r src/toolchain/requirements.in
 trafilatura==1.9.0        # via kuwa-rag, -r src/executor/docqa/requirements.in, -r src/toolchain/requirements.in
 traitlets==5.14.3         # via ipython, matplotlib-inline
-transformers==4.51.3      # via kuwa-executor, langchain-huggingface, optimum, sentence-transformers, whisper-s2t, -r src/executor/image_generation/requirements.in, -r src/toolchain/requirements.in
+transformers==4.51.3      # via kuwa-executor, langchain-huggingface, optimum, sentence-transformers, whisper-s2t, -r src/executor/image_generation/requirements.in, -r src/executor/qnn_genie/requirements.in, -r src/toolchain/requirements.in
 trio==0.24.0              # via selenium, trio-websocket, -r windows/src/version_patch/cpu/windows/src/requirements.in
 trio-websocket==0.12.2    # via selenium
 trove-classifiers==2025.5.9.12  # via hatchling
@@ -310,3 +309,6 @@ zstandard==0.23.0         # via langsmith
 
 # The following packages were excluded from the output:
 # onnxruntime
+
+# uv version: uv 0.7.3 (3c413f74b 2025-05-07)
+

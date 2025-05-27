@@ -180,7 +180,8 @@ if "%option%"=="1" (
     
     if /I "!userInput!"=="y" (
     	echo Downloading model...
-    	curl -L -o "gemma2/gemma-2-2b-it-Q8_0.gguf" https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q8_0.gguf
+		huggingface-cli download "google/gemma-3-4b-it"
+		copy gemma3-4b\_run.bat gemma3-4b\run.bat
 		echo Download complete!
 	) else (
 		echo The model will not be downloaded.
