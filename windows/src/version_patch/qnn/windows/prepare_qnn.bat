@@ -3,4 +3,4 @@ pushd ..\..\src
 call variables.bat
 popd
 
-python prepare.py
+python prepare_qnn.py

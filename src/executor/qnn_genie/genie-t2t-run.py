@@ -146,9 +146,7 @@ class QnnGenieCliExecutor(LLMExecutor):
 
     async def llm_compute(self, history: list[dict], modelfile: Modelfile):
         model_id = modelfile.parameters["llm_"].get("model", self.model_id)
-        tokenizer_id = modelfile.parameters["llm_"].get(
-            "tokenizer", self.tokenizer_id
-        )
+        tokenizer_id = modelfile.parameters["llm_"].get("tokenizer", self.tokenizer_id)
         print_debug = modelfile.parameters["llm_"].get("debug", False)
 
         # Apply modelfile
@@ -168,7 +166,10 @@ class QnnGenieCliExecutor(LLMExecutor):
         )
 
         response_generator = self.run_genie_t2t(
-            prompt=prompt, model_path_or_id=model_id, print_debug=print_debug
+            prompt=prompt,
+            model_path_or_id=model_id,
+            print_debug=print_debug,
+            qnn_binary_path=self.args.qnn_binaries,
         )
 
         self.stop = False

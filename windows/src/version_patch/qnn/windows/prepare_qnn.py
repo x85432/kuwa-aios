@@ -20,11 +20,17 @@ KUWA_ROOT = (
 def search_file(search_paths, files):
     result = []
     for file in files:
+        found = False
         for dir in search_paths:
             path = Path(dir) / file
             if path.is_file():
                 result.append(path)
+                found = True
                 break
+            
+        if not found:
+            raise RuntimeError(f"file {file} not found in the search path {str(search_paths)}")
+        
     return result
 
 
@@ -102,7 +108,7 @@ def copy_qnn_dependencies(qnn_sdk_root: Path, kuwa_root: Path):
     print(f"QNN_SDK_ROOT={qnn_sdk_root}")
     print(f"KUWA_ROOT={kuwa_root}")
 
-    dst_dir = kuwa_root / "src/executor/qnn_genie/qnn-binaries/"
+    dst_dir = kuwa_root / "windows/packages/qnn-binaries/"
 
     lib_search_path = []
     bin_search_path = []
@@ -116,14 +122,14 @@ def copy_qnn_dependencies(qnn_sdk_root: Path, kuwa_root: Path):
     else:
         lib_search_path.append(qnn_sdk_root / "lib/aarch64-windows-msvc")
         bin_search_path.append(qnn_sdk_root / "bin/aarch64-windows-msvc")
-    lib_search_path.append(qnn_sdk_root / "/lib/hexagon-v73/unsigned")
+    lib_search_path.append(qnn_sdk_root / "lib/hexagon-v73/unsigned")
     qnn_sdk_deps = search_file(
         lib_search_path,
         [
             "Genie.dll",
             "QnnHtp.dll",
             "QnnSystem.dll",
-            # "QnnHtpPrepare.dll",
+            "QnnHtpPrepare.dll",
             "QnnHtpNetRunExtensions.dll",
             "QnnHtpV73Stub.dll",
             "libqnnhtpv73.cat",
@@ -131,13 +137,18 @@ def copy_qnn_dependencies(qnn_sdk_root: Path, kuwa_root: Path):
             "libQnnHtpV73Skel.so",
         ],
     )
-    qnn_sdk_deps += search_file(bin_search_path, ["genie-t2t-run.exe"])
+    qnn_sdk_deps += search_file(
+        bin_search_path, ["genie-t2t-run.exe", "qnn-net-run.exe"]
+    )
     print("Dependencies:\n" + "\n".join([str(p) for p in qnn_sdk_deps]))
 
     os.makedirs(dst_dir, exist_ok=True)
     for dep in qnn_sdk_deps:
         shutil.copy(dep, dst_dir)
 
+    with open(Path(dst_dir) / "VERSION.txt", "w") as f:
+        f.write(f"QNN_SDK_VERSION={QNN_SDK_VERSION}")
+    
     print(f"Copied dependencies to {dst_dir} successfully.")
 
 
