@@ -19,6 +19,8 @@ return [
     'button.delete' => '刪除',
     'button.copy' => '複製',
     'button.like' => '讚',
+    'button.edit' => '修改',
+    'button.save' => '保存修改',
     'button.dislike' => '倒讚',
     'button.translate' => '用該模型翻譯',
     'button.quote' => '引用該訊息',

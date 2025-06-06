@@ -49,6 +49,8 @@ return [
     'button.verilog_compile_test' => '컴파일 테스트',
     'button.import' => '가져오기',
     'button.feedback' => '의견 보내기',
+    'button.edit' => '수정',
+    'button.save' => '변경 사항 저장',
     'placeholder.llm_returned_empty' => '[죄송합니다. 현재 모델이 바쁩니다. 나중에 다시 시도해 주세요. 문제가 지속되면 관리자에게 문의하세요.]',
     'placeholder.please_retry_later' => '[죄송합니다. 오류가 발생했습니다. 나중에 다시 시도해 주세요.]',
     'placeholder.file_too_large' => '파일이 너무 큽니다',

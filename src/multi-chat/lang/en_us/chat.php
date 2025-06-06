@@ -48,6 +48,8 @@ return [
     'button.verilog_compile_test' => 'Compile Test',
     'button.import' => 'Import',
     'button.feedback' => 'Submit feedback',
+    'button.edit' => 'Edit',
+    'button.save' => 'Save Changes',
     'placeholder.llm_returned_empty' => '[Sorry, the model is currently busy. Please try again later. If the problem persists, please report it.]',
     'placeholder.please_retry_later' => '[Sorry, something broke. Please try again later.]',
     'placeholder.file_too_large' => 'File too large',

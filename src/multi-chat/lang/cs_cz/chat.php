@@ -49,6 +49,8 @@ return [
     'button.verilog_compile_test' => 'Kompilace testu',
     'button.import' => 'Importovat',
     'button.feedback' => 'Odeslat zpětnou vazbu',
+    'button.edit' => 'Upravit',
+    'button.save' => 'Uložit změny',
     'placeholder.llm_returned_empty' => '[Omlouváme se, model je v současnosti zaneprázdněn, zkuste to později. Pokud problém přetrvává, kontaktujte nás.]',
     'placeholder.please_retry_later' => '[Omlouváme se, něco se pokazilo, zkuste to později.]',
     'placeholder.file_too_large' => 'Soubor je příliš velký',

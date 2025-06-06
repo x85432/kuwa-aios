@@ -49,6 +49,8 @@ return [
     'button.verilog_compile_test' => 'コンパイルテスト',
     'button.import' => 'インポート',
     'button.feedback' => 'フィードバックを送信',
+    'button.edit' => '編集',
+    'button.save' => '変更を保存',
     'placeholder.llm_returned_empty' => '[申し訳ありませんが、現在モデルがビジーです。しばらくしてからもう一度お試しください。問題が続いている場合は、管理者に報告してください。]',
     'placeholder.please_retry_later' => '[申し訳ありませんが、何かが壊れています。しばらくしてからもう一度お試しください。]',
     'placeholder.file_too_large' => 'ファイルが大きすぎます',
