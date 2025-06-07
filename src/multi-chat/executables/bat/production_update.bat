@@ -14,9 +14,9 @@ rmdir /Q /S storage\app\public\root\bot
 
 call php artisan storage:link --ansi
 
-call npm audit fix --loglevel verbose
+call npm audit fix --loglevel verbose --force
 call npm install --color=always
-call npm audit fix --loglevel verbose
+call npm audit fix --loglevel verbose --force
 call npm ci --no-audit --no-progress --color=always
 
 call php artisan route:cache --ansi

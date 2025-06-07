@@ -9,9 +9,9 @@ rm storage/app/public/root/database
 rm storage/app/public/root/bin
 rm storage/app/public/root/bot
 php artisan storage:link
-npm audit fix
+npm audit fix --force
 npm install
-npm audit fix
+npm audit fix --force
 npm ci --no-audit --no-progress
 php artisan route:cache
 php artisan view:cache
