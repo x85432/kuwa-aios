@@ -88,6 +88,7 @@ class BatchChat implements ShouldQueue
                 }
             
                 sleep(0.5);
+                set_time_limit(300);
             }
             
         }
