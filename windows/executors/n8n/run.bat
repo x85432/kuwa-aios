@@ -16,4 +16,4 @@ set N8N_PORT=38788
 
 :: Start n8n
 echo Starting n8n.
-start /b "" n8n.cmd
+start /b "" ..\..\packages\%RunHiddenConsole_folder%\x64\RunHiddenConsole.exe n8n
