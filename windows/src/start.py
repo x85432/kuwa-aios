@@ -49,7 +49,7 @@ def run_background(cmd, cwd=None):
 def terminate_proc(proc, current_pid):
     try:
         if proc.info['pid'] == current_pid: return
-        if proc.info.get('exe', '').startswith(r"C:\Users\taifu\Desktop\kuwa-dev"):
+        if proc.info.get('exe', '').startswith(os.path.abspath(base_dir, '..')):
             print(f"Terminating process {proc.pid}: {proc.info['exe']}")
             proc.terminate()
             try: proc.wait(timeout=2)
