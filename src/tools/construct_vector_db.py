@@ -127,7 +127,7 @@ async def create_bot(
     db_name,
     db_path,
     template:str = "PARAMETER retriever_database '{db_path}'\nPARAMETER generator_model '{generator_model}'",
-    generator_model:str = "geminipro",
+    generator_model:str = ".bot/.default",
 ):
 
     client = KuwaClient(
@@ -154,7 +154,7 @@ def parse_args():
     parser.add_argument("--embedding-model", help="The embedding model to use", type=str, default="intfloat/multilingual-e5-small")
     parser.add_argument("--no-create-bot", help="Do not create corresponding bot", action="store_true")
     parser.add_argument("--bot-template", help="The template to create bot.", default="PARAMETER retriever_database '{db_path}'\nPARAMETER generator_model '{generator_model}'")
-    parser.add_argument("--generator-model", help="The generator model to use", type=str, default="geminipro")
+    parser.add_argument("--generator-model", help="The generator model to use", type=str, default=".bot/.default")
     parser.add_argument("--log", help="The log level. (INFO, DEBUG, ...)", type=str, default="INFO")
     args, unknown_args = parser.parse_known_args()
     return args,unknown_args

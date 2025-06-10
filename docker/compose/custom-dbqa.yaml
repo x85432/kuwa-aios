@@ -15,7 +15,7 @@ services:
     ]
     command: [
       "--api_base_url", "http://web/",
-      "--model", "geminipro",
+      "--model", ".bot/.default",
       "--database", "/var/database/",
       "--log", "debug"
       ]
