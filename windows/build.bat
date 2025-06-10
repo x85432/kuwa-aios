@@ -12,12 +12,13 @@ exit /b
 :main
 REM Initialize global configurations
 pushd "%~dp0"
+call src\switch.bat %1
+popd
+pushd "%~dp0"
 call src\variables.bat
-call src\switch.bat
 popd
 
 echo PWD: %cd%
-
 
 REM Check if VCredist is installed
 
