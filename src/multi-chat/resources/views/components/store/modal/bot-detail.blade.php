@@ -533,6 +533,7 @@
         $("#bot_name").val($("#bot_name2").val())
         $("#bot_describe").val($("#bot_describe2").val())
         $("#llm_name").val($("#llm_name2").val())
+        fetch_and_insert_image($("#llm_img2")[0].src, "create-bot_image")
         change_bot_image('#llm_img', '#create-bot_image', $("#llm_name2").val())
         $('#visibility').text($("#visibility_list input[value='" + default_visibility + "']").closest("label").find("div >div").text())
         toggleModelfile()
@@ -632,5 +633,44 @@
         }
         $(bot_image_elem).attr("src", bot_image_uri);
     }
+
+    function fetch_and_insert_image(imageUrl, fileInputId) {
+        return new Promise((resolve, reject) => {
+            const fileInput = document.getElementById(fileInputId);
+
+            if (!fileInput) {
+                reject(new Error(`File input element with ID "${fileInputId}" not found.`));
+                return;
+            }
+
+            let content_type = null;
+            fetch(imageUrl)
+            .then(response => {
+                if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                content_type = response.headers.get('content-type') || 'image/jpeg';
+                return response.blob();
+            })
+            .then(blob => {
+                const file = new File([blob], 'image', { type: content_type });
+
+                //For modern browsers supporting FileList
+                if (fileInput.files) {
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                } else { //Fallback for older browsers
+                    fileInput.files = [file]; //This might not work reliably across all older browsers.
+                }
+                fileInput.dispatchEvent(new Event('change'))
+                resolve(); // Resolve the promise after successful insertion
+            })
+            .catch(error => {
+                reject(error); // Reject the promise if any error occurs
+            });
+        });
+    }
+        
     @endonce
 </script>
