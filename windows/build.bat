@@ -175,6 +175,11 @@ call npm.cmd install -g "n8n@1.73.1"
 REM Install dependency of Mermaid Tool
 call npm.cmd install -g "@mermaid-js/mermaid-cli"
 
+for %%i in ("postinstall\*.bat") do (
+    echo Running %%~nxi
+    call "%%i"
+)
+
 REM Download Embedding Model
 echo Downloading the embedding model.
 python ..\src\executor\docqa\download_model.py
