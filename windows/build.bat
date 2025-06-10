@@ -67,16 +67,50 @@ IF EXIST packages\%python_folder% (
 REM Download and extract Redis if not exists
 call src\download_extract.bat %url_Redis% packages\%redis_folder% packages\. redis.zip
 
-IF EXIST packages\%nginx_folder% (
-    echo Nginx folder already exists. Skipping download.
-) ELSE (
-    REM Download and extract Nginx if not exists
-    call src\download_extract.bat %url_Nginx% packages\%nginx_folder% packages\. nginx.zip
-    ren "packages\%nginx_folder%\conf\nginx.conf" "nginx.conf.old"
-)
-IF NOT EXIST packages\%nginx_folder%\conf\nginx.conf (
-    echo Copying default nginx configuration.
-    copy /Y src\nginx.conf "packages\%nginx_folder%\conf\nginx.conf"
+IF "%HTTP_Server_Runtime%" == "apache" (
+    IF EXIST packages\Apache_%apache_folder% (
+        echo Apache folder already exists. Skipping download.
+    ) ELSE (
+        REM Download and extract Apache if not exists
+        call src\download_extract.bat %url_Apache% packages\%apache_folder% packages\Apache_%apache_folder% apache.zip
+    )
+
+    IF EXIST packages\%mod_fcgid_folder% (
+        echo mod_fcgid folder already exists. Skipping download.
+    ) ELSE (
+        REM Download and extract mod_fcgid if not exists
+        call src\download_extract.bat %url_mod_fcgid% packages\%mod_fcgid_folder% packages\%mod_fcgid_folder% mod_fcgid.zip
+    )
+
+    if not exist "packages\Apache_%apache_folder%\Apache24\modules\mod_fcgid.so" (
+        copy packages\%mod_fcgid_folder%\mod_fcgid.so packages\Apache_%apache_folder%\Apache24\modules\mod_fcgid.so
+    ) else (
+        echo mod_fcgid.so already exists, skipping copy and pasting.
+    )
+
+    set "target=packages\Apache_%apache_folder%\Apache24\conf\httpd.conf"
+    if not exist "%target%.old" (
+        if exist "%target%" move /Y "%target%" "%target%.old"
+        copy /Y src\httpd.conf "%target%"
+    )
+
+    if not exist "packages\Apache_%apache_folder%\Apache24\conf\extra\httpd-fcgid.conf" (
+        copy src\httpd-fcgid.conf packages\Apache_%apache_folder%\Apache24\conf\extra\httpd-fcgid.conf
+    ) else (
+        echo mod_fcgid.so already exists, skipping copy and pasting.
+    )
+) else (
+    IF EXIST packages\%nginx_folder% (
+        echo Nginx folder already exists. Skipping download.
+    ) ELSE (
+        REM Download and extract Nginx if not exists
+        call src\download_extract.bat %url_Nginx% packages\%nginx_folder% packages\. nginx.zip
+        ren "packages\%nginx_folder%\conf\nginx.conf" "nginx.conf.old"
+    )
+    IF NOT EXIST packages\%nginx_folder%\conf\nginx.conf (
+        echo Copying default nginx configuration.
+        copy /Y src\nginx.conf "packages\%nginx_folder%\conf\nginx.conf"
+    )
 )
 
 REM Copy php.ini if not exists
@@ -169,11 +203,29 @@ popd
 REM Install dependency of whisper
 call src\download_extract.bat %url_ffmpeg% packages\%ffmpeg_folder% packages\. ffmpeg.zip
 REM Install dependency of n8n
-echo Installing n8n
-call npm.cmd install -g "n8n@1.73.1"
-
+where n8n >nul 2>nul
+if %errorlevel% neq 0 (
+    echo Installing n8n
+    call npm.cmd install -g "n8n@1.73.1"
+) else (
+    for /f "delims=" %%i in ('n8n --version') do set "N8N_VERSION=%%i"
+    if "%N8N_VERSION%" neq "1.73.1" (
+        echo Updating n8n to 1.73.1
+        call npm.cmd install -g "n8n@1.73.1"
+    ) else (
+        echo n8n 1.73.1 already installed, skipping
+    )
+)
 REM Install dependency of Mermaid Tool
-call npm.cmd install -g "@mermaid-js/mermaid-cli"
+where mmdc >nul 2>nul
+if %errorlevel% neq 0 (
+    echo Installing @mermaid-js/mermaid-cli...
+    call npm.cmd install -g "@mermaid-js/mermaid-cli" --no-audit --no-fund
+) else (
+    for /f "delims=" %%i in ('mmdc -v') do set "MERMAID_VERSION=%%i"
+    REM Optional: if you want to check a specific version, insert it here
+    echo mermaid-cli %MERMAID_VERSION% already installed. Skipping.
+)
 
 for %%i in ("postinstall\*.bat") do (
     echo Running %%~nxi
