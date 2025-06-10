@@ -181,15 +181,37 @@ class SystemController extends Controller
                     if (file_exists($scriptFile)) {
                         $lines = file($scriptFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
+                        $currentDir = $projectRoot . dirname($scriptPath);
+                        chdir($currentDir);
+
                         foreach ($lines as $line) {
                             $trimmed = trim($line);
-                            if ($trimmed === '' || str_starts_with($trimmed, '#')) {
+
+                            if (
+                                $trimmed === '' ||
+                                str_starts_with($trimmed, '#') ||                    // Linux shell
+                                str_starts_with($trimmed, '::') ||                   // Windows batch
+                                stripos($trimmed, 'REM ') === 0                      // Windows batch
+                            ) {
                                 continue;
                             }
 
                             set_time_limit(300);
 
-                            $output = $this->runCommand($trimmed, $projectRoot);
+                            if (preg_match('/^cd\s+(.+)$/i', $trimmed, $matches)) {
+                                $newPath = trim($matches[1]);
+
+                                $resolvedPath = realpath($currentDir . DIRECTORY_SEPARATOR . $newPath);
+                                if ($resolvedPath && is_dir($resolvedPath)) {
+                                    $currentDir = $resolvedPath;
+                                    chdir($currentDir);
+                                    $output = "Changed directory to $currentDir";
+                                } else {
+                                    $output = "Failed to change directory to $newPath";
+                                }
+                            } else {
+                                $output = $this->runCommand($trimmed, $currentDir);
+                            }
 
                             echo 'data: ' . json_encode(['status' => 'progress', 'output' => $output]) . "\n\n";
                             ob_flush();
