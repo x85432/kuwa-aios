@@ -103,36 +103,67 @@ def hard_exit(restart):
 
 def extract_packages():
     zip_path = os.path.abspath("../scripts/windows-setup-files/package.zip")
+    multi_chat = os.path.abspath("../src/multi-chat")
+    env_file = os.path.join(multi_chat, ".env")
+    
+    if not os.path.exists(env_file):
+        shutil.copyfile(os.path.join(multi_chat, ".env.dev"), env_file)
+    if os.path.exists(os.path.abspath("init.txt")):
+        with open("init.txt") as f:
+            env = dict(line.strip().split("=", 1) for line in f if "=" in line)
+
+        username = env.get("username", "")
+        name = username.split("@")[0]
+        password = env.get("password", "")
+        autologin = env.get("autologin", "").lower() == "true"
+
+        subprocess.call(f"php artisan create:admin-user --name={name} --email={username} --password={password}", cwd=multi_chat, shell=True)
+
+        if autologin:
+            with open(env_file, encoding="utf-8") as f:
+                content = f.read()
+            content = re.sub(
+                r'^APP_AUTO_EMAIL=.*$', '', content, flags=re.MULTILINE
+            ).strip()
+            content += f"\nAPP_AUTO_EMAIL={username}\n"
+            with open(env_file, "w", encoding="utf-8") as f:
+                f.write(content)
+            for cmd in [
+                "php artisan config:clear",
+                "php artisan cache:clear",
+                "php artisan config:cache",]:
+                subprocess.call(cmd, cwd=multi_chat, shell=True)
+        os.remove(os.path.abspath("init.txt"))
+    shutil.rmtree(os.path.join(multi_chat, "storage\framework\cache"), ignore_errors=True)
     if os.path.exists(zip_path):
         print("Extracting packages...")
         subprocess.call("build.bat restore", shell=True, cwd=os.path.abspath("../scripts/windows-setup-files"))
-        print("Unzipping successful.")
-        for f in ["bin", "database", "custom", "bootstrap/bot"]:
-            os.makedirs(os.path.join(kuwa_root, f), exist_ok=True)
-        shutil.copytree("../src/bot/init", os.path.join(kuwa_root, "bootstrap/bot"), dirs_exist_ok=True)
-        shutil.copytree("../src/tools", os.path.join(kuwa_root, "bin"), dirs_exist_ok=True)
-        shutil.rmtree(os.path.join(kuwa_root, "bin", "test"), ignore_errors=True)
-        print("Filesystem initialized.")
-        prepare_laravel()
-
-def prepare_laravel():
-    multi_chat = os.path.abspath("../src/multi-chat")
-    env_file = os.path.join(multi_chat, ".env")
-    if not os.path.exists(env_file):
-        shutil.copyfile(os.path.join(multi_chat, ".env.dev"), env_file)
-    for cmd in [
-        "php artisan key:generate --force",
-        "php artisan db:seed --class=InitSeeder --force",
-        "php artisan migrate --force",
-        "php artisan storage:link",
-        "php ../../windows/packages/composer.phar dump-autoload --optimize",
-        "php artisan route:cache",
-        "php artisan view:cache",
-        "php artisan optimize",
-        "npm.cmd run build",
-        "php artisan config:cache",
-        "php artisan config:clear"]:
-        subprocess.call(cmd, cwd=multi_chat, shell=True)
+        if os.path.exists("packages\composer.phar"):
+            print("Unzipping successful.")
+            for f in ["bin", "database", "custom", "bootstrap/bot"]:
+                os.makedirs(os.path.join(kuwa_root, f), exist_ok=True)
+            shutil.copytree("../src/bot/init", os.path.join(kuwa_root, "bootstrap/bot"), dirs_exist_ok=True)
+            shutil.copytree("../src/tools", os.path.join(kuwa_root, "bin"), dirs_exist_ok=True)
+            shutil.rmtree(os.path.join(kuwa_root, "bin", "test"), ignore_errors=True)
+            print("Filesystem initialized.")
+            for cmd in [
+                "php artisan key:generate --force",
+                "php artisan db:seed --class=InitSeeder --force",
+                "php artisan migrate --force",
+                "php artisan storage:link",
+                "php ../../windows/packages/composer.phar dump-autoload --optimize",
+                "php artisan route:cache",
+                "php artisan view:cache",
+                "php artisan optimize",
+                "npm.cmd run build",
+                "php artisan config:cache",
+                "php artisan config:clear"]:
+                subprocess.call(cmd, cwd=multi_chat, shell=True)
+        else:
+            print("Extraction failed")
+    if not os.path.exists("packages\composer.bat"):
+        with open("packages\composer.bat", 'w') as f:
+            f.write('php "%~dp0composer.phar" %*\n')
 
 def extract_executor_access_code(path):
     with open(path) as f:
