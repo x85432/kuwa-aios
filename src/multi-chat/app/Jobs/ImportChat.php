@@ -63,6 +63,7 @@ class ImportChat implements ShouldQueue
                         unset($dispatchedids[array_search($id2, $dispatchedids)]);
                     }
                     sleep(1);
+                    set_time_limit(300);
                 }
             }
             $dispatchedAccessCodes[] = $access_code;
