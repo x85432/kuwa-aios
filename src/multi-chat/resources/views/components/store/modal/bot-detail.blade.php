@@ -243,6 +243,15 @@
                             onclick="exportBot()">
                             {{ __('store.button.export') }}
                         </button>
+                        @if (request()->user()->hasPerm(['tab_Manage', 'Store_create_community_bot', 'Store_create_group_bot', 'Store_create_private_bot']) &&
+                                request()->user()->hasPerm(['tab_Manage', 'Store_read_any_modelfile']))
+                            <button type="button" id="duplicate_bot" data-modal-target="create-bot-modal"
+                                data-modal-toggle="create-bot-modal" onclick="duplicateBot()"
+                                data-modal-hide="detail-modal"
+                                class="bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                                {{ __('store.button.duplicate') }}
+                            </button>
+                        @endif
                         @if (request()->user()->hasPerm('Store_delete_delete_bot'))
                             <button type="button" id="delete_bot" data-modal-target="delete_modal"
                                 data-modal-toggle="delete_modal"
@@ -496,6 +505,37 @@
             }
         });
     }
+    let default_visibility = null;
+
+    function create_bot() {
+        if (default_visibility == null)
+            default_visibility = $("#visibility_list input:checked").val()
+        $('#visibility').text($("#visibility_list input[value='" + default_visibility + "']").closest("label").find("div >div").text())
+        $("#bot_type").val("prompt")
+        showBotConfigLayout()
+        $("#bot_name").val("")
+        $("#bot_describe").val("")
+        $("#llm_name").val("")
+        change_bot_image('#llm_img', '#create-bot_image', "")
+        toggleModelfile()
+        ace.edit('bot-modelfile-editor').setValue("")
+        toggleModelfile()
+    }
+
+    function duplicateBot() {
+        if (default_visibility == null)
+            default_visibility = $("#visibility_list input:checked").val()
+
+        $("#bot_type").val($("#llm_name2").val() == "Weblet" ? "server" : ($("#llm_name2").val() == "Agent" ? "agent" : "prompt"))
+        showBotConfigLayout()
+        $("#bot_name").val($("#bot_name2").val())
+        $("#bot_describe").val($("#bot_describe2").val())
+        $("#llm_name").val($("#llm_name2").val())
+        change_bot_image('#llm_img', '#create-bot_image', $("#llm_name2").val())
+        $('#visibility').text($("#visibility_list input[value='" + default_visibility + "']").closest("label").find("div >div").text())
+        toggleModelfile()
+        ace.edit('bot-modelfile-editor').setValue(ace.edit('modelfile-editor').getValue())
+    }
 
     async function exportBot() {
         let name = $("#bot_name2").val();
@@ -524,7 +564,7 @@
             "",
             `--${boundary}`,
             "Content-Type: application/vnd.kuwabot;",
-            "Content-Language: {{ str_replace('_', '-',$locale = App::getLocale()); }}",
+            "Content-Language: {{ str_replace('_', '-', $locale = App::getLocale()) }}",
             "",
             modelfile.trim(),
             "",

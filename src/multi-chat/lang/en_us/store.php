@@ -25,6 +25,7 @@ return [
     'button.delete' => 'Delete',
     'button.export' => 'Export',
     'button.explore_more' => 'Explore More Bots',
+    'button.duplicate' => 'Duplicate',
     'bot.system_prompt' => 'System prompt',
     'bot.welcome_message' => 'Welcome message',
     'bot.name' => 'App name',
@@ -71,5 +72,5 @@ return [
     'bot.process_bot' => 'Processing Bot/Base Model',
     'bot.process_bot.label' => 'Select the base model',
     'bot.script' => 'Workflow Script',
-    'bot.script.label' => 'Customize the workflow'
+    'bot.script.label' => 'Customize the workflow',
 ];
