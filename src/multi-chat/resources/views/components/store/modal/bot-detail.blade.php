@@ -509,7 +509,8 @@
 
     function create_bot() {
         if (default_visibility == null)
-            default_visibility = $("#visibility_list input:checked").val()
+            default_visibility = $("#visibility_list input").last().val()
+        $("#visibility_list input").last().click().prop("checked", true)
         $('#visibility').text($("#visibility_list input[value='" + default_visibility + "']").closest("label").find("div >div").text())
         $("#bot_type").val("prompt")
         showBotConfigLayout()
@@ -524,7 +525,8 @@
 
     function duplicateBot() {
         if (default_visibility == null)
-            default_visibility = $("#visibility_list input:checked").val()
+            default_visibility = $("#visibility_list input").last().val()
+        $("#visibility_list input").last().click().prop("checked", true)
 
         $("#bot_type").val($("#llm_name2").val() == "Weblet" ? "server" : ($("#llm_name2").val() == "Agent" ? "agent" : "prompt"))
         showBotConfigLayout()
