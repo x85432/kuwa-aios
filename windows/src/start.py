@@ -256,8 +256,9 @@ def start_servers():
         print("Apache started!")
     elif (http_server_runtime == "nginx"):
         php_path = os.path.join(base_dir, "packages", os.environ.get("php_folder", "php"))
-        run_background("php-cgi.exe -b 127.0.0.1:9123", cwd=php_path)
-
+        for port in range(9101, 9111):
+            run_background(f"php-cgi.exe -b 127.0.0.1:{port}", cwd=php_path)
+        run_background(f"php-cgi.exe -b 127.0.0.1:9123", cwd=php_path)
         nginx_folder = os.environ.get("nginx_folder", "nginx")
         nginx_html = os.path.join(base_dir, "packages", nginx_folder, "html")
         if os.path.exists(nginx_html):
