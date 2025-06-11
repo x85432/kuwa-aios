@@ -60,6 +60,8 @@ class RequestChat implements ShouldQueue
     private $preserved_output, $exit_when_finish;
     private $kernel_location, $client;
     public $backoff_sec = 10; # Backoff for 10 seconds when the executors are busy
+    public $tries = 100; # Wait 1000 seconds in total
+    public $timeout = 1200; # For the 100th try, 200 seconds limit is given
     public static $kernel_api_version = 'v1.0';
 
     /**
