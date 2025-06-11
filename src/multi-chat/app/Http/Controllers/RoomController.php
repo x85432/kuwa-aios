@@ -170,7 +170,17 @@ class RoomController extends Controller
                         $model = isset($message->model) && is_string($message->model) && str_starts_with($message->model, \App\Http\Controllers\ProfileController::BOT_PREFIX) ? $message->model : null;
                         if ($message->role === 'assistant') {
                             if (!is_null($model)) {
-                                $bot = Bots::where('name', '=', substr($model, strlen(\App\Http\Controllers\ProfileController::BOT_PREFIX)));
+                                $bot = Bots::leftjoin('users', 'users.id', '=', 'bots.owner_id')->where('bots.name', '=', substr($model, strlen(\App\Http\Controllers\ProfileController::BOT_PREFIX)))
+                                    ->where(function ($query) {
+                                        $query->where(function ($q) {
+                                            $q->where('visibility', 3)
+                                            ->where('owner_id', Auth::user()->id);
+                                        })->orWhere(function ($q) {
+                                            $q->where('visibility', 2)
+                                            ->where('users.group_id', Auth::user()->group_id);
+                                        })->orWhere('visibility', 1)->orwhere('visibility', 0);
+                                    })->select("bots.*");
+
                                 if ($bot->exists()) {
                                     $bot = $bot->first();
                                     if (!in_array($model, $bot_ids)) {
