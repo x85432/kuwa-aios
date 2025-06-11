@@ -54,7 +54,7 @@ class RoomController extends Controller
                 ->header('Content-Type', 'application/vnd.ms-word')
                 ->header('Expires', '0')
                 ->header('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
-                ->header('Content-Disposition', 'attachment;filename=' . ChatRoom::find(request()->route('room_id'))->name . '.doc');
+                ->header('Content-Disposition', 'attachment;filename=export_' . trim(preg_replace('/_+/', '_', preg_replace('/[^a-zA-Z0-9-_]/', '_', ChatRoom::find(request()->route('room_id'))->name ?? 'room')), '_') . '.doc');
         } else {
             return redirect()->route('room.home');
         }
