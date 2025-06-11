@@ -49,6 +49,8 @@ return [
     'button.verilog_compile_test' => '編譯測試',
     'button.import' => '匯入',
     'button.feedback' => '送出意見',
+    'button.edit' => '编辑',
+    'button.save' => '保存',
     'placeholder.llm_returned_empty' => '[很抱歉目前模型忙碌中，請稍後再試，若問題一直持續再請回報]',
     'placeholder.please_retry_later' => '[很抱歉，有東西壞掉了，請稍後再試]',
     'placeholder.file_too_large' => '檔案過大',

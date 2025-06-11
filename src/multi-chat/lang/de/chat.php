@@ -49,6 +49,8 @@ return [
     'button.verilog_compile_test' => 'Kompilieren und testen',
     'button.import' => 'Importieren',
     'button.feedback' => 'Feedback senden',
+    'button.edit' => 'Bearbeiten',
+    'button.save' => 'Änderungen speichern',
     'placeholder.llm_returned_empty' => '[Es tut uns leid, das Modell ist derzeit ausgelastet. Bitte versuchen Sie es später erneut. Wenn das Problem weiterhin besteht, melden Sie es bitte.]',
     'placeholder.please_retry_later' => '[Es tut uns leid, etwas ist schief gelaufen. Bitte versuchen Sie es später erneut.]',
     'placeholder.file_too_large' => 'Datei zu groß',

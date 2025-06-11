@@ -49,6 +49,8 @@ return [
     'button.verilog_compile_test' => 'Compiler le test',
     'button.import' => 'Importer',
     'button.feedback' => 'Envoyer un avis',
+    'button.edit' => 'Modifier',
+    'button.save' => 'Enregistrer les modifications',
     'placeholder.llm_returned_empty' => '[Désolé, le modèle est actuellement occupé. Veuillez réessayer plus tard. Si le problème persiste, veuillez le signaler.]',
     'placeholder.please_retry_later' => '[Désolé, il y a eu un problème. Veuillez réessayer plus tard.]',
     'placeholder.file_too_large' => 'Fichier trop volumineux',
