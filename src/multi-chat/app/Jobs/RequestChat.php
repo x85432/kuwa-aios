@@ -156,11 +156,13 @@ class RequestChat implements ShouldQueue
         $start = microtime(true);
         $chatroomProcessor = new ChatroomProcessor();
         $executorExitCode = null;
+        $busy_flag = false;
         try {
             $schedulingResult = $this->tryScheduleJob();
             if ($schedulingResult == JobScheduleResult::BUSY) {
                 Log::channel('analyze')->Info('BUSY: ' . $this->access_code . ' | ' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input));
-                $this->release($this->backoff_sec);
+                $busy_flag = true;
+                return;
             } elseif ($schedulingResult == JobScheduleResult::NOMACHINE) {
                 Log::channel('analyze')->Info('NOMACHINE: ' . $this->access_code . ' | ' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input));
                 throw new KuwaKernelException(WarningMessages::NO_EXECUTOR);
@@ -243,16 +245,20 @@ class RequestChat implements ShouldQueue
         } catch (KuwaKernelException $e) {
             $this->endStreamWithMessage($e->getMessage());
         } finally {
-            $end = microtime(true);
-            $elapsed = $end - $start;
-            $fullOutput = $chatroomProcessor->getOutputChunk(finalize: true);
-            Log::channel('analyze')->Info('Out:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . $elapsed . '|' . strlen(trim($fullOutput)) . '|' . Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->diffInSeconds(Carbon::now()) . '|' . $fullOutput);
+            if (!$busy_flag) {
+                $end = microtime(true);
+                $elapsed = $end - $start;
+                $fullOutput = $chatroomProcessor->getOutputChunk(finalize: true);
+                Log::channel('analyze')->Info('Out:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . $elapsed . '|' . strlen(trim($fullOutput)) . '|' . Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->diffInSeconds(Carbon::now()) . '|' . $fullOutput);
 
-            $finalOutput = '';
-            if ($this->app_type == AppType::CHATROOM) {
-                $finalOutput = $fullOutput;
+                $finalOutput = '';
+                if ($this->app_type == AppType::CHATROOM) {
+                    $finalOutput = $fullOutput;
+                }
+                $this->endStreamWithMessage(msg: $finalOutput, exitCode: $executorExitCode);
+            } else {
+                $this->release($this->backoff_sec);
             }
-            $this->endStreamWithMessage(msg: $finalOutput, exitCode: $executorExitCode);
         }
     }
     public function failed(\Throwable $exception)
