@@ -75,7 +75,6 @@ class RequestChat implements ShouldQueue
                     array_filter(
                         array_map(function ($entry) use ($excludedNames) {
                             if (!in_array($entry->name, $excludedNames, true) && !empty($entry->name) && $entry->name[0] !== '#') {
-                                $entry->args = str_starts_with($entry->args, '"') ? trim($entry->args, '"') : $entry->args;
                                 return $entry;
                             }
                         }, $modelfile),
