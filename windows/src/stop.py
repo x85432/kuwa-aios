@@ -4,7 +4,7 @@ base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 def terminate_proc(proc, current_pid):
     try:
         if proc.info['pid'] == current_pid: return
-        if proc.info.get('exe', '').startswith(os.path.abspath(base_dir, '..')):
+        if proc.info.get('exe', '').startswith(os.path.abspath(os.path.join(base_dir, '..'))):
             print(f"Terminating process {proc.pid}: {proc.info['exe']}")
             proc.terminate()
             try:

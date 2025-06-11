@@ -5,8 +5,18 @@ base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 kuwa_root = os.getenv("KUWA_ROOT", os.path.join(base_dir, "kuwa_root"))
 os.makedirs(os.path.join(base_dir, "logs"), exist_ok=True)
 log_path = os.path.join(base_dir, "logs", "start.log")
-if os.path.exists(log_path):
-    os.remove(log_path)
+def wait_and_remove(path, retry_interval=0.5, timeout=60):
+    start_time = time.time()
+    while os.path.exists(path):
+        try:
+            os.remove(path)
+            print(f"Removed: {path}")
+            return
+        except PermissionError:
+            if time.time() - start_time > timeout:
+                raise TimeoutError(f"Timed out waiting to delete: {path}")
+            time.sleep(retry_interval)
+wait_and_remove(log_path)
 
 log_lock = threading.Lock()
 
@@ -62,7 +72,7 @@ def run_background(cmd, cwd=None):
 def terminate_proc(proc, current_pid):
     try:
         if proc.info['pid'] == current_pid: return
-        if proc.info.get('exe', '').startswith(os.path.abspath(base_dir, '..')):
+        if proc.info.get('exe', '').startswith(os.path.abspath(os.path.join(base_dir, '..'))):
             print(f"Terminating process {proc.pid}: {proc.info['exe']}")
             proc.terminate()
             try: proc.wait(timeout=2)
@@ -95,7 +105,6 @@ def hard_exit(restart):
         concurrent.futures.wait(futures)
     if restart:
         subprocess.Popen(["start.bat"], shell=True)
-    time.sleep(5)
     if current_proc:
         print(f"Terminating current Python process (PID {current_pid}) last.")
         current_proc.terminate()
@@ -247,8 +256,9 @@ def start_servers():
         print("Apache started!")
     elif (http_server_runtime == "nginx"):
         php_path = os.path.join(base_dir, "packages", os.environ.get("php_folder", "php"))
-        run_background("php-cgi.exe -b 127.0.0.1:9123", cwd=php_path)
-
+        for port in range(9101, 9111):
+            run_background(f"php-cgi.exe -b 127.0.0.1:{port}", cwd=php_path)
+        run_background(f"php-cgi.exe -b 127.0.0.1:9123", cwd=php_path)
         nginx_folder = os.environ.get("nginx_folder", "nginx")
         nginx_html = os.path.join(base_dir, "packages", nginx_folder, "html")
         if os.path.exists(nginx_html):
