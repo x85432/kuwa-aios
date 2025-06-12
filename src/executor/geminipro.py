@@ -107,10 +107,10 @@ class GoogleFileStore:
 
 
 class GeminiExecutor(LLMExecutor):
-    model_name: str = "gemini-1.5-flash"
+    model_name: str = "gemini-2.0-flash"
     system_prompt: str = ""
     no_system_prompt: bool = False
-    limit: int = 30720
+    limit: int = 1048576
     generation_config: dict = {}
     # Ref: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#blob
     supported_mime_types = [
