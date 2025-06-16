@@ -145,31 +145,26 @@ def extract_packages():
         os.remove(os.path.abspath("init.txt"))
     shutil.rmtree(os.path.join(multi_chat, "storage\framework\cache"), ignore_errors=True)
     if os.path.exists(zip_path):
-        print("Extracting packages...")
-        subprocess.call("build.bat restore", shell=True, cwd=os.path.abspath("../scripts/windows-setup-files"))
-        if os.path.exists("packages\composer.phar"):
-            print("Unzipping successful.")
-            for f in ["bin", "database", "custom", "bootstrap/bot"]:
-                os.makedirs(os.path.join(kuwa_root, f), exist_ok=True)
-            shutil.copytree("../src/bot/init", os.path.join(kuwa_root, "bootstrap/bot"), dirs_exist_ok=True)
-            shutil.copytree("../src/tools", os.path.join(kuwa_root, "bin"), dirs_exist_ok=True)
-            shutil.rmtree(os.path.join(kuwa_root, "bin", "test"), ignore_errors=True)
-            print("Filesystem initialized.")
-            for cmd in [
-                "php artisan key:generate --force",
-                "php artisan db:seed --class=InitSeeder --force",
-                "php artisan migrate --force",
-                "php artisan storage:link",
-                "php ../../windows/packages/composer.phar dump-autoload --optimize",
-                "php artisan route:cache",
-                "php artisan view:cache",
-                "php artisan optimize",
-                "npm.cmd run build",
-                "php artisan config:cache",
-                "php artisan config:clear"]:
-                subprocess.call(cmd, cwd=multi_chat, shell=True)
-        else:
-            print("Extraction failed")
+        for f in ["bin", "database", "custom", "bootstrap/bot"]:
+            os.makedirs(os.path.join(kuwa_root, f), exist_ok=True)
+        shutil.copytree("../src/bot/init", os.path.join(kuwa_root, "bootstrap/bot"), dirs_exist_ok=True)
+        shutil.copytree("../src/tools", os.path.join(kuwa_root, "bin"), dirs_exist_ok=True)
+        shutil.rmtree(os.path.join(kuwa_root, "bin", "test"), ignore_errors=True)
+        print("Filesystem initialized.")
+        for cmd in [
+            "php artisan key:generate --force",
+            "php artisan db:seed --class=InitSeeder --force",
+            "php artisan migrate --force",
+            "php artisan storage:link",
+            "php ../../windows/packages/composer.phar dump-autoload --optimize",
+            "php artisan route:cache",
+            "php artisan view:cache",
+            "php artisan optimize",
+            "npm.cmd run build",
+            "php artisan config:cache",
+            "php artisan config:clear"]:
+            subprocess.call(cmd, cwd=multi_chat, shell=True)
+        os.remove(zip_path)
     if not os.path.exists("packages\composer.bat"):
         with open("packages\composer.bat", 'w') as f:
             f.write('php "%~dp0composer.phar" %*\n')
