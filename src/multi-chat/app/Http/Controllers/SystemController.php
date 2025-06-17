@@ -111,8 +111,10 @@ class SystemController extends Controller
 
     public function updateProject(Request $request)
     {
+        ignore_user_abort(true);
         return response()->stream(
             function () {
+                ignore_user_abort(true);
                 header('Content-Type: text/event-stream');
                 header('Cache-Control: no-cache');
                 header('X-Accel-Buffering: no'); // Disable buffering in Nginx if present

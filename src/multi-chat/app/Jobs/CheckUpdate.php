@@ -31,6 +31,7 @@ class CheckUpdate implements ShouldQueue
 
     public function handle()
     {
+        ignore_user_abort(true);
         try {
             set_time_limit(300);
             $checkUpdateScript = base_path('app/Console/check-update.php');

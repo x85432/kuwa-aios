@@ -142,6 +142,7 @@ class RequestChat implements ShouldQueue
      */
     public function handle(): void
     {
+        ignore_user_abort(true);
         set_time_limit(600);
         $this->kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
         $client = new Client(['timeout' => 300]);
@@ -199,6 +200,7 @@ class RequestChat implements ShouldQueue
             ]);
             $stream = $response->getBody();
             $buffer = new Utf8Buffer();
+            $buffer->addChunk($this->preserved_output);
             while (!$stream->eof()) {
                 $chunk = \GuzzleHttp\Psr7\Utils::readLine($stream);
                 // Extract text response from SSE data
