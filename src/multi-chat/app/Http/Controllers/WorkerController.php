@@ -72,7 +72,6 @@ class WorkerController extends Controller
 
                 if ($logFile) {
                     // Wait until the log file is created
-                    $count = 5;
                     while (!file_exists($logFile) && $count >= 0) {
                         usleep(100000);
                         $count -= 1;
@@ -175,7 +174,9 @@ class WorkerController extends Controller
 
         if (PHP_OS_FAMILY === 'Windows') {
             // Use PowerShell to get command line and PID of php.exe processes
-            $cmd = 'powershell -command "Get-CimInstance Win32_Process -Filter \"Name=\'php.exe\'\" | Select-Object CommandLine, ProcessId"';
+            $cmd = <<<CMD
+            powershell -command "Get-CimInstance Win32_Process -Filter \"Name='php.exe'\" | Select-Object CommandLine, ProcessId"
+            CMD;
             $processes = shell_exec($cmd);
 
             // Process the output
