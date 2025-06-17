@@ -652,8 +652,8 @@
             // Handle error, display message to the user, etc.
         }
     }
-    updateDataListFromAPI("store/bots", "bots-list");
-    updateDataListFromAPI("store/knowledge", "knowledge-list");
+    updateDataListFromAPI("/store/bots", "bots-list");
+    updateDataListFromAPI("/store/knowledge", "knowledge-list");
 
     window.addEventListener('load', function() {
         // To prevent "Blocked aria-hidden on an element because its descendant retained focus."
