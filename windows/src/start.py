@@ -55,16 +55,19 @@ def run_background(cmd, cwd=None):
         bufsize=1,
         universal_newlines=True,
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-        env=env
+        env=env, encoding="utf-8"
     )
 
     processes.append(proc)
 
     def log_output():
         with open(log_path, 'a', encoding='utf-8') as f:
-            for line in proc.stdout:
-                print(line, end='')
-                f.write(line)
+            try:
+                for line in proc.stdout:
+                    print(line, end='')
+                    f.write(line)
+            except Exception:
+                "Skipped"
 
     threading.Thread(target=log_output, daemon=True).start()
     return proc
@@ -100,11 +103,19 @@ def hard_exit(restart):
             
     current_pid = os.getpid()
     current_proc = None
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(terminate_proc, p, current_pid) for p in psutil.process_iter(['pid','exe']) if p.pid != current_pid or (current_proc:=p)]
+    futures = []
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        for p in psutil.process_iter(['pid', 'exe']):
+            if p.pid == current_pid:
+                current_proc = p
+            else:
+                futures.append(executor.submit(terminate_proc, p, current_pid))
         concurrent.futures.wait(futures)
+
     if restart:
-        subprocess.Popen(["start.bat"], shell=True)
+        subprocess.Popen(["start.bat"], shell=True, encoding="utf-8")
+
     if current_proc:
         print(f"Terminating current Python process (PID {current_pid}) last.")
         current_proc.terminate()
