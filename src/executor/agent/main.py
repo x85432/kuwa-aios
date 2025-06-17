@@ -17,6 +17,7 @@ from kuwa.client.base import StopAsyncGenerator
 
 logger = logging.getLogger(__name__)
 
+
 class AgentState(Enum):
     IDLE = 0
     RUNNING = 1
@@ -29,12 +30,15 @@ class BotNode(pydantic.BaseModel):
     prompt_suffix: str
     append_history: bool
 
+
 class IdentityBotNode(pydantic.BaseModel):
     pass
+
 
 class FlowControlNode(pydantic.BaseModel):
     next_index_on_zero: int
     next_index_on_nonzero: int
+
 
 def parse_flow(
     modelfile: Modelfile,
@@ -51,7 +55,7 @@ def parse_flow(
     bot_list = {
         Script.INPUT_BOT_SYMBOL: modelfile.input_bot,
         Script.PROCESS_BOT_SYMBOL: modelfile.process_bot,
-        Script.OUTPUT_BOT_SYMBOL: modelfile.output_bot
+        Script.OUTPUT_BOT_SYMBOL: modelfile.output_bot,
     }
     prefix_list = {
         Script.INPUT_BOT_SYMBOL: modelfile.input_prefix,
@@ -64,7 +68,7 @@ def parse_flow(
         Script.OUTPUT_BOT_SYMBOL: modelfile.output_suffix,
     }
     script = modelfile.script
-    
+
     # Match the parentheses
     matched_parentheses_index = {}
     forward_jumps = []
@@ -73,14 +77,18 @@ def parse_flow(
             forward_jumps.append(index)
         if command_symbol == Script.CONDITIONAL_BACKWARD_JUMP_SYMBOL:
             matched_forward_jump = forward_jumps.pop()
-            if matched_forward_jump == index+1:
+            if matched_forward_jump == index + 1:
                 raise RuntimeError("Infinity loop detected.")
             matched_parentheses_index[index] = matched_forward_jump
             matched_parentheses_index[matched_forward_jump] = index
-    
+
     flow = []
     for index, command_symbol in enumerate(script):
-        if command_symbol in (Script.INPUT_BOT_SYMBOL, Script.PROCESS_BOT_SYMBOL, Script.OUTPUT_BOT_SYMBOL):
+        if command_symbol in (
+            Script.INPUT_BOT_SYMBOL,
+            Script.PROCESS_BOT_SYMBOL,
+            Script.OUTPUT_BOT_SYMBOL,
+        ):
             if bot_list[command_symbol] is None:
                 continue
             flow.append(
@@ -93,18 +101,22 @@ def parse_flow(
             )
         if command_symbol == Script.IDENTITY_BOT_SYMBOL:
             flow.append(IdentityBotNode)
-        
+
         if command_symbol == Script.CONDITIONAL_FORWARD_JUMP_SYMBOL:
-            flow.append(FlowControlNode(
-                next_index_on_zero=matched_parentheses_index[index]+1,
-                next_index_on_nonzero=index+1,
-            ))
-            
+            flow.append(
+                FlowControlNode(
+                    next_index_on_zero=matched_parentheses_index[index] + 1,
+                    next_index_on_nonzero=index + 1,
+                )
+            )
+
         if command_symbol == Script.CONDITIONAL_BACKWARD_JUMP_SYMBOL:
-            flow.append(FlowControlNode(
-                next_index_on_zero=index+1,
-                next_index_on_nonzero=matched_parentheses_index[index]+1,
-            ))
+            flow.append(
+                FlowControlNode(
+                    next_index_on_zero=index + 1,
+                    next_index_on_nonzero=matched_parentheses_index[index] + 1,
+                )
+            )
 
     if len(flow) == 0:
         flow.append(
@@ -116,6 +128,7 @@ def parse_flow(
         )
     logger.debug(f"Parsed flow: {flow}")
     return flow
+
 
 class AgentRunner:
     api_base_url: str = ""
@@ -156,7 +169,12 @@ class AgentRunner:
                 raise
 
     async def run_flow(
-        self, history: List[Dict], flow: List[BotNode], show_step_log: bool = False, max_steps = 10
+        self,
+        history: List[Dict],
+        flow: List[BotNode],
+        show_step_log: bool = False,
+        fan_out: bool = False,
+        max_steps=10,
     ):
         self.state = AgentState.RUNNING
 
@@ -179,7 +197,7 @@ class AgentRunner:
                 continue
 
             # Normal BotNode
-            assert(isinstance(node, BotNode))
+            assert isinstance(node, BotNode)
 
             step_count += 1
             if step_count > max_steps:
@@ -203,26 +221,29 @@ class AgentRunner:
                         yield chunk
             except StopAsyncGenerator as e:
                 exit_code = e.value
-            
+
             if self.state != AgentState.RUNNING:
                 return
 
-            response_record = {"role": "user", "content": response}
-            if node.append_history:
-                # Invert user and assistant
-                memory = [
-                    dict(
-                        i,
-                        role=dict(user="assistant", assistant="user").get(
-                            i["role"], i["role"]
-                        ),
-                    )
-                    for i in memory
-                ]
+            response_record = {"role": "assistant", "content": response}
+            if node.append_history: 
                 memory.append(response_record)
             else:
                 memory = [response_record]
-            
+
+            if not fan_out:
+                def invert_role(record):
+                    # Invert user and assistant
+                    new_role = dict(user="assistant", assistant="user").get(record["role"], record["role"])
+                    return dict(record, role=new_role)
+
+                memory = list(map(invert_role, memory))
+            else:
+                memory.append(history[-1].copy())
+                if not node.append_history:
+                    memory = memory[-1:]
+
+
             if show_step_log:
                 yield "\n"
 
@@ -276,6 +297,10 @@ class AgentExecutor(LLMExecutor):
         )[0]
         show_step_log = modelfile.parameters["agent_"].get("show_step_log", False)
         append_history = modelfile.parameters["agent_"].get("append_history", False)
+        mode = modelfile.parameters["agent_"].get("mode", "sequential") # sequential, fan-out
+        if str(mode).lower() not in ["sequential", "fan-out"]:
+            raise ValueError(f"Unrecognized agent mode {mode}.")
+        fan_out = str(mode).lower() == "fan-out"
 
         flow = parse_flow(
             modelfile=modelfile,
@@ -293,6 +318,7 @@ class AgentExecutor(LLMExecutor):
                 history=history,
                 flow=flow,
                 show_step_log=show_step_log,
+                fan_out=fan_out,
             )
             async for chunk in generator:
                 yield chunk
