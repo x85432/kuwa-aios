@@ -146,7 +146,6 @@ class RequestChat implements ShouldQueue
         set_time_limit(600);
         $this->kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
         $client = new Client(['timeout' => 300]);
-        Log::channel('analyze')->Info($this->channel);
         if ($this->history_id > 0 && $this->app_type == AppType::CHATROOM) {
             if (Histories::find($this->history_id) && Histories::find($this->history_id)->msg != '* ...thinking... *' && $this->preserved_output == '') {
                 Log::Debug('Hmmm');
@@ -157,13 +156,11 @@ class RequestChat implements ShouldQueue
         $start = microtime(true);
         $chatroomProcessor = new ChatroomProcessor();
         $executorExitCode = null;
-        $busy_flag = false;
         try {
             $schedulingResult = $this->tryScheduleJob();
             if ($schedulingResult == JobScheduleResult::BUSY) {
                 Log::channel('analyze')->Info('BUSY: ' . $this->access_code . ' | ' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input));
-                $busy_flag = true;
-                return;
+                $this->release($this->backoff_sec);
             } elseif ($schedulingResult == JobScheduleResult::NOMACHINE) {
                 Log::channel('analyze')->Info('NOMACHINE: ' . $this->access_code . ' | ' . $this->history_id . '|' . strlen(trim($this->input)) . '|' . trim($this->input));
                 throw new KuwaKernelException(WarningMessages::NO_EXECUTOR);
@@ -247,20 +244,20 @@ class RequestChat implements ShouldQueue
         } catch (KuwaKernelException $e) {
             $this->endStreamWithMessage($e->getMessage());
         } finally {
-            if (!$busy_flag) {
-                $end = microtime(true);
-                $elapsed = $end - $start;
-                $fullOutput = $chatroomProcessor->getOutputChunk(finalize: true);
-                Log::channel('analyze')->Info('Out:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . $elapsed . '|' . strlen(trim($fullOutput)) . '|' . Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->diffInSeconds(Carbon::now()) . '|' . $fullOutput);
-
-                $finalOutput = '';
-                if ($this->app_type == AppType::CHATROOM) {
-                    $finalOutput = $fullOutput;
-                }
-                $this->endStreamWithMessage(msg: $finalOutput, exitCode: $executorExitCode);
-            } else {
-                $this->release($this->backoff_sec);
+            if ($this->job->isReleased()) {
+                Log::channel('analyze')->Info('Job ' . $this->channel . ' was released back into the queue.');
+                return;
             }
+            $end = microtime(true);
+            $elapsed = $end - $start;
+            $fullOutput = $chatroomProcessor->getOutputChunk(finalize: true);
+            Log::channel('analyze')->Info('Out:' . $this->access_code . '|' . $this->user_id . '|' . $this->history_id . '|' . $elapsed . '|' . strlen(trim($fullOutput)) . '|' . Carbon::createFromFormat('Y-m-d H:i:s', $this->msgtime)->diffInSeconds(Carbon::now()) . '|' . $fullOutput);
+
+            $finalOutput = '';
+            if ($this->app_type == AppType::CHATROOM) {
+                $finalOutput = $fullOutput;
+            }
+            $this->endStreamWithMessage(msg: $finalOutput, exitCode: $executorExitCode);
         }
     }
     public function failed(\Throwable $exception)
