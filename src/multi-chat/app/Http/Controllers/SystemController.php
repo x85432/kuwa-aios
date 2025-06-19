@@ -150,7 +150,6 @@ class SystemController extends Controller
                     flush();
 
                     foreach (['git stash', 'git pull'] as $command) {
-                        set_time_limit(300); // Reset timeout before each command
                         $output = $this->runCommand($command, $projectRoot);
                         echo 'data: ' . json_encode(['status' => 'progress', 'output' => $output]) . "\n\n";
                         ob_flush();
@@ -197,8 +196,6 @@ class SystemController extends Controller
                             ) {
                                 continue;
                             }
-
-                            set_time_limit(300);
 
                             if (preg_match('/^cd\s+(.+)$/i', $trimmed, $matches)) {
                                 $newPath = trim($matches[1]);

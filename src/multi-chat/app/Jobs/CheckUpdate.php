@@ -32,8 +32,8 @@ class CheckUpdate implements ShouldQueue
     public function handle()
     {
         ignore_user_abort(true);
+        set_time_limit(0);
         try {
-            set_time_limit(300);
             $checkUpdateScript = base_path('app/Console/check-update.php');
 
             $env = [
@@ -48,7 +48,6 @@ class CheckUpdate implements ShouldQueue
                 $process->setTimeout(null);
                 $process->run();
 
-                set_time_limit(300);
                 if (!$process->isSuccessful()) {
                     $errorMessage = $process->getErrorOutput();
                     $errorMessage = $this->parseMessage($errorMessage);
@@ -67,11 +66,9 @@ class CheckUpdate implements ShouldQueue
                 'GIT_SSH_COMMAND' => SystemSetting::where('key', 'updateweb_git_ssh_command')->value('value') ?? '',
             ];
 
-            set_time_limit(300);
             $updateProcess = Process::fromShellCommandline('git remote update')->setEnv($env)->setTimeout(null);
             $updateProcess->run();
 
-            set_time_limit(300);
             if (!$updateProcess->isSuccessful()) {
                 $errorMessage = $updateProcess->getErrorOutput();
                 $errorMessage = $this->parseMessage($errorMessage);
@@ -82,7 +79,6 @@ class CheckUpdate implements ShouldQueue
             $localCommitProcess = Process::fromShellCommandline('git rev-parse @')->setEnv($env)->setTimeout(null);
             $localCommitProcess->run();
 
-            set_time_limit(300);
             if (!$localCommitProcess->isSuccessful()) {
                 $errorMessage = $localCommitProcess->getErrorOutput();
                 $errorMessage = $this->parseMessage($errorMessage);
@@ -94,7 +90,6 @@ class CheckUpdate implements ShouldQueue
             $upstreamCommitProcess = Process::fromShellCommandline('git rev-parse @{u}')->setEnv($env)->setTimeout(null);
             $upstreamCommitProcess->run();
 
-            set_time_limit(300);
             if (!$upstreamCommitProcess->isSuccessful()) {
                 $errorMessage = $upstreamCommitProcess->getErrorOutput();
                 $errorMessage = $this->parseMessage($errorMessage);
@@ -106,7 +101,6 @@ class CheckUpdate implements ShouldQueue
             $baseCommitProcess = Process::fromShellCommandline('git merge-base @ @{u}')->setEnv($env)->setTimeout(null);
             $baseCommitProcess->run();
 
-            set_time_limit(300);
             if (!$baseCommitProcess->isSuccessful()) {
                 $errorMessage = $baseCommitProcess->getErrorOutput();
                 $errorMessage = $this->parseMessage($errorMessage);
@@ -121,7 +115,6 @@ class CheckUpdate implements ShouldQueue
                 ->setTimeout(null);
             $getUpdateUrl->run();
 
-            set_time_limit(300);
             if ($localCommit === $upstreamCommit) {
                 $status = 'no-update';
             } elseif ($localCommit === $baseCommit) {

@@ -143,7 +143,7 @@ class RequestChat implements ShouldQueue
     public function handle(): void
     {
         ignore_user_abort(true);
-        set_time_limit(600);
+        set_time_limit(0);
         $this->kernel_location = \App\Models\SystemSetting::where('key', 'kernel_location')->first()->value;
         $client = new Client(['timeout' => 300]);
         if ($this->history_id > 0 && $this->app_type == AppType::CHATROOM) {
@@ -231,10 +231,8 @@ class RequestChat implements ShouldQueue
                 $outputChunk = $chatroomProcessor->addChunk($message);
                 if ($this->app_type == AppType::API) {
                     Redis::publish($this->channel, 'New ' . json_encode(['msg' => $message]));
-                    set_time_limit(300);
                 } elseif ($this->app_type == AppType::CHATROOM) {
                     Redis::publish($this->channel, 'New ' . json_encode(['msg' => $outputChunk]));
-                    set_time_limit(300);
                 }
             }
 
@@ -282,11 +280,9 @@ class RequestChat implements ShouldQueue
 
         if (!empty($msg) || !is_null($exitCode)) {
             Redis::publish($this->channel, 'New ' . json_encode(['msg' => $msg, 'exit_code' => $exitCode]));
-            set_time_limit(300);
         }
         if ($this->exit_when_finish) {
             Redis::publish($this->channel, 'Ended Ended');
-            set_time_limit(300);
             Redis::lrem($this->job_queue_id, 0, $this->history_id);
         }
     }

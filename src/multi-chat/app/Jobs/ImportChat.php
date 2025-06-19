@@ -42,6 +42,7 @@ class ImportChat implements ShouldQueue
     public function handle(): void
     {
         ignore_user_abort(true);
+        set_time_limit(0);
         $dispatchedAccessCodes = [];
         $dispatchedids = [];
         foreach ($this->ids as $id) {
@@ -83,7 +84,6 @@ class ImportChat implements ShouldQueue
             }
             $input = $input->get()->toJson();
             RequestChat::dispatch($input, $access_code, $this->user_id, $id, App::getLocale(), null, $modelfile);
-            set_time_limit(600);
         }
     }
     public function failed(\Throwable $exception)
