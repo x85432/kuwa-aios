@@ -2,7 +2,7 @@
 
 @php
     $botimgurl = $history->image ? asset(Storage::url($history->image)) : '/' . config('app.LLM_DEFAULT_IMG');
-    $message = trim(str_replace(["\r\n"], "\n", $history->msg));
+    $message = str_replace(["\r\n"], "\n", $history->msg);
     $visable = true;
     if (!$history->isbot && $refers) {
         foreach ($refers->where('id', '<', $history->id) as $refer) {
