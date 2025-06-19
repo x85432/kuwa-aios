@@ -206,7 +206,7 @@ class AgentRunner:
                 break
 
             if show_step_log:
-                yield f"---[Step {step_count}]---\n\n"
+                yield f"--[{'Branch' if fan_out else 'Step'} {step_count}]---\n\n"
 
             prompt = node.prompt_prefix + memory[-1]["content"] + node.prompt_suffix
             memory[-1]["content"] = prompt
@@ -246,7 +246,7 @@ class AgentRunner:
 
 
             if show_step_log:
-                yield "\n"
+                yield "\n\n"
 
         if not show_step_log:
             yield response
