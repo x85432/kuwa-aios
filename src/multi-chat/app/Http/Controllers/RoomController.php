@@ -63,7 +63,7 @@ class RoomController extends Controller
     {
         $chat = ChatRoom::find($request->route('room_id'));
         if ($chat && $chat->user_id == Auth::user()->id) {
-            return view('room.export');
+            return view('room.share', ['print' => true]);
         } else {
             return redirect()->route('room.home');
         }
