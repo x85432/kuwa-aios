@@ -84,7 +84,7 @@
                 }
             });
 
-            if ($chattable && (($("#chat_input").val().trim() != "") || quoted.length != 0)) {
+            if ($chattable && !allDisabled && (($("#chat_input").val().trim() != "") || quoted.length != 0)) {
                 tmp = ""
                 for (var i in quoted) {
                     @if (App::environment('arena') || $llms->count() == 1)
