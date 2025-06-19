@@ -710,6 +710,9 @@ class RoomController extends Controller
 
                 if ($prompts) {
                     $prompts = explode("\n", $prependMessage . $prompts);
+                    foreach ($prompts as &$prompt) {
+                        $prompt = str_replace('\n', "\n", $prompt);
+                    }
                     if ($roomId ?? null) {
                         $Room = ChatRoom::findorfail($roomId);
                         $chat = Chats::where('roomID', '=', $roomId)->where('bot_id', $i)->first();
