@@ -2,11 +2,13 @@
 
 return [
     'route' => 'チャット',
-    'tooltip.json_btn' => 'エスケープされていないJSON形式',
-    'tooltip.TSV' => 'タブ区切り、Excelで読み込み可能',
     'hint.prompt_area' => 'ここにメッセージを入力してください',
     'hint.copied' => 'コピーされました',
     'hint.confirm_go_to' => '移動してもよろしいですか？',
+    'tooltip.json_btn' => 'チャットログをJSON形式に変換してダウンロード',
+    'tooltip.TSV' => 'チャットログをタブ区切りのTXT形式に変換（Excelで読み込み可能）',
+    'tooltip.PDF' => 'チャットログをPDF形式に変換',
+    'tooltip.DOC' => 'チャットログをWord形式に変換',
     'header.new_chat' => '現在指定されたチャットモデル',
     'header.export' => 'チャットログのエクスポート',
     'header.import' => 'チャットログのインポート',

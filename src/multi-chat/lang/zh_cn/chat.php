@@ -2,11 +2,13 @@
 
 return [
     'route' => '聊天',
-    'tooltip.json_btn' => '無跳脫的JSON格式',
-    'tooltip.TSV' => 'Tab分隔，可由Excel讀入',
     'hint.prompt_area' => '請在此輸入訊息',
     'hint.copied' => '已複製',
     'hint.confirm_go_to' => '确定前往',
+    'tooltip.json_btn' => '将聊天记录转换成JSON格式并下载',
+    'tooltip.TSV' => '将聊天记录转换成TXT格式(Tab分隔)，可由Excel导入',
+    'tooltip.PDF' => '将聊天记录转换为PDF格式',
+    'tooltip.DOC' => '将聊天记录转换为Word格式',
     'header.new_chat' => '目前指定聊天模型',
     'header.export' => '匯出聊天紀錄',
     'header.import' => '匯入聊天紀錄',

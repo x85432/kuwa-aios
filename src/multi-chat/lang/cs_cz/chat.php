@@ -2,11 +2,13 @@
 
 return [
     'route' => 'Chat',
-    'tooltip.json_btn' => 'JSON ve formátu bez úniků',
-    'tooltip.TSV' => 'Oddělené tabulátory, lze importovat z Excelu',
     'hint.prompt_area' => 'Zadejte zde zprávu',
     'hint.copied' => 'Zkopírováno',
     'hint.confirm_go_to' => 'Potvrdit přechod',
+    'tooltip.json_btn' => 'Převést historii chatu do formátu JSON a stáhnout',
+    'tooltip.TSV' => 'Převést historii chatu do textového formátu (odděleného tabulátorem), čitelného v Excelu',
+    'tooltip.PDF' => 'Převést historii chatu do formátu PDF',
+    'tooltip.DOC' => 'Převést historii chatu do formátu Word',
     'header.new_chat' => 'Aktuálně vybraný chatovací model',
     'header.export' => 'Exportovat chatovou historii',
     'header.import' => 'Importovat chatovou historii',

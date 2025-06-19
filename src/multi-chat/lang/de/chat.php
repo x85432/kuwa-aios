@@ -2,11 +2,13 @@
 
 return [
     'route' => 'Chat',
-    'tooltip.json_btn' => 'JSON-Format ohne Escape-Sequenzen',
-    'tooltip.TSV' => 'Tabulator-getrennt, kann von Excel gelesen werden',
     'hint.prompt_area' => 'Geben Sie hier Ihre Nachricht ein',
     'hint.copied' => 'Kopiert',
     'hint.confirm_go_to' => 'Weiterleitung bestätigen',
+    'tooltip.json_btn' => 'Chat-Verlauf als JSON herunterladen',
+    'tooltip.TSV' => 'Chat-Verlauf als TXT (Tab-separiert) für Excel exportieren',
+    'tooltip.PDF' => 'Chat-Verlauf als PDF exportieren',
+    'tooltip.DOC' => 'Chat-Verlauf als Word-Dokument exportieren',
     'header.new_chat' => 'Aktuell ausgewähltes Chat-Modell',
     'header.export' => 'Chat-Protokoll exportieren',
     'header.import' => 'Chat-Protokoll importieren',

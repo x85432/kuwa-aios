@@ -2,11 +2,13 @@
 
 return [
     'route' => 'Chat',
-    'tooltip.json_btn' => 'Format JSON sans échappement',
-    'tooltip.TSV' => 'Séparé par des tabulations, peut être lu par Excel',
     'hint.prompt_area' => 'Veuillez saisir votre message ici',
     'hint.copied' => 'Copié',
     'hint.confirm_go_to' => 'Confirmer pour accéder',
+    'tooltip.json_btn' => 'Convertir l’historique du chat en JSON et télécharger',
+    'tooltip.TSV' => 'Convertir l’historique du chat en TXT (séparé par des tabulations), importable par Excel',
+    'tooltip.PDF' => 'Convertir l’historique du chat en PDF',
+    'tooltip.DOC' => 'Convertir l’historique du chat en Word',
     'header.new_chat' => 'Modèle de conversation actuellement sélectionné',
     'header.export' => 'Exporter l’historique des conversations',
     'header.import' => 'Importer l’historique des conversations',

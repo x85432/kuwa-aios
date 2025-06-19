@@ -2,11 +2,13 @@
 
 return [
     'route' => '채팅',
-    'tooltip.json_btn' => '이스케이프되지 않은 JSON 형식',
-    'tooltip.TSV' => '탭으로 구분된, 엑셀에서 가져올 수 있습니다.',
     'hint.prompt_area' => '여기에 메시지를 입력하세요',
     'hint.copied' => '복사됨',
     'hint.confirm_go_to' => '확인 후 이동',
+    'tooltip.json_btn' => '채팅 기록을 JSON 형식으로 변환하여 다운로드',
+    'tooltip.TSV' => '채팅 기록을 Excel에서 읽을 수 있는 TXT 형식(탭 구분)으로 변환',
+    'tooltip.PDF' => '채팅 기록을 PDF 형식으로 변환',
+    'tooltip.DOC' => '채팅 기록을 Word 형식으로 변환',
     'header.new_chat' => '현재 선택된 채팅 모델',
     'header.export' => '채팅 기록 내보내기',
     'header.import' => '채팅 기록 가져오기',
