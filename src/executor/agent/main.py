@@ -4,6 +4,7 @@ import logging
 import asyncio
 import i18n
 import pydantic
+import copy
 from typing import List, Dict
 from httpx import HTTPStatusError
 from enum import Enum
@@ -178,7 +179,7 @@ class AgentRunner:
     ):
         self.state = AgentState.RUNNING
 
-        memory = history.copy()
+        memory = copy.deepcopy(history)
         response = ""
         exit_code = 0
         index = 0
@@ -239,7 +240,7 @@ class AgentRunner:
 
                 memory = list(map(invert_role, memory))
             else:
-                memory.append(history[-1].copy())
+                memory.append(copy.deepcopy(history[-1]))
                 if not node.append_history:
                     memory = memory[-1:]
 
