@@ -6,7 +6,7 @@
     $visable = true;
     if (!$history->isbot && $refers) {
         foreach ($refers->where('id', '<', $history->id) as $refer) {
-            $referMsg = trim(str_replace(["\r\n"], "\n", $refer->msg));
+            $referMsg = str_replace(["\r\n"], "\n", $refer->msg);
             $referMsg = '"""' . $referMsg . '"""';
 
             if ($refer->id !== $history->id) {
